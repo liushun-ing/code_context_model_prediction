@@ -1,0 +1,1021 @@
+3p
+4DIAC-IDE
+4DIAC-LIB
+4DIAC-SYS
+A spam bug
+Accounts.eclipse.org
+ACTF
+Actinium
+Action Tracking System (ATS)
+Addons
+Admin
+Adoptium
+AERI
+Aether
+AF and VP
+Agent
+AGF
+AGF Chart
+aggregator
+AJBrowser
+AJDoc
+Albireo
+ALF
+Algorithms
+all-packages
+AM3
+AM3(deprecated)
+AMF
+AMF UI
+AML
+AMW
+Analyses
+Analysis
+android-package
+Annotations
+Ant
+Antenna
+Apache Derby Conn Profile
+Aperi
+API
+API Tools
+API.eclipse.org
+Apogee
+Application Deployment
+Application Development
+Application Modelling
+Apricot
+APT
+Architecture Council
+Articles
+Artifact Handlers
+artifact repository
+Aspect PHP
+AST viewer
+ATF
+Auth&amp;Auth
+Automated Error Reporting Client (AERI)
+automotive-package
+Autotools
+AXF
+AXF UI
+b3
+Backchannel
+Backlog
+BIRT
+BLAM
+Blinki
+Blogs
+BPEL
+BPMN
+BTF
+Buckminster
+Bugzilla
+Build
+build help
+build.system
+bundles
+bundlor
+Business
+Californium
+Call Graph
+Capella Gitadapter
+Capella Studio
+CBI p2 Repository Aggregator
+CDA
+cdi
+CDO
+cdo.core
+cdo.dawn
+cdo.db
+cdo.docs
+cdo.legacy
+cdo.net4j
+cdo.net4j.db
+cdo.net4j.ui
+cdo.releng
+cdo.ui
+cdt-arduino
+cdt-autotools
+cdt-build
+cdt-build-managed
+cdt-cmake
+cdt-codan
+cdt-core
+cdt-debug
+cdt-debug-cdi
+cdt-debug-cdi-gdb
+cdt-debug-dsf
+cdt-debug-dsf-gdb
+cdt-debug-edc
+cdt-debug-hardware
+cdt-doc
+cdt-docker
+cdt-editor
+cdt-gdb-standalone
+cdt-indexer
+cdt-lsp
+cdt-memory
+cdt-other
+cdt-parser
+cdt-qt
+cdt-refactoring
+cdt-releng
+cdt-source-nav
+CDTK
+Cell
+CEP
+ChangeLog
+Charter
+Chess
+CI-Jenkins
+cli
+client
+Clientcore
+ClientUI
+Cloud
+Cloud Monitoring
+CME
+Co-Evolution
+cobol
+Code Generation
+Code Generators
+Codegen
+Codewind
+Collaboration
+Command Line
+Commits Explorer (Retired)
+committers-package
+CommitterTools
+Common
+Common Builder (Retired)
+Common-Debug
+commons
+communication
+Compare
+Compare &amp; Merge IDE Integration
+Compendium
+Compiler
+components
+Concierge
+Connection Mgt Framework
+Connectivity
+Connector
+Connectors
+contactBaseData (Kontaktstammdaten)
+Contribution
+Core
+Corona
+Cosmos
+cpp-package
+Cross-Project
+CTF
+CTK
+CTK/Doc
+CVS
+Cybersecurity
+Damos
+Dash Athena
+Dash Handbook
+Dash Submission System
+Dashboard
+Data Binding
+Data Source Explorer
+datasource
+datasource-nosql
+datasource-relational
+DataTools
+DB Definition Model
+DD
+DDL Generation
+Debug
+Debug Core
+Debug SDM
+Debug UI
+Define
+Demo
+demo &amp; examples
+DEPL
+Deployment
+design
+Designer
+Desktop
+Detachment
+Development
+Diagram
+Diagram Editor
+Diagrams
+Diff-Merge
+Disease
+DITA
+DLTK
+Doc
+Doc2Model
+Docker
+Docmlet
+Docs
+Documentation
+downloads and updates
+Driver Mgt Framework
+DSDP
+DSE
+DSE Data Actions
+DSL
+dsl-package
+Dynamic Package Delivery
+Dynamic Working Sets
+e4
+E4 Extension
+EATop
+eBam
+eBPM
+EBR
+ECD Tools
+Ecesis
+ecf.cola
+ecf.core
+ecf.datashare
+ecf.discovery
+ecf.doc
+ecf.examples
+ecf.filetransfer
+ecf.newsreader
+ecf.osgi.tck
+ecf.presence
+ecf.protocols
+ecf.providers
+ecf.releng
+ecf.remoteserviceadmin
+ecf.remoteservices
+ecf.server
+ecf.telephony
+ecf.test
+ecf.tooling
+ecf.twitterhub
+ecf.ui
+ECL
+Eclipse monkey
+eclipse-build
+EclipseBot
+EclipseCon
+Eclipselink
+EclipseLIVE
+Edit
+Editor
+Editor UI
+editors
+EDT
+Education
+EJB
+EL
+Electron
+elogbook (Betriebstagebuch)
+embedcpp-package
+EMF Databinding
+EMF Forms
+EMF-Facet
+EMF4Net
+Emfatic
+EMFIndex
+EMFIndex.Core
+EMFT
+EMFT search
+EMFT.MFT
+EMFT.Servus
+emftvm
+emfvm
+EMO Approvals
+EMS
+Enablement
+Enablement:ODA
+Enablement:SAP
+Enablement:Sybase
+engine
+Engines
+EnglishStrings
+EODM
+EOL
+EPF
+EPIC
+Eplmp
+ERCP
+Errors
+Escape
+ESL
+ESON
+ETFw
+Events.eclipse.org
+Examples
+Extender
+Extra
+Facet
+Faceted Project Framework
+FAQ
+fastcgi
+Featuremodel
+FHIR
+Filtering
+FLS
+Flux
+FMC
+FoE Disbursements
+Forms
+FORTE
+Forum
+Forums and Newsgroups
+Framework
+Ganomatic
+GCov
+gdbtrace
+GDPR
+Geclipse
+GEF Cloudio
+GEF Common
+GEF DOT
+GEF FX
+GEF Geometry
+GEF Graph
+GEF Layout
+GEF MVC
+GEF Zest
+GEF-Legacy Draw2d
+GEF-Legacy GEF (MVC)
+GEF-Legacy Zest
+Gef3d
+GEFBot
+GEM
+Gemini Demos
+Gemini Integration
+Gems
+GenDoc HTML
+General
+Generation / Templates
+Generators
+Generic callstack
+Generic Implementations
+GeoMap
+GeoTools
+Gerneral
+Gerrit
+GIG
+Git
+Gitflow
+GitHub
+Glassfish
+Glassfish-tools
+GlazedLists Extension
+Glimmer
+gmt
+GMT.Mofscript
+Golo
+GProf
+Graphiti
+Greycat
+gridFailureInformation (Störungsinformationstool)
+Groovy
+GUI
+gyrex
+Headless
+Help
+Hibachi
+Higgins
+hip
+Hosted Services Privacy and Acceptable Usage Policy
+http2
+Hudson sandbox
+Hyades
+IAM
+IDE
+IDE Integration
+ide-core
+ide-db
+ide-editor-ace
+ide-editor-designer
+ide-editor-orion
+ide-rcp
+ide-repository
+ide-scm-jgit
+ide-templates
+ide-workspace
+IDE4EDU
+IMM
+IMP
+Incubation
+Incubator
+Incubator.DeviceKit
+Incubators
+Information Meta-Model
+Information Modeling
+Information System
+Infrastructure
+Inject
+Install
+Installer
+Integrations
+Internal
+Interoperability
+Interpreter
+IO
+IoT
+IoTML
+IP Log Tool
+IPZilla
+ISP
+IWG
+J2EE Standard Tools
+Jakarta Interceptors
+JakartaEE
+Jakartaee-Platform
+Jakartaee-stable
+jakartaee-tck
+January
+java-package
+javame-package
+JavaScript
+javascript-package
+jax-rs
+JAXB
+jBPM5 Target Runtime
+JCA
+JCR Management
+JCRM
+JDBC Conn Profile
+JDT and PDE Extensions
+jee-package
+Jersey
+Jet
+Jetty
+JFace
+JGit
+jndi
+JPA
+JS Tools
+js4emf
+jsf
+JSF Tools
+JsonP
+jsp
+JSR220orm
+jst.ejb
+jst.j2ee
+jst.jem
+jst.jsp
+jst.server
+jst.servlet
+jst.ws
+jst.ws.jaxws
+Kepler
+Keyboard Layouts
+Koneki
+Krikkit
+Lang
+Languages
+Laszlo
+Launch
+launchbar
+Launcher
+LDP
+Lepido
+Leshan
+Libhover
+Libra
+Library
+license
+LinuxTools
+linuxtools-package
+LocationTech
+Look And Feel
+LSP4E
+Lsp4j
+LTS
+LTTng
+LTWeaving
+LuaDevelopmentTools
+m2e
+M2MQTT
+M2x IDE Integration
+Macro
+Mail
+MailingLists
+Main
+ManPage
+Manufacturing
+Mapping
+Marketplace
+Marte
+Mass VP
+Mattermost
+Maven
+Maven 2
+Maven 3
+maven-plugins
+Maynstall
+MDDi
+MDMWeb
+MDR
+MDT.MST
+meta
+Meta-model
+Metalua
+Metamodel
+Metrics
+MicroProfile
+Mint
+Misc
+mobile
+Model
+Model Migration
+Model Transformation
+Model Transformation - Simulation
+Model Transformation - Synthetic Load
+Model Workspace
+Model2Doc
+ModelBase
+modeling
+Modeling Tools
+modeling-package
+ModelMutator
+Models
+ModelValidation
+Modes/States VP
+Modules
+Mojos
+Moka
+Mosquitto
+MPI Development Tools
+Mpsutil
+MQTT
+MQTT-Android
+MQTT-C++
+MQTT-Embedded-C
+MQTT-Lua
+MQTT-Obj-C
+Mscript
+MST
+MTJ projects
+MWE
+MXF.Core
+MXF.Editor
+My Account
+Mylyn
+Nab
+navigation
+Navigator
+Navigator &amp; Editor Sockets
+Nebula
+Nebula Extension
+New Features
+Nexus
+Node
+Notation
+Obfuscator
+objecttransaction
+OFMP
+OHF
+Omelet
+Open Data Access
+OpenADX
+openGENESIS
+OpenHW Group
+OpenID Connect
+OpenK-platform
+OpenMDM
+openMobility
+openPASS
+Operator
+Orb
+org.eclipse.soa.mangrove.branches
+org.eclipse.soa.mangrove.builder
+org.eclipse.soa.mangrove.core
+org.eclipse.soa.mangrove.leaves
+org.eclipse.soa.mangrove.roots
+OrionHub
+ORMF
+OSEE Application Framework
+OSEE Test Environment (OTE)
+osgi
+OTDT
+OTEquinox
+Other
+Others
+OTJ
+OTJPA
+OTMvn
+Outside Services
+overlay
+p2
+P2 Management
+p2 Repository Analyzers
+package content
+Package-drone
+Packager
+Pagination Control
+Paho
+Paho.MQTT-Python
+PapyrusReq
+parallel-package
+Patch
+Patterns
+Pave
+pcap
+PDE Build
+PDT
+perf
+Perfo VP
+Phoenix
+Photran
+Photran.Debugger &amp; Console View
+Photran.Documentation
+Photran.Editor &amp; Outline View
+Photran.For Internal Use
+Photran.Managed Make
+Photran.Parser
+Photran.Problems View &amp; Error Markers
+Photran.Refactoring Engine
+Photran.Unknown
+php-package
+PhysicalUnits
+Picasso
+Picture control
+PlanetEclipse
+plannedGridMeasures (Geplante Netzmaßnahmen)
+Platform
+platform-api
+platform-api-client-gwt
+Platforms
+PLDT
+Plexus
+Plug-ins
+Plugin
+plugin-angularjs
+plugin-bower
+plugin-contribution
+plugin-cpp
+plugin-datasource
+plugin-editor-codemirror
+plugin-editor-orion
+plugin-gae
+plugin-git
+plugin-go
+plugin-grunt
+plugin-gulp
+plugin-hosted
+plugin-java
+plugin-npm
+plugin-php
+plugin-python
+plugin-ruby
+plugin-runner
+plugin-sdk
+plugin-svn
+plugin-tour
+plugin-yeoman
+Plugins
+PMC
+PMF
+POI Extension
+Polarsys
+Pollinate
+Ponte
+Preferences Management
+Prereq
+Price VP
+Privacy Designer
+Process
+Profiling framework
+Project
+Project Builder
+Project Configuration
+Project Management
+Project Management &amp; Portal
+Projects
+Properties
+Proposals and Reviews
+ProR
+ProtocolModules
+prototype
+proxy
+Pulsar
+Python
+QA
+QFTP
+qualifier generation
+Query
+Query Language
+Query2
+R IDE
+Rat
+RC
+RC &amp; Web Demonstrator
+RCP
+rcp-package
+RDF4J
+RDT
+RDT.sync
+Rec-Rpl
+Recommenders
+Recommenders.incubator
+Recorder/Generator
+Refactorings
+Release Engineering
+ReleaseEngineering
+Releng
+Releng/Management
+remote
+Remote Tools
+Remus
+reporting-package
+repository
+repository-git
+repository-local
+repository-rcp
+repository-rdbms
+Reqif-1.0
+requirement connector
+Requirement Editor
+RequirementsVP
+Resources
+Revision Graph
+ridget
+RIF-1.1
+RIF-1.2
+RIO
+Risev2g
+RJ
+RM
+RM.LoadLeveler
+RM.MPICH2
+RM.Open MPI
+RM.PBS
+RM.PE
+RM.SLURM
+Robotics
+RobotML
+RPM
+RSE
+Rta
+RTP
+Ruby
+Ruby-Debug
+Runner
+Runtime
+runtime-flow
+runtime-java
+runtime-js
+runtime-js-rhino
+runtime-ui
+runtime-web
+runtime-wiki
+rust-package
+RWT
+samples
+Samples-UML
+Sandbox
+Sapphire
+SBVR
+Sca
+Scada
+Scalamodules
+Scandium
+Schedule
+SCI
+Science
+Score
+Scout
+scout-package
+Scripting
+Scripting Support
+Scripts
+sdk
+SDK Management
+SDO
+Search
+SeCoblocks
+security
+Security Management
+Sensinact
+Sequoyah
+Server
+Server-Side
+ServerCore
+Servers
+Service Model
+Services
+servlet-3.1
+Setup
+Shared
+signing
+signing-service
+simdebug
+SimpleMap
+Simulation
+SiriusDiagram
+Sisu
+site
+Skalli
+Sketch
+Smarthome
+Smarty
+Smells
+Smila
+snaps
+Snippets Framework
+soa-package
+SoaML
+SOC
+Sonar
+Spaces
+Sparkplug
+spdy
+Spring
+SQL Debug Framework
+SQL Debugger Framework
+SQL Editor Framework
+SQL Execution Plan
+SQL Model
+SQL Query Builder
+SQL Query Model
+SQL Query Parser
+SQL Results View
+SQLDevTools
+SSH Slaves
+standbyPlanning (Bereitschaftsplanung)
+Stardust
+start
+State system
+Statemachines
+statementPublicAffairs (Stellungnahme Träger öffentlicher Belang
+Statespace
+Stellation
+STP
+Subversion
+SVN
+Swordfish
+SWT
+SWT/JFace
+SWTBot
+symbex
+SysML
+System2Subsystem
+Systemfocus
+Systemtap
+Table
+Table Data Editor
+Target
+Target - Eclipse via XWT
+Target - WEB via AngularJS
+Targets
+Targlets
+Tcl
+Team
+Technologies
+templates
+Teneo
+terminal
+Test
+Test archive
+Test framework
+Testing
+testing-package
+TestPorts
+tests
+TestSuite
+Texo
+Text
+textual
+Textual editor
+Thym
+Tinydtls
+titan.core
+titan.plugins
+titan.ProtocolModules
+titan.TestPorts
+TMF
+TMF.TCS
+TMW
+tool
+Toolbox
+Tooling
+Tools
+tools.templates
+Toolset
+Toolsmiths
+TPTP
+TPTP.monitoring
+Trace types
+traceability analyser
+Traceability Viewer
+Transaction
+Transformation
+Transformations
+Transition
+translations
+Tree
+TreeMapper
+Triquetrum
+Tycho
+UA
+UCUM
+UFacekit
+UI
+UI Guidelines
+UML2Tools
+UMLGen
+UMLX
+Units
+unknown
+Update  (deprecated - use Eclipse&gt;Equinox&gt;p2)
+Update Site
+Usage Data Collector
+UseCases
+User
+User Assistance
+User Interface
+UserInterface
+Utilities
+UTP
+Vagrant
+Valgrind
+Validation
+Validation Runtime Extensions
+VE
+Version Management
+Views
+virgo-build
+Virtualization
+VJET
+Vorto Repository
+VPM (Archive)
+vservers
+Vulnerability Reports
+Wam
+Wazaabi
+WE
+Weaving
+Web
+Web Page
+Web Site
+Web Standard Tools
+web-admin
+WebDAV
+Website
+Website / Wiki
+websocket
+Webtools Source Editing JSDT
+Webtools.ATF
+webtools.java ee config
+Webtools.WST.Javascript
+Wiki
+WindowBuilder
+Winery
+wizard
+wizards
+Workbench
+Workflow
+wst.command
+wst.common
+wst.css
+wst.dtd
+wst.html
+wst.internet
+wst.json
+wst.server
+wst.sse
+wst.validation
+wst.web
+wst.ws
+wst.wsdl
+wst.wsi
+wst.xml
+wst.xpath
+wst.xsd
+wst.xsl
+WSVT
+wtp
+WTP Datatools
+WTP Incubator
+wtp.inc.facelets
+wtp.inc.jaxws
+wtp.inc.relaxng
+wtp.inc.sieditor
+wtp.inc.vex
+wtp.inc.xmlsearch
+wtp.inc.xmlsecurity
+wtp.inc.xquery
+wtp.inc.xsl
+WWW
+Xcore
+XML
+XML Persistence Mapping
+XML Pivot
+XML/XMI
+XOTcl
+Xpand
+XPand-OCL
+XSD
+Xtext
+Xtext Backlog
+Xtext Errors
+Xtext Integration
+Yasson
+Yearly Release
