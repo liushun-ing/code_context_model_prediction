@@ -119,11 +119,9 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     # optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=0.001)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
-    valid_data_loader = ''
-    if os.path.exists(join(save_path, f'model_dataset_{str(step)}', 'valid')):
-        valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop)  # 加载验证集合
-        print(f'valid total graphs: {len(valid_data_loader)}')
-        valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
+    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop)  # 加载验证集合
+    print(f'valid total graphs: {len(valid_data_loader)}')
+    valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
     max_epoch = [0, 0]
     for epoch in range(epochs):
@@ -150,14 +148,13 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         print(f'Train Epoch {epoch}, '
               f'Average Loss: {total_loss / len(data_loader)}, '
               f'Average Accuracy: {train_accuracy / len(data_loader)}')
-        if os.path.exists(join(save_path, f'model_dataset_{str(step)}', 'valid')):
-            res = valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
-            res.insert(0, epoch)
-            res.insert(1, total_loss / len(data_loader))
-            res.insert(2, train_accuracy / len(data_loader))
-            result.append(res)
-            if res[7] > max_epoch[1]:
-                max_epoch = [epoch, res[7]]
+        res = valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
+        res.insert(0, epoch)
+        res.insert(1, total_loss / len(data_loader))
+        res.insert(2, train_accuracy / len(data_loader))
+        result.append(res)
+        if res[7] > max_epoch[1]:
+            max_epoch = [epoch, res[7]]
         # 保存训练好的模型
         util.save_model(gnn_model, save_path, step, f'{save_name}_{epoch}')
     util.save_result(result, save_path, step, save_name)

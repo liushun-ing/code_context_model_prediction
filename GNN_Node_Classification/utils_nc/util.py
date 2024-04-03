@@ -49,6 +49,7 @@ def maintain_best_model(root_path, step: STEP, save_name, best_epoch):
                 os.remove(join(model_path, pth))
             else:
                 os.rename(join(model_path, pth), join(model_path, pth[:pth.rindex('_')] + '.pth'))
+    print('has maintain the best model')
 
 
 
