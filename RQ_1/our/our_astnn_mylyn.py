@@ -24,7 +24,7 @@ out_feats = 16
 dropout = 0.2
 threshold = 0.4
 
-for step in [2]:
+for step in [1]:
     # construct input: train, valid, test dataset of four project
     # construct_input.main_func(
     #     description=description,

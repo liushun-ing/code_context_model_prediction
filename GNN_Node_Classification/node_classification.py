@@ -125,6 +125,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         print(f'valid total graphs: {len(valid_data_loader)}')
         valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
+    max_epoch = [0, 0]
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
@@ -155,7 +156,13 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             res.insert(1, total_loss / len(data_loader))
             res.insert(2, train_accuracy / len(data_loader))
             result.append(res)
+            if res[7] > max_epoch[1]:
+                max_epoch = [epoch, res[7]]
+        # 保存训练好的模型
+        util.save_model(gnn_model, save_path, step, f'{save_name}_{epoch}')
     util.save_result(result, save_path, step, save_name)
+    # 保留最好的模型，其余的模型丢弃
+    util.maintain_best_model(save_path, step, save_name, max_epoch[0])
 
 
 def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold, self_loop):
@@ -164,8 +171,6 @@ def start_train(save_path, save_name, step, under_sampling_threshold, model, dev
     print(f'train total graphs: {len(data_loader) * batch_size}')
     print('----start train----')
     train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop)
-    # 保存训练好的模型
-    util.save_model(model, save_path, step, save_name)
 
 
 def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):

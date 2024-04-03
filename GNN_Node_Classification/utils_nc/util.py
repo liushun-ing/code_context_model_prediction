@@ -29,6 +29,29 @@ def save_result(result, root_path, step: STEP, save_name):
     print(f'result saved to {result_path}')
 
 
+def maintain_best_model(root_path, step: STEP, save_name, best_epoch):
+    """
+    保存训练好的模型，需要将其改名，将最后的epoch下标去掉
+
+    :param root_path: 需要保存的根目录
+    :param step: 模式，也就是步长，1，2，3
+    :param save_name: 模型名字
+    :param best_epoch: 最好的训练轮次
+    :return: none
+    """
+    model_path = join(root_path, 'model_' + str(step))
+    if not os.path.exists(model_path):
+        return
+    dir_list = os.listdir(model_path)
+    for pth in dir_list:
+        if pth.startswith(save_name):
+            if not pth.endswith(f'{best_epoch}.pth'):
+                os.remove(join(model_path, pth))
+            else:
+                os.rename(join(model_path, pth), join(model_path, pth[:pth.rindex('_')] + '.pth'))
+
+
+
 def save_model(model, root_path, step: STEP, save_name):
     """
     保存训练好的模型

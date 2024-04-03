@@ -29,7 +29,8 @@ dataset_ratio = {
     'test': [0.9, 1.0]
 }
 mylyn_dataset_ratio = {
-    'train': [0, 0.84],
+    'train': [0, 0.74],
+    'valid': [0.74, 0.84],
     'test': [0.84, 1]
 }
 
@@ -39,6 +40,8 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         embedding_file = f'{description}_{step}_astnn_embedding.pkl'
     elif embedding_type == 'glove':
         embedding_file = f'{description}_{step}_glove_embedding.pkl'
+    elif embedding_type == 'codebert':
+        embedding_file = f'{description}_{step}_codebert_embedding.pkl'
     else:
         embedding_file = f'{description}_{step}_astnn_embedding.pkl'
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
@@ -78,8 +81,8 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 shutil.rmtree(dest)
             os.makedirs(dest)
             # 如果没有节点，或者没有边，或者没有正边，都需要过滤掉
-            if len(nodes_tsv) > 0:
-            # if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+            # if len(nodes_tsv) > 0:
+            if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
                 pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
                     join(dest, 'nodes.tsv'), index=False)
                 pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
