@@ -1,6 +1,7 @@
 import os
 from os.path import join
 
+import javalang
 import pandas as pd
 from javalang.tree import FieldDeclaration
 
@@ -16,3 +17,29 @@ print(dec.children)
 
 # train_vector_df = pd.read_pickle(join(root_path, 'astnn_embedding.pkl'))
 # print(train_vector_df)
+
+
+string = """
+public abstract class AbstractRepositoryTaskEditor extends TaskFormPage {
+	private static final String LABEL_HISTORY = "History";
+	private TaskEditor parentEditor = null;
+	private class TabVerifyKeyListener implements VerifyKeyListener {
+		public void verifyKey(VerifyEvent event) {  }
+	}
+	protected void initTaskEditor(IEditorSite site, RepositoryTaskEditorInput input) {  }
+	protected Label createLabel(Composite composite, RepositoryTaskAttribute attribute) {  }
+	private void setText(Browser browser, String html) {}
+	private class RadioButtonListener implements SelectionListener, ModifyListener {
+		public void widgetDefaultSelected(SelectionEvent e) {}
+		public void modifyText(ModifyEvent e) {  }
+	}
+}
+
+"""
+tokens = javalang.tokenizer.tokenize(string)
+parser = javalang.parser.Parser(tokens)
+tree = parser.parse_class_or_interface_declaration()
+print(tree.attrs)
+print(tree)
+print(tree.children)
+print(tree.children[4][0].children[4][0].children)

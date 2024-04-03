@@ -95,7 +95,7 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
                 result.append(calculate_result(labels, output, final_k))
             else:
                 # output = select_result(output)
-                print(labels, output)
+                # print(labels, output)
                 result.append(calculate_result_full(labels, output, threshold, device))
         if top_k != 0:
             p, r, f = 0.0, 0.0, 0.0
@@ -209,7 +209,7 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
     print(f'total test graph: {len(data_loader)}')
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     thresholds = [0.4]
-    with open(join(model_path, 'result3.txt'), 'a') as f:
+    with open(join(model_path, 'result4.txt'), 'a') as f:
         f.write(f'model: {model_name} + step: {step}\n')
         for t in thresholds:
             print()

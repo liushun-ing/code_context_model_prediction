@@ -220,7 +220,7 @@ def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
 
 
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_name: str,
-              code_embedding=200, epochs=50, lr=0.001, batch_size=16, hidden_size=64, out_feats=16, dropout=0.0,
+              code_embedding=200, epochs=50, lr=0.001, batch_size=16, hidden_size=64, out_feats=16, dropout=0.2,
               threshold=0.5, use_gpu=True):
     """
     node classification

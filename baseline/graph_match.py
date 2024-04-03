@@ -176,9 +176,9 @@ def main_func(step, MinConf, patterns):
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
-    _index = 400
-    for G1 in G1s[0: _index]:
-        if G1s.index(G1) in [103]:
+    _index = 1200
+    for G1 in G1s[900: _index]:
+        if G1s.index(G1) in [689,752]:
             continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
@@ -292,7 +292,7 @@ def main_func(step, MinConf, patterns):
     # print_result(result_3, 3)
     # print_result(result_5, 5)
     # print_result(result_full, 0)
-    pd.to_pickle(result_full, f'./result-{_index/400}')
+    pd.to_pickle(result_full, f'./result-{_index/300}')
     # final_precision = final_precision / len(G1s)
     # final_recall = final_recall / len(G1s)
     # final_f1 = final_f1 / len(G1s)

@@ -24,7 +24,7 @@ out_feats = 16
 dropout = 0.2
 threshold = 0.4
 
-for step in [1]:
+for step in [2]:
     # construct input: train, valid, test dataset of four project
     # construct_input.main_func(
     #     description=description,
@@ -34,21 +34,21 @@ for step in [1]:
     # )
 
     # train and save model
-    # node_classification.main_func(
-    #     save_path=current_path,
-    #     save_name=result_name,
-    #     step=step,
-    #     under_sampling_threshold=under_sampling_threshold,
-    #     model_name=model_name,
-    #     code_embedding=code_embedding,
-    #     epochs=epochs,
-    #     lr=lr,
-    #     batch_size=batch_size,
-    #     hidden_size=hidden_size,
-    #     out_feats=out_feats,
-    #     dropout=dropout,
-    #     threshold=threshold,
-    # )
+    node_classification.main_func(
+        save_path=current_path,
+        save_name=result_name,
+        step=step,
+        under_sampling_threshold=under_sampling_threshold,
+        model_name=model_name,
+        code_embedding=code_embedding,
+        epochs=epochs,
+        lr=lr,
+        batch_size=batch_size,
+        hidden_size=hidden_size,
+        out_feats=out_feats,
+        dropout=dropout,
+        threshold=threshold,
+    )
 
     # show train result
     # view.main_func(

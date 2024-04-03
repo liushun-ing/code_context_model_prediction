@@ -38,9 +38,9 @@ def get_graph_files(dataset_path, mode: LOAD_MODE, step: int):
         else:
             model_list = []
     for model_dir in model_list:
-        if not model_dir.startswith('my_mylyn_5834_0'):
-            continue
-        print(model_dir)
+        # if not model_dir.startswith('my_mylyn_5834_0'):
+        #     continue
+        # print(model_dir)
         if not os.path.exists(join(graph_path, mode, model_dir, 'nodes.tsv')):
             continue
         graph_files.append((join(graph_path, mode, model_dir, 'nodes.tsv'), join(graph_path, mode, model_dir, 'edges.tsv')))
@@ -136,7 +136,7 @@ def random_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, thresho
     all_neg_nodes = nodes[nodes['label'] == 0]
     need_sample_num = pos_count * threshold
     # 循环不重复采样，生成多个图，防止信息过分丢失
-    for _ in range(count):
+    for _ in range(min(count, 5)):
         _nodes = nodes.copy(deep=True)
         _edges = edges.copy(deep=True)
         sample_neg_nodes = all_neg_nodes.sample(int(need_sample_num)).copy(deep=True)
@@ -188,8 +188,10 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
         # print('nodes:\n{0} \n edges:\n{1}'.format(nodes, edges))
         src, dst = edges['start_node_id'].tolist(), edges['end_node_id'].tolist()
         g = dgl.graph(data=(src, dst), num_nodes=len(nodes))
+        # g = dgl.graph(data=(src + dst, dst + src), num_nodes=len(nodes))  # double edge
         g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
         g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
+        # g.edata['relation'] = torch.tensor(edges['relation'].tolist() + edges['relation'].tolist(), dtype=torch.int64)
         g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
         # 添加自环边
         if self_loop:
