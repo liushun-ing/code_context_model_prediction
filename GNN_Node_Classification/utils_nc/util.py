@@ -48,7 +48,7 @@ def maintain_best_model(root_path, step: STEP, save_name, best_epoch):
             if not pth.endswith(f'{best_epoch}.pth'):
                 os.remove(join(model_path, pth))
             else:
-                os.rename(join(model_path, pth), join(model_path, pth[:pth.rindex('_')] + '.pth'))
+                os.rename(join(model_path, pth), join(model_path, pth[:pth.rindex('_')] + '_best.pth'))
     print('has maintain the best model')
 
 
@@ -85,7 +85,7 @@ def load_model(model, root_path, step: STEP, load_name):
     :return: none
     """
     model_path = join(root_path, 'model_' + str(step))
-    model_path = join(model_path, f'{load_name}.pth')
+    model_path = join(model_path, f'{load_name}_best.pth')
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path))
         print(f'Model loaded from {model_path}')
