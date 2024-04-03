@@ -234,9 +234,9 @@ def collate(batch):
     return batched_graph, features, label, edge_types
 
 
-def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=5.0, self_loop=True) -> torch.utils.data.dataloader.DataLoader:
+def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=5.0, self_loop=True, load_lazy=True) -> torch.utils.data.dataloader.DataLoader:
     """
-    根据模式加载数据集
+    根据模式加载数据集,可以选择懒加载
 
     :param dataset_path: 数据集保存路径
     :param step: 步长
@@ -244,12 +244,18 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
     :param batch_size: batch大小
     :param under_sampling_threshold: 欠采样阈值，最终负/正样本比例
     :param self_loop: 是否需要添加自环
+    :param load_lazy: 是否加载之前的数据
     :return: 相应数据集的DataLoader
     """
-    # 从文件加载多个图数据
-    graphs = []
-    for node_file, edge_file in get_graph_files(dataset_path, mode, step):
-        graphs = graphs + load_graph_data(node_file, edge_file, mode, under_sampling_threshold, self_loop)
+    old_data_path = join(dataset_path, f'model_dataset_{str(step)}', f'{mode}', f'old_data_{mode}.pkl')
+    if load_lazy and os.path.exists(old_data_path):
+        graphs = pd.read_pickle(old_data_path)
+    else:
+        # 从文件加载多个图数据
+        graphs = []
+        for node_file, edge_file in get_graph_files(dataset_path, mode, step):
+            graphs = graphs + load_graph_data(node_file, edge_file, mode, under_sampling_threshold, self_loop)
+        pd.to_pickle(graphs, old_data_path)
     # 创建数据集和 DataLoader
     # print(graphs)
     dataset = GraphDataset(graphs)

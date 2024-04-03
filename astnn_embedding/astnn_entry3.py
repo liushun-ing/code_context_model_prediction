@@ -11,16 +11,6 @@ def train_mylyn(step, r):
     embedding.main_func(step=step, description='mylyn', r=r)
 
 
-def train_mymylyn(step, r):
-    """
-    全部训练,得到节点嵌入
-    """
-    # 训练word2vec模型
-    train_word2vec.main_func(step=step, description='mymylyn', r=r)
-    # 转换为词向量
-    embedding.main_func(step=step, description='mymylyn', r=r)
-
-
 # 全部训练
 def train_all(step, r):
     """

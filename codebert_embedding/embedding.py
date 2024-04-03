@@ -57,28 +57,19 @@ def get_embedding(tokens: pd.DataFrame) -> pd.DataFrame:
     return tokens
 
 
-def main_func(step, description, r=0.8):
+def main_func(step, description):
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
-        ratio = r
-    elif description == 'mymylyn':
-        project_model_list = ['my_mylyn']
-        ratio = r
     elif description == 'onlymylyn':
         project_model_list = ['my_mylyn']
-        ratio = 1
     elif description == 'nopde':
         project_model_list = ['my_platform', 'my_mylyn']
-        ratio = 1
     elif description == 'noplatform':
         project_model_list = ['my_pde', 'my_mylyn']
-        ratio = 1
     elif description == 'mylyn':
         project_model_list = ['my_mylyn']
-        ratio = r
     else:
         project_model_list = []
-        ratio = 1
     for project_model_name in project_model_list:
         print('**********', project_model_name)
         project_path = join(repo_root_path, project_model_name, 'repo_first_3')
@@ -97,4 +88,4 @@ def main_func(step, description, r=0.8):
                 join(model_path, f'{description}_{step}_codebert_embedding.pkl'))
 
 
-main_func(1, 'all')
+main_func(1, 'mylyn')

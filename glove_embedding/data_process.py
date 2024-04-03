@@ -72,9 +72,6 @@ def main_func(step: int, description, r=0.8):
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
         ratio = r
-    elif description == 'mymylyn':
-        project_model_list = ['my_mylyn']
-        ratio = r
     elif description == 'onlymylyn':
         project_model_list = ['my_mylyn']
         ratio = 1

@@ -123,7 +123,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     print(f'valid total graphs: {len(valid_data_loader)}')
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
-    max_epoch = [0, 0]
+    max_epoch = [0, 0, 0, 0]  # precision recall f1
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
@@ -153,12 +153,14 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         res.insert(1, total_loss / len(data_loader))
         res.insert(2, train_accuracy / len(data_loader))
         result.append(res)
-        if res[7] > max_epoch[1]:
+        # 如何保存最优模型
+        if res[5] + res[6] + res[7] > max_epoch[1] + max_epoch[2] + max_epoch[3]:
             max_epoch = [epoch, res[7]]
         # 保存训练好的模型
         util.save_model(gnn_model, save_path, step, f'{save_name}_{epoch}')
     util.save_result(result, save_path, step, save_name)
     # 保留最好的模型，其余的模型丢弃
+    print('the best model is: ', max_epoch)
     util.maintain_best_model(save_path, step, save_name, max_epoch[0])
 
 

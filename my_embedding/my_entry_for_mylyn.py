@@ -13,16 +13,6 @@ def train_mylyn(step, r):
     embedding.main_func(step=step, description='mylyn', r=r)
 
 
-def train_mymylyn(step, r):
-    """
-    全部训练,得到节点嵌入
-    """
-    # 训练word2vec模型
-    train_BPE.main_func(step=step, description='mymylyn', r=r)
-    # 转换为词向量
-    embedding.main_func(step=step, description='mymylyn', r=r)
-
-
 # 全部训练
 def train_all(step, r):
     """
@@ -58,12 +48,9 @@ def train_noplatform(step):
     embedding.main_func(step=step, description='noplatform')
 
 
-train_mylyn(step=1, r=0.84)  # 1714
-# train_mylyn(step=2, r=0.84)
-# train_mylyn(step=3, r=0.84)
-# train_mymylyn(step=1, r=0.8)
-# train_mymylyn(step=2, r=0.8)
-# train_mymylyn(step=3, r=0.8)
+train_mylyn(step=1, r=0.74)  # 1714
+# train_mylyn(step=2, r=0.74)
+# train_mylyn(step=3, r=0.74)
 # train_all(step=1, r=0.8)
 # train_all(step=2, r=0.8)
 # train_all(step=3, r=0.8)

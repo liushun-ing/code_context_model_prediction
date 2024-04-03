@@ -146,12 +146,9 @@ def get_embedding(ast_df: pd.DataFrame, model, vocab, max_token) -> pd.DataFrame
     return ast_df
 
 
-def main_func(step, description, r=0.8, use_gpu=True):
+def main_func(step, description, r=0.8, use_gpu=True, hidden_dim=100):
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
-        ratio = r
-    elif description == 'mymylyn':
-        project_model_list = ['my_mylyn']
         ratio = r
     elif description == 'onlymylyn':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
@@ -177,7 +174,7 @@ def main_func(step, description, r=0.8, use_gpu=True):
     embeddings[:word2vec.syn0.shape[0]] = word2vec.syn0
     print('embeddings', embeddings, embeddings.shape)
     print('vocab', len(vocab))
-    HIDDEN_DIM = 100  # final embedding size = HIDDEN_DIM * 2
+    HIDDEN_DIM = hidden_dim  # final embedding size = HIDDEN_DIM * 2
     ENCODE_DIM = 128
     BATCH_SIZE = 1
     USE_GPU = use_gpu

@@ -165,12 +165,3 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str):
                 model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
                 model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
                 save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description)
-    elif description == 'mymylyn':
-        project_model_list = ['my_mylyn']
-        for project_model_name in project_model_list:
-            project_path = join(root_path, project_model_name, 'repo_first_3')
-            for dataset in dataset_ratio:
-                ratios = dataset_ratio.get(dataset)
-                model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
-                model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-                save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description)
