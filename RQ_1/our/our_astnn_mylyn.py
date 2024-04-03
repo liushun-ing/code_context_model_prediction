@@ -3,7 +3,7 @@ from os.path import join
 
 from GNN_Node_Classification import data_estimator, construct_input, node_classification, view, test_model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"  # GPU编号
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # GPU编号
 
 # see the sample ratios of four project
 # data_estimator.estimate_positive_and_negative_samples(['my_pde', 'my_platform', 'my_mylyn'], step=3)

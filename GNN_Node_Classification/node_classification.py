@@ -155,7 +155,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         result.append(res)
         # 如何保存最优模型
         if res[5] + res[6] + res[7] > max_epoch[1] + max_epoch[2] + max_epoch[3]:
-            max_epoch = [epoch, res[7]]
+            max_epoch = [epoch, res[5], res[6], res[7]]
         # 保存训练好的模型
         util.save_model(gnn_model, save_path, step, f'{save_name}_{epoch}')
     util.save_result(result, save_path, step, save_name)
