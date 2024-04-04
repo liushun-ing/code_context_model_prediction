@@ -98,7 +98,7 @@ def valid(gnn_model, data_loader, device, threshold):
         return [total_loss, accuracy, precision, recall, f_1, auroc]
 
 
-def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop):
+def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy):
     """
     训练函数
 
@@ -112,6 +112,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     :param device: 设备 cpu or gpu
     :param threshold: classification threshold
     :param self_loop: whether need self_loop edge
+    :param load_lazy: load dataset lazy
     :return: none
     """
     gnn_model.train()
@@ -119,7 +120,8 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     # optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=0.001)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
-    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop)  # 加载验证集合
+    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop,
+                                             load_lazy=load_lazy)  # 加载验证集合
     print(f'valid total graphs: {len(valid_data_loader)}')
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
@@ -154,7 +156,8 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         res.insert(2, train_accuracy / len(data_loader))
         result.append(res)
         # 如何保存最优模型
-        if res[5] + res[6] + res[7] > max_epoch[1] + max_epoch[2] + max_epoch[3]:
+        if res[7] > max_epoch[3]:
+        # if res[5] + res[6] + res[7] > max_epoch[1] + max_epoch[2] + max_epoch[3]:
             max_epoch = [epoch, res[5], res[6], res[7]]
         # 保存训练好的模型
         util.save_model(gnn_model, save_path, step, f'{save_name}_{epoch}')
@@ -164,12 +167,14 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     util.maintain_best_model(save_path, step, save_name, max_epoch[0])
 
 
-def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold, self_loop):
+def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
+                self_loop, load_lazy):
     print('----load train dataset----')
-    data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop)
+    data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
+                                       load_lazy)
     print(f'train total graphs: {len(data_loader) * batch_size}')
     print('----start train----')
-    train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop)
+    train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy)
 
 
 def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
@@ -225,7 +230,7 @@ def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
 
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_name: str,
               code_embedding=200, epochs=50, lr=0.001, batch_size=16, hidden_size=64, out_feats=16, dropout=0.2,
-              threshold=0.5, use_gpu=True):
+              threshold=0.5, use_gpu=True, load_lazy=True):
     """
     node classification
 
@@ -243,12 +248,15 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     :param threshold: classification threshold
     :param dropout: dropout rate
     :param use_gpu: default True
+    :param load_lazy: 是否懒加载图数据，default True
     :return: None
     """
-    print(f'model: {model_name}, step: {step}, dropout: {dropout}, undersampling: {under_sampling_threshold}, epoch: {epochs}')
+    print(
+        f'model: {model_name}, step: {step}, dropout: {dropout}, undersampling: {under_sampling_threshold}, epoch: {epochs}')
     if model_name.startswith('RGCN'):
         self_loop = False
     else:
         self_loop = True
     device, model = init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu)
-    start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold, self_loop)
+    start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
+                self_loop, load_lazy)

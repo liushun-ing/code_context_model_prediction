@@ -43,14 +43,15 @@ def maintain_best_model(root_path, step: STEP, save_name, best_epoch):
     if not os.path.exists(model_path):
         return
     dir_list = os.listdir(model_path)
+    best_pth = ''
     for pth in dir_list:
         if pth.startswith(save_name):
             if not pth.endswith(f'{best_epoch}.pth'):
                 os.remove(join(model_path, pth))
             else:
-                os.rename(join(model_path, pth), join(model_path, pth[:pth.rindex('_')] + '_best.pth'))
+                best_pth = pth
+    os.rename(join(model_path, best_pth), join(model_path, f'{best_pth[:best_pth.rindex("_")]}_best.pth'))
     print('has maintain the best model')
-
 
 
 def save_model(model, root_path, step: STEP, save_name):

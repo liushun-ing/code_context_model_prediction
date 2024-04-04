@@ -1,16 +1,12 @@
 """
 根据 glove 模型生成词向量
 """
+import gc
 import os
 from os.path import join
-
-import numpy as np
 import pandas as pd
-import torch
-from gensim.models import KeyedVectors
 import xml.etree.ElementTree as ET
 from tqdm.auto import tqdm
-
 import warnings
 
 from codebert_embedding.codebert import single_embedding
@@ -54,6 +50,7 @@ def get_embedding(tokens: pd.DataFrame) -> pd.DataFrame:
     print('embedding codebert code...')
     tokens['tokens'] = tokens['tokens'].progress_apply(lambda x: single_embedding(x))
     tokens.columns = ['id', 'embedding']
+    # tokens.info()
     return tokens
 
 
@@ -75,17 +72,20 @@ def main_func(step, description):
         project_path = join(repo_root_path, project_model_name, 'repo_first_3')
         model_dir_list = os.listdir(project_path)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        for model_dir in model_dir_list[model_dir_list.index('1799'):]:
+        for model_dir in model_dir_list:
             print('---------------', model_dir)
             model_path = join(project_path, model_dir)
             tokens_path = join(model_path, 'java_tokens.tsv')
             # 如果不存在block_path，跳过处理
             if not os.path.exists(tokens_path):
                 continue
-            sources = pd.read_csv(tokens_path, sep='\t')
-            sources = choose_prediction_step(step, sources, model_path, model_dir)
-            get_embedding(sources).to_pickle(
-                join(model_path, f'{description}_{step}_codebert_embedding.pkl'))
+            # sources = pd.read_csv(tokens_path, sep='\t')
+            # sources = choose_prediction_step(step, pd.read_csv(tokens_path, sep='\t'), model_path, model_dir)
+            embedding_result = get_embedding(
+                choose_prediction_step(step, pd.read_csv(tokens_path, sep='\t'), model_path, model_dir))
+            embedding_result.to_pickle(join(model_path, f'{description}_{step}_codebert_embedding.pkl'))
+            # del embedding_result
+            # gc.collect()
 
 
 main_func(1, 'mylyn')

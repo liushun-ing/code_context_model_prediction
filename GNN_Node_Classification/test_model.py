@@ -185,7 +185,8 @@ def init(model_path, load_name, step, model_name, code_embedding, hidden_size, o
     return model, device
 
 
-def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200, hidden_size=64, out_feats=16, use_gpu=True):
+def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200, hidden_size=64, out_feats=16,
+              use_gpu=True, load_lazy=True):
     """
     测试模型
 
@@ -197,6 +198,7 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
     :param hidden_size: hidden size of GNN
     :param out_feats: out feature size of GNN
     :param use_gpu: default true
+    :param load_lazy: load dataset lazy
     :return: None
     """
     model, device = init(model_path, load_name, step, model_name, code_embedding, hidden_size, out_feats, use_gpu)
@@ -205,16 +207,17 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
         self_loop = False
     else:
         self_loop = True
-    data_loader = load_prediction_data(model_path, 'test', batch_size=1, step=step, self_loop=self_loop)
+    data_loader = load_prediction_data(model_path, 'test', batch_size=1, step=step, self_loop=self_loop,
+                                       load_lazy=load_lazy)
     print(f'total test graph: {len(data_loader)}')
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    thresholds = [0.4]
+    thresholds = [0.4, 0.5]
     with open(join(model_path, 'result4.txt'), 'a') as f:
         f.write(f'model: {model_name} + step: {step}\n')
         for t in thresholds:
             print()
             for k in [0]:
-            # for k in [1, 3, 5, 0]:
+                # for k in [1, 3, 5, 0]:
                 print(f'---threshold:{t} top-k:{k}---')
                 f.write(f'---threshold:{t} top-k:{k}---\n')
                 test(model, data_loader, device, k, t, f)

@@ -43,7 +43,8 @@ def get_graph_files(dataset_path, mode: LOAD_MODE, step: int):
         # print(model_dir)
         if not os.path.exists(join(graph_path, mode, model_dir, 'nodes.tsv')):
             continue
-        graph_files.append((join(graph_path, mode, model_dir, 'nodes.tsv'), join(graph_path, mode, model_dir, 'edges.tsv')))
+        graph_files.append(
+            (join(graph_path, mode, model_dir, 'nodes.tsv'), join(graph_path, mode, model_dir, 'edges.tsv')))
     return graph_files
 
 
@@ -234,7 +235,8 @@ def collate(batch):
     return batched_graph, features, label, edge_types
 
 
-def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=5.0, self_loop=True, load_lazy=True) -> torch.utils.data.dataloader.DataLoader:
+def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=5.0,
+                         self_loop=True, load_lazy=True) -> torch.utils.data.dataloader.DataLoader:
     """
     根据模式加载数据集,可以选择懒加载
 
@@ -249,6 +251,7 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
     """
     old_data_path = join(dataset_path, f'model_dataset_{str(step)}', f'{mode}', f'old_data_{mode}.pkl')
     if load_lazy and os.path.exists(old_data_path):
+        print('lazyload...')
         graphs = pd.read_pickle(old_data_path)
     else:
         # 从文件加载多个图数据

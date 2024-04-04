@@ -140,12 +140,12 @@ class GCNModel3(nn.Module):
     """
     GraphConv based gnn link prediction model: GCN
     """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
+    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
         super(GCNModel3, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
         self.conv1 = GraphConv(in_feats, hidden_size)
-        self.conv2 = GraphConv(hidden_size, hidden_size)
-        self.conv3 = GraphConv(hidden_size, out_feats)
+        self.conv2 = GraphConv(hidden_size, hidden_size_2)
+        self.conv3 = GraphConv(hidden_size_2, out_feats)
         self.dropout = torch.nn.Dropout(p=dropout)
         self.pred = torch.nn.Linear(out_feats, 1)
 

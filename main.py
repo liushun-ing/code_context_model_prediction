@@ -1,54 +1,74 @@
-"""
-run python file
-import the file you want to run, and then run main.py.
-"""
-import dgl
-import numpy as np
-import pandas as pd
-import torch
+import os
+from os.path import join
 
-if __name__ == '__main__':
-    print('main...')
-    #
-    #
-    # g = dgl.graph(((0, 2, 3, 5, 2, 0),
-    #                (2, 2, 5, 2, 2, 4)))
-    # output = torch.tensor([0.4, 0.5, 1, 0.2, 0.3, 0.5])
-    # indices = (output >= 0.4).nonzero(as_tuple=True)[0].tolist()
-    # # sub_g = dgl.node_subgraph(g, indices.tolist())
-    # print(g, output, indices)
-    # tag = np.zeros(len(indices))
-    # for i in range(len(indices)):
-    #     if tag[i] != 1:
-    #         for j in range(len(indices)):
-    #             if i != j:
-    #                 if g.has_edges_between(indices[i], indices[j]):
-    #                     tag[i], tag[j] = 1, 1
-    # print(tag)
-    # for t in range(len(tag)):
-    #     if tag[t] == 0:
-    #         output[t] = 0.0
-    # print(output)
+from GNN_Node_Classification import data_estimator, construct_input, node_classification, view, test_model
 
-    # 创建一个示例的 DataFrame
-    # data = {'ID': [1, 2, 3, 4, 5],
-    #         'Value': ['A', 'B', 'C', 'D', 'E']}
-    # df = pd.DataFrame(data)
-    # # 设置要进行的多次采样次数
-    # num_samples = 2
-    # # 进行多次不重复采样
-    # for _ in range(num_samples):
-    #     sampled_df = df.sample(n=2, replace=False).copy(deep=True)
-    #     # 使用 merge 方法找到两个 DataFrame 中相同的行
-    #     merged_df = pd.merge(df, sampled_df, how='outer', indicator=True)
-    #     merged_df = merged_df.loc[lambda x: x['_merge'] == 'left_only']
-    #     df = merged_df.drop(columns=['_merge'])
-    #     # 打印每次的采样结果
-    #     print("采样结果：")
-    #     print(sampled_df)
-    #     print("---")
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # GPU编号
 
+# see the sample ratios of four project
+# data_estimator.estimate_positive_and_negative_samples(['my_pde', 'my_platform', 'my_mylyn'], step=3)
 
+# parameters
+description = 'mylyn'
+embedding_type = 'astnn'
+current_path = join(os.path.dirname(os.path.realpath(__file__)), 'RQ_1', 'our')  # save to current dir
+model_name = ['GCN3'][0]
+under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 35.0, 40.0, 50.0, 0][5]  # 0表示不进行欠采样 40 是比例最好的
+code_embedding = 512
+epochs = 80
+lr = 0.001
+result_name = f'{description}_{model_name}_{embedding_type}_{under_sampling_threshold}_model'
+batch_size = 16
+hidden_size = 256
+out_feats = 32
+dropout = 0.1
+threshold = 0.4
 
+load_lazy = True
 
+for step in [1]:
+    # construct input: train, valid, test dataset of four project
+    if not load_lazy:
+        construct_input.main_func(
+            description=description,
+            step=step,
+            dest_path=current_path,
+            embedding_type=embedding_type
+        )
 
+    # train and save model
+    node_classification.main_func(
+        save_path=current_path,
+        save_name=result_name,
+        step=step,
+        under_sampling_threshold=under_sampling_threshold,
+        model_name=model_name,
+        code_embedding=code_embedding,
+        epochs=epochs,
+        lr=lr,
+        batch_size=batch_size,
+        hidden_size=hidden_size,
+        out_feats=out_feats,
+        dropout=dropout,
+        threshold=threshold,
+        load_lazy=load_lazy
+    )
+
+    # show train result
+    # view.main_func(
+    #     result_path=current_path,
+    #     step=step,
+    #     load_name=result_name
+    # )
+
+    # test model
+    test_model.main_func(
+        model_path=current_path,
+        load_name=result_name,
+        step=step,
+        model_name=model_name,
+        code_embedding=code_embedding,
+        hidden_size=hidden_size,
+        out_feats=out_feats,
+        load_lazy=load_lazy
+    )
