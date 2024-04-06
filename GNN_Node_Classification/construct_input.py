@@ -86,12 +86,19 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             if os.path.exists(dest):
                 shutil.rmtree(dest)
             os.makedirs(dest)
-            # 如果没有节点，或者没有边，或者没有正边，或者节点数小于step 都需要过滤掉,也就是stimulation
-            if true_edge > 0 and len(nodes_tsv) > 0 and len(edges_tsv) > 0 and true_node > step:
-                pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
-                    join(dest, 'nodes.tsv'), index=False)
-                pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
-                    join(dest, 'edges.tsv'), index=False)
+            # 如果没有节点，或者没有边，或者节点数小于step 都需要过滤掉,也就是stimulation
+            if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+                if dataset != 'train':
+                    if true_node > step:
+                        pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                            join(dest, 'nodes.tsv'), index=False)
+                        pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
+                            join(dest, 'edges.tsv'), index=False)
+                else:
+                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                        join(dest, 'nodes.tsv'), index=False)
+                    pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
+                        join(dest, 'edges.tsv'), index=False)
             base += 1
 
 

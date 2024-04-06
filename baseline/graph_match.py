@@ -75,7 +75,7 @@ def get_graph(graphs: list[ET.Element], step: int):
         edge_list = edges.findall('edge')
         g = nx.DiGraph()
         true_node = 0
-        true_edge = 0
+        # true_edge = 0
         # 转化为图结构
         for node in vertex_list:
             g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
@@ -83,9 +83,9 @@ def get_graph(graphs: list[ET.Element], step: int):
                 true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
-            if int(link.get('origin')) == 1:
-                true_edge += 1
-        if true_edge > 0 and true_node > step:
+            # if int(link.get('origin')) == 1:
+            #     true_edge += 1
+        if true_node > step:
             gs.append(g)
     return gs
 

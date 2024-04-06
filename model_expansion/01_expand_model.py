@@ -16,8 +16,8 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    index = model_dir_list.index('5232')
-    for model_dir in model_dir_list[index:index+1]:
+    # index = model_dir_list.index('5232')
+    for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')
@@ -36,13 +36,13 @@ def main_func(project_model_name: str):
         # 保存图
         model_loader.save_expanded_model(model_graphs, join(model_path, '1_step_expanded_model.xml'))
         # 2 step扩展 需要重置
-        # model_graphs = model_loader.load_code_context_model(model_file)
-        # expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
-        # model_loader.save_expanded_model(model_graphs, join(model_path, '2_step_expanded_model.xml'))
-        # # 3 step扩展
-        # model_graphs = model_loader.load_code_context_model(model_file)
-        # expand_graph.expand_model(model_graphs, all_repo_metrics, 3)
-        # model_loader.save_expanded_model(model_graphs, join(model_path, '3_step_expanded_model.xml'))
+        model_graphs = model_loader.load_code_context_model(model_file)
+        expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
+        model_loader.save_expanded_model(model_graphs, join(model_path, '2_step_expanded_model.xml'))
+        # 3 step扩展
+        model_graphs = model_loader.load_code_context_model(model_file)
+        expand_graph.expand_model(model_graphs, all_repo_metrics, 3)
+        model_loader.save_expanded_model(model_graphs, join(model_path, '3_step_expanded_model.xml'))
 
 
 # ecf
