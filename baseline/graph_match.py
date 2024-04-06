@@ -66,7 +66,7 @@ def load_patterns(patterns):
     return G2s
 
 
-def get_graph(graphs: list[ET.Element]):
+def get_graph(graphs: list[ET.Element], step: int):
     gs = []
     for graph in graphs:
         vertices = graph.find('vertices')
@@ -74,12 +74,19 @@ def get_graph(graphs: list[ET.Element]):
         edges = graph.find('edges')
         edge_list = edges.findall('edge')
         g = nx.DiGraph()
+        true_node = 0
+        true_edge = 0
         # 转化为图结构
         for node in vertex_list:
             g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
+            if int(node.get('origin')) == 1:
+                true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
-        gs.append(g)
+            if int(link.get('origin')) == 1:
+                true_edge += 1
+        if true_edge > 0 and true_node > step:
+            gs.append(g)
     return gs
 
 
@@ -100,7 +107,7 @@ def load_targets(project_model_name: str, step):
         tree = ET.parse(model_file)  # 拿到xml树
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
-        G1s = G1s + get_graph(graphs)
+        G1s = G1s + get_graph(graphs, step)
     return G1s
 
 

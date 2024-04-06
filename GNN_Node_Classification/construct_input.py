@@ -63,6 +63,8 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             # 创建保存nodes和edges的数据结构
             nodes_tsv = list()
             edges_tsv = list()
+            true_edge = 0
+            true_node = 0
             vertices = graph.find('vertices')
             vertex_list = vertices.findall('vertex')
             for vertex in vertex_list:
@@ -71,18 +73,21 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
                 embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0]
                 nodes_tsv.append([_id, embedding.tolist(), int(vertex.get('origin')), vertex.get('kind')])
+                if int(vertex.get('origin')) == 1:
+                    true_node += 1
             edges = graph.find('edges')
             edge_list = edges.findall('edge')
             for edge in edge_list:
                 edges_tsv.append([int(edge.get('start')), int(edge.get('end')), edge_vector[edge.get('label')]])
+                if int(edge.get('origin')) == 1:
+                    true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
                         f'{project_model_name}_{model_dir}_{str(base)}')
             if os.path.exists(dest):
                 shutil.rmtree(dest)
             os.makedirs(dest)
-            # 如果没有节点，或者没有边，或者没有正边，都需要过滤掉
-            # if len(nodes_tsv) > 0:
-            if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+            # 如果没有节点，或者没有边，或者没有正边，或者节点数小于step 都需要过滤掉,也就是stimulation
+            if true_edge > 0 and len(nodes_tsv) > 0 and len(edges_tsv) > 0 and true_node > step:
                 pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
                     join(dest, 'nodes.tsv'), index=False)
                 pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
@@ -113,49 +118,59 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str):
                 ratios = dataset_ratio.get(dataset)
                 model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
                 model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-                save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description)
+                save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
+                           description)
     elif description == 'onlymylyn':
         project_model_name = 'my_mylyn'
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type, description)
+        save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type,
+                   description)
         for project_model_name in ['my_pde', 'my_platform']:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             model_dir_list = get_models_by_ratio(project_model_name, 0, 0.5)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-            save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type, description)
+            save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type,
+                       description)
             model_dir_list = get_models_by_ratio(project_model_name, 0.5, 1)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-            save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type, description)
+            save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type,
+                       description)
     elif description == 'nopde':
         project_model_name = 'my_pde'
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0, 0.5)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type, description)
+        save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type,
+                   description)
         model_dir_list = get_models_by_ratio(project_model_name, 0.5, 1)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type, description)
+        save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type,
+                   description)
         for project_model_name in ['my_mylyn', 'my_platform']:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-            save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type, description)
+            save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type,
+                       description)
     elif description == 'noplatform':
         project_model_name = 'my_platform'
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0, 0.5)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type, description)
+        save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type,
+                   description)
         model_dir_list = get_models_by_ratio(project_model_name, 0.5, 1)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type, description)
+        save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type,
+                   description)
         for project_model_name in ['my_mylyn', 'my_pde']:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-            save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type, description)
+            save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type,
+                       description)
     elif description == 'mylyn':
         project_model_list = ['my_mylyn']
         for project_model_name in project_model_list:
@@ -164,4 +179,5 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str):
                 ratios = dataset_ratio.get(dataset)
                 model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
                 model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-                save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description)
+                save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
+                           description)

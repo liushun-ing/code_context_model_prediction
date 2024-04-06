@@ -81,7 +81,7 @@ def dictionary_and_embedding(trees, size, step, ratio, description):
     w2v.save(join(astnn_root, 'w2v', f'{description}_{str(step)}_{str(ratio)}_node_w2v_{str(size)}'))
 
 
-def main_func(step: int, description, r=0.8):
+def main_func(step: int, description, r=0.8, code_dim=128):
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
         ratio = r
@@ -106,8 +106,8 @@ def main_func(step: int, description, r=0.8):
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0.0, ratio)
         for model_dir in model_dir_list:
-            if model_dir == '2813':
-                continue
+            # if model_dir == '2813':
+            #     continue
             print('---------------', model_dir)
             model_path = join(project_path, model_dir)
             ast_path = join(model_path, 'astnn_ast.pkl')
@@ -118,7 +118,7 @@ def main_func(step: int, description, r=0.8):
             ast = choose_prediction_step(step, ast, model_path, model_dir)
             print(f'ast size: {len(ast)}')
             trees = pd.concat([trees, ast])
-    dictionary_and_embedding(trees, 128, step, ratio, description)
+    dictionary_and_embedding(trees, code_dim, step, ratio, description)
 
 # Word2Vec(corpus, size=size, workers=16, sg=1, max_final_vocab=3000)
 # corpus： 这是你的文本语料库。确保 corpus 是一个经过预处理的、可以迭代的文本集合，其中每个文档都是一个词列表。

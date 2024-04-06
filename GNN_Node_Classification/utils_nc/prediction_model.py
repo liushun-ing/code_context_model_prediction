@@ -38,11 +38,11 @@ class GATModel3(nn.Module):
     """
     GATConv based link prediction model: GAT
     """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8):
+    def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8, hidden_size_2=128):
         super(GATModel3, self).__init__()
         self.conv1 = GATConv(in_feats, hidden_size, num_heads=num_heads)
-        self.conv2 = GATConv(hidden_size * num_heads, hidden_size, num_heads=4)
-        self.conv3 = GATConv(hidden_size * 4, out_feats, num_heads=1)
+        self.conv2 = GATConv(hidden_size * num_heads, hidden_size_2, num_heads=4)
+        self.conv3 = GATConv(hidden_size_2 * 4, out_feats, num_heads=1)
         self.pred = torch.nn.Linear(out_feats, 1)
         self.dropout = torch.nn.Dropout(p=dropout)
 
@@ -234,12 +234,12 @@ class RGCNModel3(nn.Module):
     """
     RelGraphConv based gnn link prediction model: RGCN
     """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
+    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
         super(RGCNModel3, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
         self.conv1 = RelGraphConv(in_feats, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv2 = RelGraphConv(hidden_size, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv3 = RelGraphConv(hidden_size, out_feats, 4, regularizer='basis', num_bases=2)
+        self.conv2 = RelGraphConv(hidden_size, hidden_size_2, 4, regularizer='basis', num_bases=2)
+        self.conv3 = RelGraphConv(hidden_size_2, out_feats, 4, regularizer='basis', num_bases=2)
         self.dropout = torch.nn.Dropout(p=dropout)
         self.pred = torch.nn.Linear(out_feats, 1)
 
@@ -323,11 +323,11 @@ class GraphSAGEModel3(nn.Module):
     """
     GraphSAGE layer from Inductive Representation Learning on Large Graphs
     """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
+    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
         super(GraphSAGEModel3, self).__init__()
         self.conv1 = SAGEConv(in_feats, hidden_size, aggregator_type='mean')
-        self.conv2 = SAGEConv(hidden_size, hidden_size, aggregator_type='mean')
-        self.conv3 = SAGEConv(hidden_size, out_feats, aggregator_type='mean')
+        self.conv2 = SAGEConv(hidden_size, hidden_size_2, aggregator_type='mean')
+        self.conv3 = SAGEConv(hidden_size_2, out_feats, aggregator_type='mean')
         self.dropout = torch.nn.Dropout(p=dropout)
         self.pred = torch.nn.Linear(out_feats, 1)
 

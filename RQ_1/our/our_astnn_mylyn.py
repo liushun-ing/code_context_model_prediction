@@ -14,17 +14,20 @@ embedding_type = 'astnn'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 model_name = ['GCN3'][0]
 under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 35.0, 40.0, 50.0, 0][5]  # 0表示不进行欠采样 40 是比例最好的
-code_embedding = 512
+code_embedding = 1024
 epochs = 80
 lr = 0.001
 result_name = f'{description}_{model_name}_{embedding_type}_{under_sampling_threshold}_model'
 batch_size = 16
-hidden_size = 256
-out_feats = 32
-dropout = 0.1
+hidden_size = 512
+hidden_size_2 = 128
+out_feats = 64
+dropout = 0.2
 threshold = 0.4
 
 load_lazy = True
+
+print(hidden_size, hidden_size_2, out_feats)
 
 for step in [1]:
     # construct input: train, valid, test dataset of four project
@@ -48,6 +51,7 @@ for step in [1]:
         lr=lr,
         batch_size=batch_size,
         hidden_size=hidden_size,
+        hidden_size_2=hidden_size_2,
         out_feats=out_feats,
         dropout=dropout,
         threshold=threshold,
@@ -69,6 +73,7 @@ for step in [1]:
         model_name=model_name,
         code_embedding=code_embedding,
         hidden_size=hidden_size,
+        hidden_size_2=hidden_size_2,
         out_feats=out_feats,
         load_lazy=load_lazy
     )

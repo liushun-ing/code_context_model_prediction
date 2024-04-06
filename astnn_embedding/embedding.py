@@ -146,7 +146,7 @@ def get_embedding(ast_df: pd.DataFrame, model, vocab, max_token) -> pd.DataFrame
     return ast_df
 
 
-def main_func(step, description, r=0.8, use_gpu=True, hidden_dim=100):
+def main_func(step, description, r=0.8, use_gpu=True, hidden_dim=100, code_dim=128):
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
         ratio = r
@@ -165,7 +165,7 @@ def main_func(step, description, r=0.8, use_gpu=True, hidden_dim=100):
     else:
         project_model_list = []
         ratio = 1
-    word2vec = Word2Vec.load(join(root_path, 'w2v', f'{description}_{str(step)}_{str(ratio)}_node_w2v_128')).wv
+    word2vec = Word2Vec.load(join(root_path, 'w2v', f'{description}_{str(step)}_{str(ratio)}_node_w2v_{code_dim}')).wv
     MAX_TOKENS = word2vec.syn0.shape[0]
     EMBEDDING_DIM = word2vec.syn0.shape[1]
     # 设置词汇表
@@ -175,7 +175,7 @@ def main_func(step, description, r=0.8, use_gpu=True, hidden_dim=100):
     print('embeddings', embeddings, embeddings.shape)
     print('vocab', len(vocab))
     HIDDEN_DIM = hidden_dim  # final embedding size = HIDDEN_DIM * 2
-    ENCODE_DIM = 128
+    ENCODE_DIM = code_dim
     BATCH_SIZE = 1
     USE_GPU = use_gpu
     model = BatchProgramCC(EMBEDDING_DIM, HIDDEN_DIM, MAX_TOKENS + 1, ENCODE_DIM, BATCH_SIZE,

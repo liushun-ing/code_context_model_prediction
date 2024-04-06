@@ -134,7 +134,7 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
             print(f'{line}')
 
 
-def init(model_path, load_name, step, model_name, code_embedding, hidden_size, out_feats, use_gpu):
+def init(model_path, load_name, step, model_name, code_embedding, hidden_size, hidden_size_2, out_feats, use_gpu):
     # 定义模型参数  GPU 或 CPU
     if use_gpu:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -152,13 +152,13 @@ def init(model_path, load_name, step, model_name, code_embedding, hidden_size, o
         model = GraphSAGEModel2(code_embedding, hidden_size, out_feats, 0.0)
     elif model_name == 'GAT3':
         print('~~~~~~~~~~~GAT3~~~~~~~~~~~')
-        model = GATModel3(code_embedding, hidden_size, out_feats, 0.0, num_heads=8)
+        model = GATModel3(code_embedding, hidden_size, out_feats, 0.0, num_heads=8, hidden_size_2=hidden_size_2)
     elif model_name == 'GCN3':
         print('~~~~~~~~~~~GCN3~~~~~~~~~~~')
-        model = GCNModel3(code_embedding, hidden_size, out_feats, 0.0)
+        model = GCNModel3(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
     elif model_name == 'GraphSAGE3':
         print('~~~~~~~~~~~GraphSAGE3~~~~~~~~~~~')
-        model = GraphSAGEModel3(code_embedding, hidden_size, out_feats, 0.0)
+        model = GraphSAGEModel3(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
     elif model_name == 'GAT4':
         print('~~~~~~~~~~~GAT4~~~~~~~~~~~')
         model = GATModel4(code_embedding, hidden_size, out_feats, 0.0, num_heads=8)
@@ -173,7 +173,7 @@ def init(model_path, load_name, step, model_name, code_embedding, hidden_size, o
         model = RGCNModel2(code_embedding, hidden_size, out_feats, 0.0)
     elif model_name == 'RGCN3':
         print('~~~~~~~~~~~RGCN3~~~~~~~~~~~')
-        model = RGCNModel3(code_embedding, hidden_size, out_feats, 0.0)
+        model = RGCNModel3(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
     elif model_name == 'RGCN4':
         print('~~~~~~~~~~~RGCN4~~~~~~~~~~~')
         model = RGCNModel4(code_embedding, hidden_size, out_feats, 0.0)
@@ -185,7 +185,8 @@ def init(model_path, load_name, step, model_name, code_embedding, hidden_size, o
     return model, device
 
 
-def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200, hidden_size=64, out_feats=16,
+def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200, hidden_size=64, hidden_size_2=128,
+              out_feats=16,
               use_gpu=True, load_lazy=True):
     """
     测试模型
@@ -196,12 +197,14 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
     :param model_name: train model name:GCN, GAT, GraphSAGE
     :param code_embedding: the size of code embedding
     :param hidden_size: hidden size of GNN
+    :param hidden_size_2: hidden size of second layer
     :param out_feats: out feature size of GNN
     :param use_gpu: default true
     :param load_lazy: load dataset lazy
     :return: None
     """
-    model, device = init(model_path, load_name, step, model_name, code_embedding, hidden_size, out_feats, use_gpu)
+    model, device = init(model_path, load_name, step, model_name, code_embedding, hidden_size, hidden_size_2, out_feats,
+                         use_gpu)
     print('----load test dataset----')
     if model_name.startswith('RGCN'):
         self_loop = False

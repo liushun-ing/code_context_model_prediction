@@ -4,11 +4,11 @@ import train_word2vec
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # GPU编号
 
-def train_mylyn(step, r, hidden_dim):
+def train_mylyn(step, r, hidden_dim, code_dim):
     # 训练word2vec模型
-    train_word2vec.main_func(step=step, description='mylyn', r=r)
+    # train_word2vec.main_func(step=step, description='mylyn', r=r, code_dim=code_dim)
     # 转换为词向量
-    embedding.main_func(step=step, description='mylyn', r=r, hidden_dim=hidden_dim)
+    embedding.main_func(step=step, description='mylyn', r=r, hidden_dim=hidden_dim, code_dim=code_dim)
 
 
 # 全部训练
@@ -46,6 +46,6 @@ def train_noplatform(step, hidden_dim):
     embedding.main_func(step=step, description='noplatform', hidden_dim=hidden_dim)
 
 
-# train_mylyn(step=1, r=0.74, hidden_dim=256)
-train_mylyn(step=2, r=0.74, hidden_dim=256)
+train_mylyn(step=1, r=0.74, hidden_dim=512, code_dim=256)
+# train_mylyn(step=2, r=0.74, hidden_dim=256)
 # train_mylyn(step=3, r=0.84)

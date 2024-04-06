@@ -177,7 +177,7 @@ def start_train(save_path, save_name, step, under_sampling_threshold, model, dev
     train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy)
 
 
-def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
+def init(model_name, code_embedding, hidden_size, hidden_size_2, out_feats, dropout, use_gpu):
     # 定义模型参数  GPU 或 CPU
     if use_gpu:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -195,13 +195,13 @@ def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
         model = GraphSAGEModel2(code_embedding, hidden_size, out_feats, dropout)
     elif model_name == 'GAT3':
         print('~~~~~~~~~~~GAT3~~~~~~~~~~~')
-        model = GATModel3(code_embedding, hidden_size, out_feats, dropout, num_heads=8)
+        model = GATModel3(code_embedding, hidden_size, out_feats, dropout, num_heads=8, hidden_size_2=hidden_size_2)
     elif model_name == 'GCN3':
         print('~~~~~~~~~~~GCN3~~~~~~~~~~~')
-        model = GCNModel3(code_embedding, hidden_size, out_feats, dropout)
+        model = GCNModel3(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
     elif model_name == 'GraphSAGE3':
         print('~~~~~~~~~~~GraphSAGE3~~~~~~~~~~~')
-        model = GraphSAGEModel3(code_embedding, hidden_size, out_feats, dropout)
+        model = GraphSAGEModel3(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
     elif model_name == 'GAT4':
         print('~~~~~~~~~~~GAT4~~~~~~~~~~~')
         model = GATModel4(code_embedding, hidden_size, out_feats, dropout, num_heads=8)
@@ -216,7 +216,7 @@ def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
         model = RGCNModel2(code_embedding, hidden_size, out_feats, dropout)
     elif model_name == 'RGCN3':
         print('~~~~~~~~~~~RGCN3~~~~~~~~~~~')
-        model = RGCNModel3(code_embedding, hidden_size, out_feats, dropout)
+        model = RGCNModel3(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
     elif model_name == 'RGCN4':
         print('~~~~~~~~~~~RGCN4~~~~~~~~~~~')
         model = RGCNModel4(code_embedding, hidden_size, out_feats, dropout)
@@ -229,7 +229,7 @@ def init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu):
 
 
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_name: str,
-              code_embedding=200, epochs=50, lr=0.001, batch_size=16, hidden_size=64, out_feats=16, dropout=0.2,
+              code_embedding=200, epochs=50, lr=0.001, batch_size=16, hidden_size=64, hidden_size_2=64, out_feats=16, dropout=0.2,
               threshold=0.5, use_gpu=True, load_lazy=True):
     """
     node classification
@@ -257,6 +257,6 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
         self_loop = False
     else:
         self_loop = True
-    device, model = init(model_name, code_embedding, hidden_size, out_feats, dropout, use_gpu)
+    device, model = init(model_name, code_embedding, hidden_size, hidden_size_2, out_feats, dropout, use_gpu)
     start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
                 self_loop, load_lazy)
