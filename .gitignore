@@ -176,7 +176,7 @@ git_repo_code/
 astnn_embedding/embedding
 params_validation/git_repo_code
 codeBERT
-baseline/stereotypes
+baseline/stereotype
 my_embedding/codebert_base
 glove_embedding/glove/src
 glove_embedding/glove/eval

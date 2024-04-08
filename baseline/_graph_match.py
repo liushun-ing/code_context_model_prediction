@@ -297,7 +297,7 @@ def main_func(step, patterns):
 
 
 step = 1
-for patterns in ['./patterns-0.008']:
+for patterns in ['./new-patterns-0.007']:
     print('patterns-----', patterns)
     main_func(step=step, patterns=patterns)
 # main_func(step=2)

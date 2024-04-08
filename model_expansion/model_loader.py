@@ -47,8 +47,8 @@ def save_expanded_model(graph_list: list[Graph], save_path: str):
     """
     if os.path.isfile(save_path):
         os.remove(save_path)
-    if len(graph_list) == 0:
-        return
+    # if len(graph_list) == 0:
+    #     return
     # 写图文件,将几个图组合在一起，就是代码上下文模型
     model_root = ET.Element("expanded_model")
     model_root.set('total', str(len(graph_list)))

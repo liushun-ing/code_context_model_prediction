@@ -49,7 +49,7 @@ def exist_edge(all_nodes: list[ET.Element], nodes: list[ET.Element], start, end)
     return e
 
 
-def main_func(project_model_name: str):
+def main_func(project_model_name: str, step):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     model_dir_list = os.listdir(project_path)
     # 读取code context model
@@ -58,7 +58,7 @@ def main_func(project_model_name: str):
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, 'code_context_model.xml')
+        model_file = join(model_path, f'{step}_step_expanded_model.xml')
         rename_model_file = join(model_path, '_code_context_model.xml')
         all_nodes, all_edges = load_origin_model(rename_model_file)
         # 如果不存在模型，跳过处理
@@ -71,14 +71,17 @@ def main_func(project_model_name: str):
         root = tree.getroot()
         graphs = root.findall("graph")
         for graph in graphs:
+            print('graph------------{}+{}'.format(len(all_nodes), len(all_edges)))
             vertices = graph.find('vertices').findall('vertex')
             edges = graph.find('edges').findall('edge')
             for node in vertices:
                 if node.get('origin') == '0' and exist_node(all_nodes, node.get('ref_id')):
                     node.set('origin', '1')
+                    print('changed node origin to 1')
             for link in edges:
                 if link.get('origin') == '0' and exist_edge(all_nodes, vertices, link.get('start'), link.get('end')):
                     link.set('origin', '1')
+                    print('changed edge origin to 1')
         # 将XML写入文件
         tree.write(model_file)
 
@@ -87,9 +90,9 @@ def main_func(project_model_name: str):
 # ecf
 # main_func('my_ecf')
 # pde
-main_func('my_pde')
+# main_func('my_pde')
 # platform
-main_func('my_platform')
+# main_func('my_platform')
 # # mylyn
 # print(root_path)
-main_func('my_mylyn')
+main_func('my_mylyn', 3)

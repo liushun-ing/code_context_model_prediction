@@ -24,6 +24,8 @@ def main_func(project_model_name: str):
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
+        # if os.path.exists(join(model_path, '1_step_expanded_model.xml')):
+        #     continue
         # 读取code context model,以及doxygen的结果，分1-step,2-step,3-step扩展图
         # 分别生成1_step_expanded_model.xml,2_step_expanded_model.xml,3_step_expanded_model.xml
         # 加载doxygen矩阵
@@ -34,15 +36,15 @@ def main_func(project_model_name: str):
         model_graphs = model_loader.load_code_context_model(model_file)
         expand_graph.expand_model(model_graphs, all_repo_metrics, 1)
         # 保存图
-        model_loader.save_expanded_model(model_graphs, join(model_path, '1_step_expanded_model.xml'))
-        # 2 step扩展 需要重置
-        model_graphs = model_loader.load_code_context_model(model_file)
-        expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
-        model_loader.save_expanded_model(model_graphs, join(model_path, '2_step_expanded_model.xml'))
-        # 3 step扩展
-        model_graphs = model_loader.load_code_context_model(model_file)
-        expand_graph.expand_model(model_graphs, all_repo_metrics, 3)
-        model_loader.save_expanded_model(model_graphs, join(model_path, '3_step_expanded_model.xml'))
+        # model_loader.save_expanded_model(model_graphs, join(model_path, '1_step_expanded_model.xml'))
+        # # 2 step扩展 需要重置
+        # model_graphs = model_loader.load_code_context_model(model_file)
+        # expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
+        # model_loader.save_expanded_model(model_graphs, join(model_path, '2_step_expanded_model.xml'))
+        # # 3 step扩展
+        # model_graphs = model_loader.load_code_context_model(model_file)
+        # expand_graph.expand_model(model_graphs, all_repo_metrics, 3)
+        # model_loader.save_expanded_model(model_graphs, join(model_path, '3_step_expanded_model.xml'))
 
 
 # ecf

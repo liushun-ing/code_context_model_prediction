@@ -18,13 +18,13 @@ def main_func(project_model_name: str):
         model_dir_list = get_models_by_ratio('my_mylyn', 0, 0.84)
         print(len(model_dir_list))
         for model_dir in model_dir_list:
-            print('---------------', model_dir)
+            # print('---------------', model_dir)
             model_path = join(project_path, model_dir)
             model_file = join(model_path, 'code_context_model.xml')
             # 如果不存在模型，跳过处理
             if not os.path.exists(model_file):
                 continue
-            # 读取code context model,以及doxygen的结果，分1-step,2-step,3-step扩展图
+            # 读取code context model,以及doxygen的结果
             tree = ET.parse(model_file)  # 拿到xml树
             code_context_model = tree.getroot()
             graphs = code_context_model.findall("graph")
@@ -33,9 +33,12 @@ def main_func(project_model_name: str):
                 f.write(graph_text)
                 vertices = graph.find('vertices')
                 vertex_list = vertices.findall('vertex')
+                vs = []
                 for vertex in vertex_list:
                     stereotype, _id = vertex.get('stereotype'), vertex.get('id')
-                    vertex_text = f'v {_id} {stereotype}\n'
+                    vs.append((_id, stereotype))
+                for v in sorted(vs, key=lambda x: int(x[0])):
+                    vertex_text = f'v {v[0]} {v[1]}\n'
                     f.write(vertex_text)
                 edges = graph.find('edges')
                 edge_list = edges.findall('edge')
@@ -48,7 +51,7 @@ def main_func(project_model_name: str):
         f.close()
     print(graph_index)
 
-    min_support = math.ceil(0.008 * (graph_index - 1))  # 0.02 * num_of_graphs
+    min_support = math.ceil(0.007 * (graph_index - 1))  # 0.02 * num_of_graphs
     print('min_support: ', min_support)
     args_str = f'-s {min_support} ./graph.data'
     FLAGS, _ = parser.parse_known_args(args=args_str.split())
