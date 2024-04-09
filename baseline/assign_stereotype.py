@@ -120,4 +120,4 @@ def main_func(project_model_name: str, step: int):
 
 
 # merge_stereotypes()
-main_func('my_mylyn', step=3)
+main_func('my_mylyn', step=1)

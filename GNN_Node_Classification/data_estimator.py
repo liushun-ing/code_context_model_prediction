@@ -33,6 +33,7 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
                 vertex_list = vertices.findall('vertex')
                 total = len(vertex_list)
                 for vertex in vertex_list:
+                    # print(vertex.get('origin'))
                     if vertex.get('origin') == '1':
                         count += 1
                 if total > 0:
@@ -47,4 +48,5 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
     Q3 = np.percentile(sort_counts_list, 75, method='midpoint')
     print(f'all: {total.shape}, mean: {np.mean(total)}, TQ: {Q3}')
 
-# estimate_positive_and_negative_samples(['my_ecf', 'my_pde', 'my_platform', 'my_mylyn'], step=3)
+
+# estimate_positive_and_negative_samples(['my_mylyn'], step=1)

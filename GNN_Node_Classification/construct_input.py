@@ -12,6 +12,7 @@ from os.path import join
 import xml.etree.ElementTree as ET
 
 import pandas as pd
+import torch
 
 from dataset_split_util import get_models_by_ratio
 
@@ -33,6 +34,7 @@ mylyn_dataset_ratio = {
     'valid': [0.74, 0.84],
     'test': [0.84, 1]
 }
+SEED_EMBEDDING = torch.nn.Embedding(2, 256)
 
 
 def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description):

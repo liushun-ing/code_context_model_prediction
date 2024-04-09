@@ -148,12 +148,14 @@ except ModulenotfoundExp_ :
             self.messages = []
 
         def print_messages(self):
-            for msg in self.messages:
-                print("Warning: {}".format(msg))
+            self.messages = []
+            # for msg in self.messages:
+            #     print("Warning: {}".format(msg))
 
         def write_messages(self, outstream):
-            for msg in self.messages:
-                outstream.write("Warning: {}\n".format(msg))
+            self.messages = []
+            # for msg in self.messages:
+            #     outstream.write("Warning: {}\n".format(msg))
 
 
 #
@@ -27126,13 +27128,13 @@ def parse(inFileName, silence=False, print_warnings=True):
             sys.stdout, 0, name_=rootTag,
             namespacedef_=namespacedefs,
             pretty_print=True)
-    if print_warnings and len(gds_collector.get_messages()) > 0:
-        separator = ('-' * 50) + '\n'
-        sys.stderr.write(separator)
-        sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
-            len(gds_collector.get_messages()), ))
-        gds_collector.write_messages(sys.stderr)
-        sys.stderr.write(separator)
+    # if print_warnings and len(gds_collector.get_messages()) > 0:
+        # separator = ('-' * 50) + '\n'
+        # sys.stderr.write(separator)
+        # sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
+        #     len(gds_collector.get_messages()), ))
+        # gds_collector.write_messages(sys.stderr)
+        # sys.stderr.write(separator)
     return rootObj
 
 
@@ -27163,13 +27165,13 @@ def parseEtree(inFileName, silence=False, print_warnings=True,
             xml_declaration=True, encoding="utf-8")
         sys.stdout.write(str(content))
         sys.stdout.write('\n')
-    if print_warnings and len(gds_collector.get_messages()) > 0:
-        separator = ('-' * 50) + '\n'
-        sys.stderr.write(separator)
-        sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
-            len(gds_collector.get_messages()), ))
-        gds_collector.write_messages(sys.stderr)
-        sys.stderr.write(separator)
+    # if print_warnings and len(gds_collector.get_messages()) > 0:
+    #     separator = ('-' * 50) + '\n'
+    #     sys.stderr.write(separator)
+    #     sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
+    #         len(gds_collector.get_messages()), ))
+    #     gds_collector.write_messages(sys.stderr)
+    #     sys.stderr.write(separator)
     return rootObj, rootElement, mapping, reverse_mapping
 
 
@@ -27198,13 +27200,13 @@ def parseString(inString, silence=False, print_warnings=True):
         rootObj.export(
             sys.stdout, 0, name_=rootTag,
             namespacedef_='')
-    if print_warnings and len(gds_collector.get_messages()) > 0:
-        separator = ('-' * 50) + '\n'
-        sys.stderr.write(separator)
-        sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
-            len(gds_collector.get_messages()), ))
-        gds_collector.write_messages(sys.stderr)
-        sys.stderr.write(separator)
+    # if print_warnings and len(gds_collector.get_messages()) > 0:
+    #     separator = ('-' * 50) + '\n'
+    #     sys.stderr.write(separator)
+    #     sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
+    #         len(gds_collector.get_messages()), ))
+    #     gds_collector.write_messages(sys.stderr)
+    #     sys.stderr.write(separator)
     return rootObj
 
 
@@ -27229,13 +27231,13 @@ def parseLiteral(inFileName, silence=False, print_warnings=True):
         sys.stdout.write('rootObj = model_.rootClass(\n')
         rootObj.exportLiteral(sys.stdout, 0, name_=rootTag)
         sys.stdout.write(')\n')
-    if print_warnings and len(gds_collector.get_messages()) > 0:
-        separator = ('-' * 50) + '\n'
-        sys.stderr.write(separator)
-        sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
-            len(gds_collector.get_messages()), ))
-        gds_collector.write_messages(sys.stderr)
-        sys.stderr.write(separator)
+    # if print_warnings and len(gds_collector.get_messages()) > 0:
+    #     separator = ('-' * 50) + '\n'
+    #     sys.stderr.write(separator)
+    #     sys.stderr.write('----- Warnings -- count: {} -----\n'.format(
+    #         len(gds_collector.get_messages()), ))
+    #     gds_collector.write_messages(sys.stderr)
+    #     sys.stderr.write(separator)
     return rootObj
 
 

@@ -160,5 +160,6 @@ for strategy_dir in strategy_dir_list:
         root = tree.getroot()
         first_times.append(root.get('first_time'))
         last_times.append(root.get('last_time'))
+        print(root.get('first_time') == root.get('last_time'))
 print(min(first_times), max(first_times))
 print(min(last_times), max(last_times))

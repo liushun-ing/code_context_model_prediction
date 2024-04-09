@@ -102,6 +102,7 @@ def main_fun():
                     code_elements.set("total", str(len(effective_data)))
                     for line in effective_data:
                         element = ET.SubElement(code_elements, "element")
+                        element.set('event_start_date', line[3])
                         element.text = line[2]
                     # 创建XML树
                     tree = ET.ElementTree(root)
