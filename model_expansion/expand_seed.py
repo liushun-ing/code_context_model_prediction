@@ -16,11 +16,11 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    index = model_dir_list.index('1190')
-    for model_dir in model_dir_list[index:]:
+    # index = model_dir_list.index('1190')
+    for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, 'code_context_model.xml')
+        model_file = join(model_path, '1_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -33,9 +33,9 @@ def main_func(project_model_name: str):
         print('----metrics loaded')
         # 1 step扩展
         # 读code context model
-        model_graphs = model_loader.load_code_context_model(model_file)
-        expand_graph.expand_model(model_graphs, all_repo_metrics, 1)
-        model_loader.save_expanded_model(model_graphs, join(model_path, '1_step_expanded_model.xml'))
+        seed_graphs = model_loader.load_code_context_model(model_file)
+        expand_graph.expand_model(seed_graphs, all_repo_metrics, 1)
+        model_loader.save_expanded_model(seed_graphs, join(model_path, '1_step_seed_model.xml'))
         # # 2 step扩展 需要重置
         # model_graphs = model_loader.load_code_context_model(model_file)
         # expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
