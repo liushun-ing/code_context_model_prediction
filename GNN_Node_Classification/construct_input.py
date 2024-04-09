@@ -37,7 +37,8 @@ mylyn_dataset_ratio = {
 SEED_EMBEDDING = torch.nn.Embedding(2, 256)
 
 
-def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description):
+def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
+                        description):
     if embedding_type == 'astnn+codebert':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
         embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
@@ -111,7 +112,8 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
     elif embedding_type == 'codebert':
         embedding_file = f'{description}_{step}_codebert_embedding.pkl'
     elif embedding_type == 'astnn+codebert':
-        save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description)
+        save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
+                            description)
         return
     else:
         embedding_file = f'{description}_{step}_astnn_embedding.pkl'
@@ -143,7 +145,9 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 _id = int(vertex.get('id'))
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
                 embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0]
-                nodes_tsv.append([_id, embedding.tolist(), int(vertex.get('origin')), vertex.get('kind')])
+                nodes_tsv.append(
+                    [_id, embedding.tolist() + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist(),
+                     int(vertex.get('origin')), vertex.get('kind')])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')

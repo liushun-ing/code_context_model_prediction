@@ -9,18 +9,6 @@ import xml.etree.ElementTree as ET
 root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
 
 
-def get_node(vertices: list[ET.Element], _id):
-    for node in vertices:
-        if node.get('id') == _id:
-            return node
-
-
-def get_edge(edges: list[ET.Element], start, end):
-    for edge in edges:
-        if edge.get('start') == start and edge.get('end') == end:
-            return edge
-
-
 def exist_edge(new_vertices: list[ET.Element], new_edge: ET.Element):
     start = new_edge.get('start')
     end = new_edge.get('end')
