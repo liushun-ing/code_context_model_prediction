@@ -167,18 +167,18 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             # 如果没有节点，或者没有边，或者节点数小于step 都需要过滤掉,也就是stimulation
             if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
                 if true_node > 0:
-                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
                         join(dest, 'edges.tsv'), index=False)
                 # if dataset != 'train':
                 #     if true_node > step:
-                #         pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                #         pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                 #             join(dest, 'nodes.tsv'), index=False)
                 #         pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
                 #             join(dest, 'edges.tsv'), index=False)
                 # else:
-                #     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                #     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                 #         join(dest, 'nodes.tsv'), index=False)
                 #     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
                 #         join(dest, 'edges.tsv'), index=False)

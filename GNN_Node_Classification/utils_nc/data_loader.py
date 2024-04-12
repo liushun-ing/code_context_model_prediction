@@ -52,7 +52,7 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     """
     分层随机欠采样（保证图的连通性），根据阈值随机欠采样，如果超过阈值，则随机采样生成多对结果，count = neg / pos / threshold
 
-    :param nodes: 节点数据 columns=['node_id', 'code_embedding', 'label']
+    :param nodes: 节点数据 columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']
     :param edges: 边数据 columns=['start_node_id', 'end_node_id', 'relation']
     :param threshold: 欠采样阈值 负样本/正样本
     :param mode: 样本选择，train, valid, test
@@ -183,7 +183,7 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
     :return: 图
     """
     # print('handling {0}'.format(node_file))
-    _nodes = pd.read_csv(node_file)  # columns=['node_id', 'code_embedding', 'label', 'kind']
+    _nodes = pd.read_csv(node_file)  # columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']
     _edges = pd.read_csv(edge_file)  # columns=['start_node_id', 'end_node_id', 'relation', 'label']
     sample_result = my_under_sampling(_nodes, _edges, mode, threshold=under_sampling_threshold)
     # print(f'sample count: {len(sample_result)}')
@@ -195,6 +195,7 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
         # g = dgl.graph(data=(src + dst, dst + src), num_nodes=len(nodes))  # double edge
         g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
         g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
+        g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32)
         # g.edata['relation'] = torch.tensor(edges['relation'].tolist() + edges['relation'].tolist(), dtype=torch.int64)
         g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
         # 添加自环边
@@ -218,7 +219,8 @@ class GraphDataset(torch.utils.data.Dataset):
         features = gra.ndata['embedding']
         labels = gra.ndata['label']
         edge_types = gra.edata['relation']
-        return gra, features, labels, edge_types
+        seeds = gra.ndata['seed']
+        return gra, features, labels, edge_types, seeds
 
 
 def collate(batch):
@@ -228,14 +230,15 @@ def collate(batch):
     :param batch: batch图集合
     :return: 合并后的大图，以及特征集合
     """
-    graphs, features, labels, edge_types = map(list, zip(*batch))
+    graphs, features, labels, edge_types, seeds = map(list, zip(*batch))
     # 使用 dgl.batch 进行批处理，确保正确处理 DGLGraph 对象,实际就是将多个图合并为一个大图
     batched_graph = dgl.batch(graphs)
     # 将 features 和 edge_labels 转换为张量
     features = torch.cat(features, dim=0)
-    label = torch.cat(labels, dim=0)
+    labels = torch.cat(labels, dim=0)
+    seeds = torch.cat(seeds, dim=0)
     edge_types = torch.cat(edge_types, dim=0)
-    return batched_graph, features, label, edge_types
+    return batched_graph, features, labels, edge_types, seeds
 
 
 def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=5.0,

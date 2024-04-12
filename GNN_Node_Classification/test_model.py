@@ -82,13 +82,16 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
         criterion = nn.BCELoss()  # 二元交叉熵
         total_loss = 0.0
         result = []
-        for g, features, labels, edge_types in data_loader:
+        for g, features, labels, edge_types, seeds in data_loader:
             g = g.to(device)
             features = features.to(device)
             labels = labels.to(device)
             edge_types = edge_types.to(device)
+            seeds = seeds.to(device)
 
             output = gnn_model(g, features, edge_types)
+            output = output[torch.eq(seeds, 0)]
+            labels = labels[torch.eq(seeds, 0)]
             # 计算 loss
             loss = criterion(output, labels)
             total_loss += loss.item()

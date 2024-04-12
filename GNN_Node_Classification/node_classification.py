@@ -40,13 +40,16 @@ def valid(gnn_model, data_loader, device, threshold):
         auroc = 0.0
         auprc = 0.0
         f_1 = 0.0
-        for g, features, labels, edge_types in data_loader:
+        for g, features, labels, edge_types, seeds in data_loader:
             g = g.to(device)
             features = features.to(device)
             labels = labels.to(device)
             edge_types = edge_types.to(device)
+            seeds = seeds.to(device)
 
             output = gnn_model(g, features, edge_types)
+            output = output[torch.eq(seeds, 0)]
+            labels = labels[torch.eq(seeds, 0)]
             # 计算 loss
             loss = criterion(output, labels)
             total_loss += loss.item()
@@ -129,17 +132,21 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
-        for g, features, labels, edge_types in data_loader:
+        for g, features, labels, edge_types, seeds in data_loader:
             g = g.to(device)
             features = features.to(device)
             labels = labels.to(device)
             edge_types = edge_types.to(device)
+            seeds = seeds.to(device)
 
             optimizer.zero_grad()
             output = gnn_model(g, features, edge_types)
             # print('++++++++++++++++', output, labels)
             # 计算 accuracy
             accuracy_metrics = BinaryAccuracy(threshold=threshold).to(device)
+            # 将 seed 为1的节点丢弃
+            output = output[torch.eq(seeds, 0)]
+            labels = labels[torch.eq(seeds, 0)]
             acc = accuracy_metrics(output, labels).item()
             train_accuracy += acc
             loss = criterion(output, labels)
