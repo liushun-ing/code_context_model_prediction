@@ -54,8 +54,8 @@ def main_func(project_model_name: str, step):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    # index = model_dir_list.index('5232')
-    for model_dir in model_dir_list:
+    index = model_dir_list.index('3025')
+    for model_dir in model_dir_list[index:]:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         model_file = join(model_path, f'{step}_step_seed_model.xml')
@@ -83,11 +83,11 @@ def main_func(project_model_name: str, step):
                 if node.get('origin') == '0' and exist_node(all_nodes, node.get('ref_id')):
                     if node.get('seed') == '0':
                         node.set('origin', '1')
-                        print('changed node origin to 1')
+                        # print('changed node origin to 1')
             for link in edges:
                 if link.get('origin') == '0' and exist_edge(all_nodes, vertices, link.get('start'), link.get('end')):
                     link.set('origin', '1')
-                    print('changed edge origin to 1')
+                    # print('changed edge origin to 1')
         # 将XML写入文件
         tree.write(model_file)
 

@@ -13,7 +13,7 @@ description = 'mylyn'
 embedding_type = 'astnn'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 model_name = ['GCN3'][0]
-under_sampling_threshold = [5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 0][2]  # 0表示不进行欠采样 40 是比例最好的
+under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 0][3]  # 0表示不进行欠采样 40 是比例最好的
 code_embedding = 512
 epochs = 100
 lr = 0.001
@@ -25,13 +25,14 @@ out_feats = 64
 dropout = 0.2
 threshold = 0.4
 
+construct = False
 load_lazy = False
 
 print(hidden_size, hidden_size_2, out_feats)
 
 for step in [1]:
     # construct input: train, valid, test dataset of four project
-    if not load_lazy:
+    if construct and not load_lazy:
         construct_input.main_func(
             description=description,
             step=step,

@@ -85,7 +85,7 @@ def get_graph(graphs: list[ET.Element], step: int):
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
             # if int(link.get('origin')) == 1:
             #     true_edge += 1
-        if true_node > step:
+        if true_node > 0:
             gs.append(g)
     return gs
 
@@ -99,7 +99,7 @@ def load_targets(project_model_name: str, step):
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'{step}_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -128,6 +128,8 @@ def edge_match(edge1, edge2):
 
 
 def calculate_result(labels, true_number):
+    if len(labels) == 0:
+        return [0, 0, 0]
     precision = labels.count(1) / len(labels)
     recall = labels.count(1) / true_number
     if precision + recall == 0:
@@ -217,13 +219,6 @@ def main_func(step, patterns):
                 for top_c in top_confidence:
                     # print(G1.nodes.get(node_id))
                     labels.append(int(G1.nodes.get(top_c[0])['origin']))
-                # random select topk-length
-                for i in range(topk - length):
-                    while True:
-                        _id = random.choice(list(G1.nodes))
-                        if _id not in top_confidence:
-                            labels.append(int(G1.nodes.get(_id)['origin']))
-                            break
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
@@ -242,13 +237,6 @@ def main_func(step, patterns):
                 for top_c in top_confidence:
                     # print(G1.nodes.get(node_id))
                     labels.append(int(G1.nodes.get(top_c[0])['origin']))
-                # random select topk-length
-                for i in range(topk - length):
-                    while True:
-                        _id = random.choice(list(G1.nodes))
-                        if _id not in top_confidence:
-                            labels.append(int(G1.nodes.get(_id)['origin']))
-                            break
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
@@ -267,13 +255,6 @@ def main_func(step, patterns):
                 for top_c in top_confidence:
                     # print(G1.nodes.get(node_id))
                     labels.append(int(G1.nodes.get(top_c[0])['origin']))
-                # random select topk-length
-                for i in range(topk - length):
-                    while True:
-                        _id = random.choice(list(G1.nodes))
-                        if _id not in top_confidence:
-                            labels.append(int(G1.nodes.get(_id)['origin']))
-                            break
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])

@@ -19,7 +19,7 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
         ratios = []
         for model_dir in model_dir_list:
             model_path = join(project_path, model_dir)
-            model_file = join(model_path, f'{str(step)}_step_expanded_model.xml')
+            model_file = join(model_path, f'{str(step)}_step_seed_model.xml')
             # 如果不存在模型，跳过处理
             if not os.path.exists(model_file):
                 continue

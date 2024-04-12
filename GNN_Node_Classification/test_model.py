@@ -33,11 +33,13 @@ def select_result(output: torch.Tensor):
     return output
 
 
-def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int):
+def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int, threshold):
     true_number = torch.sum(torch.eq(labels, 1)).item()
+    top_k = output[torch.topk(output, k=final_k).indices]
     labels = labels[torch.topk(output, final_k).indices]
+    labels = labels[torch.ge(top_k, threshold)]  # top_k 中只选择预测为真的
     true_positive = torch.sum(torch.eq(labels, 1)).item()
-    precision = true_positive / final_k
+    precision = 0 if labels.shape[0] == 0 else true_positive / labels.shape[0]
     recall = true_positive / true_number
     if precision + recall == 0:
         f1 = 0
@@ -92,7 +94,7 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
             total_loss += loss.item()
             if top_k != 0:
                 final_k = min(len(labels), top_k)
-                result.append(calculate_result(labels, output, final_k))
+                result.append(calculate_result(labels, output, final_k, threshold))
             else:
                 # output = select_result(output)
                 # print(labels, output)
@@ -219,7 +221,7 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
         f.write(f'model: {model_name} + step: {step}\n')
         for t in thresholds:
             print()
-            for k in [0]:
+            for k in [1, 0]:
                 # for k in [1, 3, 5, 0]:
                 print(f'---threshold:{t} top-k:{k}---')
                 f.write(f'---threshold:{t} top-k:{k}---\n')

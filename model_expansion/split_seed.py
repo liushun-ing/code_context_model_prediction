@@ -104,9 +104,9 @@ def main_func(project_model_name: str):
 # ecf
 # main_func('my_ecf')
 # pde
-main_func('my_pde')
+# main_func('my_pde')
 # platform
-main_func('my_platform')
+# main_func('my_platform')
 # # mylyn
 # print(root_path)
 main_func('my_mylyn')

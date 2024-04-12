@@ -38,7 +38,7 @@ def main_func(project_model_name: str, step: int):
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         # model_file = join(model_path, 'code_context_model.xml')
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'{step}_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -113,7 +113,7 @@ def main_func(project_model_name: str, step: int):
                                     print(f'NOTFOUND-class-{vertex.get("label")}-{pack}.{cla}')
                                     vertex.set('stereotype', 'NOTFOUND')
                                     all_stereotypes.add('NOTFOUND')
-        tree.write(join(model_path, f'{step}_step_expanded_model.xml'))
+        tree.write(join(model_path, f'{step}_step_seed_model.xml'))
         # tree.write(join(model_path, 'code_context_model.xml'))
         print('stereotype {} code context model over~~~~~~~~~~~~'.format(model_file))
     print(all_stereotypes, len(all_stereotypes))

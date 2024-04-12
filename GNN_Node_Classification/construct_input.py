@@ -121,7 +121,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{str(step)}_step_expanded_model.xml')
+        model_file = join(model_path, f'{str(step)}_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -140,14 +140,17 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             true_node = 0
             vertices = graph.find('vertices')
             vertex_list = vertices.findall('vertex')
+            # print(embedding_list)
             for vertex in vertex_list:
                 node_id = '_'.join([model_dir, vertex.get('kind'), vertex.get('ref_id')])
                 _id = int(vertex.get('id'))
+                # print(node_id)
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
                 embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0]
                 nodes_tsv.append(
                     [_id, embedding.tolist() + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist(),
-                     int(vertex.get('origin')), vertex.get('kind')])
+                     int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
+                    # [_id, embedding.tolist(), int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')
@@ -163,17 +166,22 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             os.makedirs(dest)
             # 如果没有节点，或者没有边，或者节点数小于step 都需要过滤掉,也就是stimulation
             if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
-                if dataset != 'train':
-                    if true_node > step:
-                        pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
-                            join(dest, 'nodes.tsv'), index=False)
-                        pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
-                            join(dest, 'edges.tsv'), index=False)
-                else:
+                if true_node > 0:
                     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
                         join(dest, 'edges.tsv'), index=False)
+                # if dataset != 'train':
+                #     if true_node > step:
+                #         pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                #             join(dest, 'nodes.tsv'), index=False)
+                #         pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
+                #             join(dest, 'edges.tsv'), index=False)
+                # else:
+                #     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
+                #         join(dest, 'nodes.tsv'), index=False)
+                #     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
+                #         join(dest, 'edges.tsv'), index=False)
             base += 1
 
 
