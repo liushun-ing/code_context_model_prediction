@@ -5,7 +5,7 @@
 边信息(edges.tsv)：(start_node_id, end_node_id, relation_vector) relation_vector即四种关系的one-hot编码表示
 [declares, calls, inherits, implements]
 """
-
+import math
 import os
 import shutil
 from os.path import join
@@ -132,6 +132,22 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
         base = 0
+        seed_num_list = list()
+        if len(graphs) == 0:
+            continue
+        for graph in graphs:
+            count = 0
+            vertices = graph.find('vertices')
+            vertex_list = vertices.findall('vertex')
+            for vertex in vertex_list:
+                if vertex.get('seed') == '1':
+                    count += 1
+            seed_num_list.append(count)
+        one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
+        remain_seed_list = list()
+        for i in range(len(one_seed_index) - 1):
+            remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i+1]) / 2))
+        remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
         for graph in graphs:
             # 创建保存nodes和edges的数据结构
             nodes_tsv = list()
@@ -165,7 +181,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 shutil.rmtree(dest)
             os.makedirs(dest)
             # 如果没有节点，或者没有边，或者节点数小于step 都需要过滤掉,也就是stimulation
-            if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+            if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
                 if true_node > 0:
                     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
