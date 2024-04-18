@@ -38,33 +38,48 @@ class GATModel3(nn.Module):
     """
     GATConv based link prediction model: GAT
     """
+    output1, output2 = None, None
     def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8, hidden_size_2=128):
         super(GATModel3, self).__init__()
         self.conv1 = GATConv(in_feats, hidden_size, num_heads=num_heads)
         self.conv2 = GATConv(hidden_size * num_heads, hidden_size_2, num_heads=4)
         self.conv3 = GATConv(hidden_size_2 * 4, out_feats, num_heads=1)
-        self.pred = torch.nn.Linear(out_feats, 1)
+        h1 = hidden_size * num_heads
+        h2 = hidden_size_2 * 4
+        self.mlp1 = torch.nn.Linear(h1 + h2 + out_feats, h2 + out_feats)
+        self.mlp2 = torch.nn.Linear(h2 + out_feats, out_feats)
+        self.mlp3 = torch.nn.Linear(out_feats, 1)
         self.dropout = torch.nn.Dropout(p=dropout)
 
     def reset_parameters(self):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
         self.conv3.reset_parameters()
-        self.pred.reset_parameters()
+        self.mlp1.reset_parameters()
+        self.mlp2.reset_parameters()
+        self.mlp3.reset_parameters()
 
     def forward(self, g, features, edge_types):
         x = self.conv1(g, features)
         x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
         x = torch.relu(x)
+        self.output1 = x
         x = self.dropout(x)
         x = self.conv2(g, x)
         x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
         x = torch.relu(x)
+        self.output2 = x
         x = self.dropout(x)
         x = self.conv3(g, x)
         x = x.squeeze(1)  # (in_feat, 1, out_dim) -> (in_feat, out_dim)
         x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
+        # MLP
+        x = torch.cat((self.output_1, self.output_2, x), dim=1)
+        x = self.mlp1(x)
+        x = torch.relu(x)
+        x = self.mlp2(x)
+        x = torch.relu(x)
+        x = self.mlp3(x).squeeze(1)
         return torch.sigmoid(x)
 
 

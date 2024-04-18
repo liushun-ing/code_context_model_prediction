@@ -10,23 +10,23 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # GPU编号
 
 # parameters
 description = 'mylyn'
-embedding_type = 'astnn+codebert'
+embedding_type = 'codebert'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 model_name = ['GCN3'][0]
 under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 0][3]  # 0表示不进行欠采样 40 是比例最好的
-code_embedding = 1536
+code_embedding = 1024
 epochs = 100
-lr = 0.0005
+lr = 0.001
 result_name = f'{description}_{model_name}_{embedding_type}_{under_sampling_threshold}_model'
 batch_size = 16
-hidden_size = 512
+hidden_size = 256
 hidden_size_2 = 128
 out_feats = 64
 dropout = 0.2
 threshold = 0.4
 
-construct = False
-load_lazy = True
+construct = True
+load_lazy = False
 
 print(hidden_size, hidden_size_2, out_feats)
 
