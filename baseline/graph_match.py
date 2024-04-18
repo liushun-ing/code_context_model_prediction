@@ -162,15 +162,26 @@ def calculate_result_full(labels, output, MinConf, true_number):
 
 
 def print_result(result, k):
-    s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    for minConf in s:
-        print(f'minConf: {minConf}:')
-        i = s.index(minConf)
+    if k == 0:
+        s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        for minConf in s:
+            print(f'minConf: {minConf}:')
+            i = s.index(minConf)
+            p, r, f = 0.0, 0.0, 0.0
+            for res in result:
+                p += res[i][0]
+                r += res[i][1]
+                f += res[i][2]
+            print(f'----------result of top {k}-------\n'
+                  f'Precision: {p / len(result)}, '
+                  f'Recall: {r / len(result)}, '
+                  f'F1: {f / len(result)}')
+    else:
         p, r, f = 0.0, 0.0, 0.0
         for res in result:
-            p += res[i][0]
-            r += res[i][1]
-            f += res[i][2]
+            p += res[0]
+            r += res[1]
+            f += res[2]
         print(f'----------result of top {k}-------\n'
               f'Precision: {p / len(result)}, '
               f'Recall: {r / len(result)}, '

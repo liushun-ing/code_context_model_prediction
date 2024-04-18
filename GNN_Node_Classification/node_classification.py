@@ -13,12 +13,12 @@ from torchmetrics.classification import BinaryAUROC
 
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
-from .utils_nc.prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
+# from .utils_nc.prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
+#     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
+
+
+from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
-
-
-# from GNN_Node_Classification.utils_nc.pure_prediction_model import GATModel, GCNModel, GraphSAGEModel, GatedGraphModel
-
 
 def valid(gnn_model, data_loader, device, threshold):
     """

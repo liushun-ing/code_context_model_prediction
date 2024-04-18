@@ -3,7 +3,7 @@ from os.path import join
 
 from GNN_Node_Classification import data_estimator, construct_input, node_classification, view, test_model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # GPU编号
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # GPU编号
 
 # see the sample ratios of four project
 # data_estimator.estimate_positive_and_negative_samples(['my_pde', 'my_platform', 'my_mylyn'], step=3)
@@ -13,8 +13,8 @@ description = 'mylyn'
 embedding_type = 'astnn+codebert'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 model_name = ['GCN3'][0]
-under_sampling_threshold = [5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 0][2]  # 0表示不进行欠采样 40 是比例最好的
-code_embedding = 1280
+under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 0][3]  # 0表示不进行欠采样 40 是比例最好的
+code_embedding = 1536
 epochs = 100
 lr = 0.001
 result_name = f'{description}_{model_name}_{embedding_type}_{under_sampling_threshold}_model'
@@ -25,13 +25,14 @@ out_feats = 64
 dropout = 0.2
 threshold = 0.4
 
-load_lazy = False
+construct = False
+load_lazy = True
 
 print(hidden_size, hidden_size_2, out_feats)
 
 for step in [1]:
     # construct input: train, valid, test dataset of four project
-    if not load_lazy:
+    if construct and not load_lazy:
         construct_input.main_func(
             description=description,
             step=step,

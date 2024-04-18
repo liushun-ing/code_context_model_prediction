@@ -15,8 +15,11 @@ from torchmetrics.classification import BinaryAveragePrecision
 
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
-from .utils_nc.prediction_model import GCNModel2, GATModel2, GraphSAGEModel2, GCNModel3, GCNModel4, GATModel3, \
-    GATModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel2, RGCNModel4
+# from .utils_nc.prediction_model import GCNModel2, GATModel2, GraphSAGEModel2, GCNModel3, GCNModel4, GATModel3, \
+#     GATModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel2, RGCNModel4
+
+from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
+    GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 
 def select_result(output: torch.Tensor):

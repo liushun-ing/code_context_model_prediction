@@ -2,6 +2,7 @@ import os
 from os.path import join
 import random
 
+import math
 import networkx as nx
 import xml.etree.ElementTree as ET
 
@@ -68,6 +69,22 @@ def load_patterns(patterns):
 
 def get_graph(graphs: list[ET.Element], step: int):
     gs = []
+    if len(graphs) == 0:
+        return gs
+    seed_num_list = list()
+    for graph in graphs:
+        count = 0
+        vertices = graph.find('vertices')
+        vertex_list = vertices.findall('vertex')
+        for vertex in vertex_list:
+            if vertex.get('seed') == '1':
+                count += 1
+        seed_num_list.append(count)
+    one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
+    remain_seed_list = list()
+    for i in range(len(one_seed_index) - 1):
+        remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
+    remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
     for graph in graphs:
         vertices = graph.find('vertices')
         vertex_list = vertices.findall('vertex')
@@ -78,14 +95,15 @@ def get_graph(graphs: list[ET.Element], step: int):
         # true_edge = 0
         # 转化为图结构
         for node in vertex_list:
-            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
+            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
+                       seed=node.get('seed'))
             if int(node.get('origin')) == 1:
                 true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
             # if int(link.get('origin')) == 1:
             #     true_edge += 1
-        if true_node > 0:
+        if graphs.index(graph) in remain_seed_list and true_node > 0:
             gs.append(g)
     return gs
 
@@ -144,7 +162,7 @@ def calculate_result_full(labels, output, true_number):
     result = []
     for MinConf in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         if len(labels) == 0:
-            return [0, 0, 0]
+            result.append([0, 0, 0])
         positive_count = 0
         true_positive_count = 0
         for i in range(len(output)):
@@ -164,15 +182,26 @@ def calculate_result_full(labels, output, true_number):
 
 
 def print_result(result, k):
-    s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    for minConf in s:
-        print(f'minConf: {minConf}:')
-        i = s.index(minConf)
+    if k == 0:
+        s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        for minConf in s:
+            print(f'minConf: {minConf}:')
+            i = s.index(minConf)
+            p, r, f = 0.0, 0.0, 0.0
+            for res in result:
+                p += res[i][0]
+                r += res[i][1]
+                f += res[i][2]
+            print(f'----------result of top {k}-------\n'
+                  f'Precision: {p / len(result)}, '
+                  f'Recall: {r / len(result)}, '
+                  f'F1: {f / len(result)}')
+    else:
         p, r, f = 0.0, 0.0, 0.0
         for res in result:
-            p += res[i][0]
-            r += res[i][1]
-            f += res[i][2]
+            p += res[0]
+            r += res[1]
+            f += res[2]
         print(f'----------result of top {k}-------\n'
               f'Precision: {p / len(result)}, '
               f'Recall: {r / len(result)}, '
@@ -205,6 +234,13 @@ def main_func(step, patterns):
             confidence[i] = confidence.get(i) / total_match
         confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)
         # print(f'{G1} confidence {confidence}')
+        # 去掉所有有关 seed 的节点
+        new_confidence = []
+        for top_c in confidence:
+            node_id = top_c[0]
+            if int(G1.nodes.get(node_id)['seed']) == 0:
+                new_confidence.append(top_c)
+        confidence = new_confidence
         k = 1
         if k > 0:
             length = len(confidence)
@@ -263,8 +299,8 @@ def main_func(step, patterns):
         if k == 0:
             output, labels = [], []
             for top_c in confidence:
-                output.append(top_c[1])
                 node_id = top_c[0]
+                output.append(top_c[1])
                 # print(G1.nodes.get(node_id))
                 labels.append(int(G1.nodes.get(node_id)['origin']))
             true_number = 0

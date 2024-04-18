@@ -12,7 +12,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"  # GPU编号
 description = 'mylyn'
 embedding_type = 'astnn'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
-model_name = ['GCN3'][0]
+model_name = ['GAT3'][0]
 under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 0][2]  # 0表示不进行欠采样 40 是比例最好的
 code_embedding = 768
 epochs = 100
@@ -26,7 +26,7 @@ dropout = 0.2
 threshold = 0.4
 
 construct = False
-load_lazy = False
+load_lazy = True
 
 print(hidden_size, hidden_size_2, out_feats)
 

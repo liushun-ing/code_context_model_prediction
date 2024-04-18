@@ -203,15 +203,6 @@ v 2 SET
 e 0 1 declares
 e 0 2 declares
 #
-t # 47
-v 0 BOUNDARY-COMMANDER
-v 1 FIELD
-v 2 COMMAND-COLLABORATOR
-v 3 FIELD
-e 0 1 declares
-e 0 3 declares
-e 1 2 calls
-#
 t # 49
 v 0 BOUNDARY-COMMANDER
 v 1 FIELD
