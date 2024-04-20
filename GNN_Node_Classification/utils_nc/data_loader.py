@@ -78,7 +78,7 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     need_sample_num = pos_count * threshold
     # 循环不重复采样，生成多个图，防止信息过分丢失
     for _ in range(count):
-        final_nodes = nodes[nodes['label'] == 1]
+        final_nodes = nodes[(nodes['label'] == 1) | (nodes['seed'] == 1)]
         sample_count = need_sample_num
         while len(final_nodes) < (pos_count + need_sample_num):
             # print(len(final_nodes), ' ', pos_count + need_sample_num, ' ', sample_count)

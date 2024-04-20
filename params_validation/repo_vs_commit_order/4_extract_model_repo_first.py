@@ -10,7 +10,6 @@ commit number 1,2,3
 commit和repo顺序：repo优先:每个repo一次探查多个commit, commit优先：还是一次探查一个，不断循环repo
 """
 # 先用第一个测试一下
-from datetime import datetime, timezone, timedelta
 import shutil
 
 from git import Repo
@@ -18,9 +17,7 @@ import os
 import xml.etree.ElementTree as ET
 from os.path import join
 
-from model_formation.utils_07 import copy_file
-from model_formation.utils_07 import run_doxygen
-from model_formation.utils_07 import solve_file
+from params_validation.utils import solve_file, run_doxygen, copy_file
 from xmlparser.doxygen_main import get_relations
 
 

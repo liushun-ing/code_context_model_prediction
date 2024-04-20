@@ -38,7 +38,7 @@ class GATModel3(nn.Module):
     """
     GATConv based link prediction model: GAT
     """
-    output1, output2 = None, None
+    output_1, output_2 = None, None
     def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8, hidden_size_2=128):
         super(GATModel3, self).__init__()
         self.conv1 = GATConv(in_feats, hidden_size, num_heads=num_heads)
@@ -63,12 +63,12 @@ class GATModel3(nn.Module):
         x = self.conv1(g, features)
         x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
         x = torch.relu(x)
-        self.output1 = x
+        self.output_1 = x
         x = self.dropout(x)
         x = self.conv2(g, x)
         x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
         x = torch.relu(x)
-        self.output2 = x
+        self.output_2 = x
         x = self.dropout(x)
         x = self.conv3(g, x)
         x = x.squeeze(1)  # (in_feat, 1, out_dim) -> (in_feat, out_dim)
