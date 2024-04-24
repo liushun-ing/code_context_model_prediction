@@ -283,3 +283,5 @@ def graph_build_and_gspan(project_model_name='my_mylyn'):
 if __name__ == '__main__':
     graph_build_and_gspan()
     # graph_match(step=1, patterns='./new-patterns-0.007')
+
+# TODO 生成种子后，进行扩展，分配原型，挖掘模式，进行匹配
