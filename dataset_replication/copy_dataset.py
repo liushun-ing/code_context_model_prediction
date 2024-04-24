@@ -3,7 +3,7 @@
 """
 import os
 import shutil
-from os.path import join
+from os.path import join, isdir
 
 root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
 dest_path = '/data1/shunliu/dataset/'
@@ -24,6 +24,10 @@ def main_func(project_model_name: str):
         if not os.path.exists(model_file):
             continue
         shutil.copy(model_file, join(dest_path, project_model_name, model_dir, 'code_context_model.xml'))
+        for model_inner_file in os.listdir(model_path):
+            model_inner_file_path = join(model_path, model_inner_file)
+            if isdir(model_inner_file_path) and model_inner_file != "doxygen":
+                shutil.copytree(model_inner_file_path, join(dest_path, project_model_name, model_dir, model_inner_file))
 
 
 

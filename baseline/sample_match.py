@@ -1,21 +1,20 @@
 import os
-from os.path import join
 import random
+from os.path import join
 
 import math
 import networkx as nx
 import xml.etree.ElementTree as ET
+from gspan_mining.config import parser
+from gspan_mining.main import main
 
 import numpy as np
-import pandas as pd
-import torch
 from networkx.algorithms import isomorphism
-from torchmetrics.classification import BinaryPrecision, BinaryRecall, BinaryF1Score
-
-# from dataset_split_util import get_models_by_ratio
 
 root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
 
+
+random.seed(23)
 
 def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
     """
@@ -31,7 +30,10 @@ def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
     project_path = join(root_path, project, 'repo_first_3')
     model_dir_list = os.listdir(project_path)
     all_models = []
-    for model_dir in model_dir_list:
+    # random sample 352
+    sample_dir_list = random.sample(model_dir_list, 352)
+    print(sample_dir_list)
+    for model_dir in sample_dir_list:
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')
         # 如果不存在模型，跳过处理
@@ -145,19 +147,6 @@ def edge_match(edge1, edge2):
     return edge1['label'] == edge2['label']
 
 
-def calculate_result(labels, true_number):
-    if len(labels) == 0:
-        return [0, 0, 0]
-    precision = labels.count(1) / len(labels)
-    recall = labels.count(1) / true_number
-    if precision + recall == 0:
-        f1 = 0
-    else:
-        f1 = 2 * precision * recall / (precision + recall)
-    # print([precision, recall, f1])
-    return [precision, recall, f1]
-
-
 def calculate_result_full(labels, output, true_number):
     result = []
     for MinConf in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
@@ -182,33 +171,22 @@ def calculate_result_full(labels, output, true_number):
 
 
 def print_result(result, k):
-    if k == 0:
-        s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-        for minConf in s:
-            print(f'minConf: {minConf}:')
-            i = s.index(minConf)
-            p, r, f = 0.0, 0.0, 0.0
-            for res in result:
-                p += res[i][0]
-                r += res[i][1]
-                f += res[i][2]
-            print(f'----------result of top {k}-------\n'
-                  f'Precision: {p / len(result)}, '
-                  f'Recall: {r / len(result)}, '
-                  f'F1: {f / len(result)}')
-    else:
+    s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    for minConf in s:
+        print(f'minConf: {minConf}:')
+        i = s.index(minConf)
         p, r, f = 0.0, 0.0, 0.0
         for res in result:
-            p += res[0]
-            r += res[1]
-            f += res[2]
+            p += res[i][0]
+            r += res[i][1]
+            f += res[i][2]
         print(f'----------result of top {k}-------\n'
               f'Precision: {p / len(result)}, '
               f'Recall: {r / len(result)}, '
               f'F1: {f / len(result)}')
 
 
-def main_func(step, patterns):
+def graph_match(step, patterns):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
@@ -241,81 +219,67 @@ def main_func(step, patterns):
             if int(G1.nodes.get(node_id)['seed']) == 0:
                 new_confidence.append(top_c)
         confidence = new_confidence
-        k = 1
-        if k > 0:
-            length = len(confidence)
-            topk = min(len(G1.nodes), k)
-            labels = []
-            if (length >= topk):
-                top_confidence = confidence[:topk]
-                for top_c in top_confidence:
-                    labels.append(int(G1.nodes.get(top_c[0])['origin']))
-            else:
-                top_confidence = confidence[:]
-                for top_c in top_confidence:
-                    # print(G1.nodes.get(node_id))
-                    labels.append(int(G1.nodes.get(top_c[0])['origin']))
-            true_number = 0
-            for n in list(G1.nodes):
-                true_number += int(G1.nodes.get(n)['origin'])
-            result_1.append(calculate_result(labels, true_number))
-        k = 3
-        if k > 0:
-            length = len(confidence)
-            topk = min(len(G1.nodes), k)
-            labels = []
-            if (length >= topk):
-                top_confidence = confidence[:topk]
-                for top_c in top_confidence:
-                    labels.append(int(G1.nodes.get(top_c[0])['origin']))
-            else:
-                top_confidence = confidence[:]
-                for top_c in top_confidence:
-                    # print(G1.nodes.get(node_id))
-                    labels.append(int(G1.nodes.get(top_c[0])['origin']))
-            true_number = 0
-            for n in list(G1.nodes):
-                true_number += int(G1.nodes.get(n)['origin'])
-            result_3.append(calculate_result(labels, true_number))
-        k = 5
-        if k > 0:
-            length = len(confidence)
-            topk = min(len(G1.nodes), k)
-            labels = []
-            if (length >= topk):
-                top_confidence = confidence[:topk]
-                for top_c in top_confidence:
-                    labels.append(int(G1.nodes.get(top_c[0])['origin']))
-            else:
-                top_confidence = confidence[:]
-                for top_c in top_confidence:
-                    # print(G1.nodes.get(node_id))
-                    labels.append(int(G1.nodes.get(top_c[0])['origin']))
-            true_number = 0
-            for n in list(G1.nodes):
-                true_number += int(G1.nodes.get(n)['origin'])
-            result_5.append(calculate_result(labels, true_number))
-        k = 0
-        if k == 0:
-            output, labels = [], []
-            for top_c in confidence:
-                node_id = top_c[0]
-                output.append(top_c[1])
-                # print(G1.nodes.get(node_id))
-                labels.append(int(G1.nodes.get(node_id)['origin']))
-            true_number = 0
-            for n in list(G1.nodes):
-                true_number += int(G1.nodes.get(n)['origin'])
-            result_full.append(calculate_result_full(labels, output, true_number))
-    print_result(result_1, 1)
-    print_result(result_3, 3)
-    print_result(result_5, 5)
+        output, labels = [], []
+        for top_c in confidence:
+            node_id = top_c[0]
+            output.append(top_c[1])
+            # print(G1.nodes.get(node_id))
+            labels.append(int(G1.nodes.get(node_id)['origin']))
+        true_number = 0
+        for n in list(G1.nodes):
+            true_number += int(G1.nodes.get(n)['origin'])
+        result_full.append(calculate_result_full(labels, output, true_number))
     print_result(result_full, 0)
 
 
-step = 1
-for patterns in ['./new-patterns-0.007']:
-    print('patterns-----', patterns)
-    main_func(step=step, patterns=patterns)
-# main_func(step=2)
-# main_func(step=3)
+def graph_build_and_gspan(project_model_name='my_mylyn'):
+    project_path = join(root_path, project_model_name, 'repo_first_3')
+    graph_index = 0
+    with open('./sample_graph.data', 'w') as f:
+        # 读取code context model
+        model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
+        print(len(model_dir_list))
+        for model_dir in model_dir_list:
+            # print('---------------', model_dir)
+            model_path = join(project_path, model_dir)
+            model_file = join(model_path, 'code_context_model.xml')
+            # 如果不存在模型，跳过处理
+            if not os.path.exists(model_file):
+                continue
+            # 读取code context model,以及doxygen的结果
+            tree = ET.parse(model_file)  # 拿到xml树
+            code_context_model = tree.getroot()
+            graphs = code_context_model.findall("graph")
+            for graph in graphs:
+                graph_text = f't # {graph_index}\n'
+                f.write(graph_text)
+                vertices = graph.find('vertices')
+                vertex_list = vertices.findall('vertex')
+                vs = []
+                for vertex in vertex_list:
+                    stereotype, _id = vertex.get('stereotype'), vertex.get('id')
+                    vs.append((_id, stereotype))
+                for v in sorted(vs, key=lambda x: int(x[0])):
+                    vertex_text = f'v {v[0]} {v[1]}\n'
+                    f.write(vertex_text)
+                edges = graph.find('edges')
+                edge_list = edges.findall('edge')
+                for edge in edge_list:
+                    start, end, label = edge.get('start'), edge.get('end'), edge.get('label')
+                    edge_text = f'e {start} {end} {label}\n'
+                    f.write(edge_text)
+                graph_index += 1
+        f.write('t # -1')
+        f.close()
+    print(graph_index)
+
+    min_support = math.ceil(0.007 * (graph_index - 1))  # 0.02 * num_of_graphs
+    print('min_support: ', min_support)
+    args_str = f'-s {min_support} ./sample_graph.data'
+    FLAGS, _ = parser.parse_known_args(args=args_str.split())
+    main(FLAGS)
+
+
+if __name__ == '__main__':
+    graph_build_and_gspan()
+    # graph_match(step=1, patterns='./new-patterns-0.007')

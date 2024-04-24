@@ -2,6 +2,7 @@ import os
 from os.path import join
 import random
 
+import math
 import networkx as nx
 import xml.etree.ElementTree as ET
 
@@ -68,6 +69,22 @@ def load_patterns(patterns):
 
 def get_graph(graphs: list[ET.Element], step: int):
     gs = []
+    if len(graphs) == 0:
+        return gs
+    seed_num_list = list()
+    for graph in graphs:
+        count = 0
+        vertices = graph.find('vertices')
+        vertex_list = vertices.findall('vertex')
+        for vertex in vertex_list:
+            if vertex.get('seed') == '1':
+                count += 1
+        seed_num_list.append(count)
+    one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
+    remain_seed_list = list()
+    for i in range(len(one_seed_index) - 1):
+        remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
+    remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
     for graph in graphs:
         vertices = graph.find('vertices')
         vertex_list = vertices.findall('vertex')
@@ -78,14 +95,15 @@ def get_graph(graphs: list[ET.Element], step: int):
         # true_edge = 0
         # 转化为图结构
         for node in vertex_list:
-            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
+            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
+                       seed=node.get('seed'))
             if int(node.get('origin')) == 1:
                 true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
             # if int(link.get('origin')) == 1:
             #     true_edge += 1
-        if true_node > step:
+        if graphs.index(graph) in remain_seed_list and true_node > 0:
             gs.append(g)
     return gs
 
@@ -99,7 +117,7 @@ def load_targets(project_model_name: str, step):
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'{step}_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -128,6 +146,8 @@ def edge_match(edge1, edge2):
 
 
 def calculate_result(labels, true_number):
+    if len(labels) == 0:
+        return [0, 0, 0]
     precision = labels.count(1) / len(labels)
     recall = labels.count(1) / true_number
     if precision + recall == 0:
@@ -138,11 +158,11 @@ def calculate_result(labels, true_number):
     return [precision, recall, f1]
 
 
-def calculate_result_full(labels, output, MinConf, true_number):
+def calculate_result_full(labels, output, true_number):
     result = []
     for MinConf in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         if len(labels) == 0:
-            return [0, 0, 0]
+            result.append([0, 0, 0])
         positive_count = 0
         true_positive_count = 0
         for i in range(len(output)):
@@ -188,16 +208,12 @@ def print_result(result, k):
               f'F1: {f / len(result)}')
 
 
-def main_func(step, MinConf, patterns):
-    r = []
+def main_func(step, patterns):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
-    _index = 1200
-    for G1 in G1s[900: _index]:
-        if G1s.index(G1) in [689,752]:
-            continue
+    for G1 in G1s:
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()
@@ -218,7 +234,13 @@ def main_func(step, MinConf, patterns):
             confidence[i] = confidence.get(i) / total_match
         confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)
         # print(f'{G1} confidence {confidence}')
-        r.append(count_positive(confidence, MinConf))
+        # 去掉所有有关 seed 的节点
+        new_confidence = []
+        for top_c in confidence:
+            node_id = top_c[0]
+            if int(G1.nodes.get(node_id)['seed']) == 0:
+                new_confidence.append(top_c)
+        confidence = new_confidence
         k = 1
         if k > 0:
             length = len(confidence)
@@ -233,13 +255,6 @@ def main_func(step, MinConf, patterns):
                 for top_c in top_confidence:
                     # print(G1.nodes.get(node_id))
                     labels.append(int(G1.nodes.get(top_c[0])['origin']))
-                # random select topk-length
-                for i in range(topk - length):
-                    while True:
-                        _id = random.choice(list(G1.nodes))
-                        if _id not in top_confidence:
-                            labels.append(int(G1.nodes.get(_id)['origin']))
-                            break
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
@@ -258,13 +273,6 @@ def main_func(step, MinConf, patterns):
                 for top_c in top_confidence:
                     # print(G1.nodes.get(node_id))
                     labels.append(int(G1.nodes.get(top_c[0])['origin']))
-                # random select topk-length
-                for i in range(topk - length):
-                    while True:
-                        _id = random.choice(list(G1.nodes))
-                        if _id not in top_confidence:
-                            labels.append(int(G1.nodes.get(_id)['origin']))
-                            break
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
@@ -283,13 +291,6 @@ def main_func(step, MinConf, patterns):
                 for top_c in top_confidence:
                     # print(G1.nodes.get(node_id))
                     labels.append(int(G1.nodes.get(top_c[0])['origin']))
-                # random select topk-length
-                for i in range(topk - length):
-                    while True:
-                        _id = random.choice(list(G1.nodes))
-                        if _id not in top_confidence:
-                            labels.append(int(G1.nodes.get(_id)['origin']))
-                            break
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
@@ -298,45 +299,23 @@ def main_func(step, MinConf, patterns):
         if k == 0:
             output, labels = [], []
             for top_c in confidence:
-                output.append(top_c[1])
                 node_id = top_c[0]
+                output.append(top_c[1])
                 # print(G1.nodes.get(node_id))
                 labels.append(int(G1.nodes.get(node_id)['origin']))
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
-            result_full.append(calculate_result_full(labels, output, MinConf, true_number))
-    # print_result(result_1, 1)
-    # print_result(result_3, 3)
-    # print_result(result_5, 5)
-    # print_result(result_full, 0)
-    pd.to_pickle(result_full, f'./result-{_index/300}')
-    # final_precision = final_precision / len(G1s)
-    # final_recall = final_recall / len(G1s)
-    # final_f1 = final_f1 / len(G1s)
-    # print(f'----------final result-------\n'
-    #       f'final_precision: {final_precision}, '
-    #       f'final_recall: {final_recall}, '
-    #       f'final_f1: {final_f1}')
-    # print(r)
+            result_full.append(calculate_result_full(labels, output, true_number))
+    print_result(result_1, 1)
+    print_result(result_3, 3)
+    print_result(result_5, 5)
+    print_result(result_full, 0)
 
-# print(111111111)
 
-# G2s = load_patterns()
-# print('G2s', len(G2s))
 step = 1
-patterns = './patterns-0.01'
-if step == 1:
-    MinConf = 0.3
-elif step == 2:
-    MinConf = 0.6
-else:
-    MinConf = 0.1
-# for patterns in ['./patterns', './patterns-0.01']:
-for patterns in ['./patterns-0.008']:
+for patterns in ['./new-patterns-0.007']:
     print('patterns-----', patterns)
-    # for MinConf in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
-    print('MinConf------', MinConf)
-    main_func(step=step, MinConf=MinConf, patterns=patterns)
+    main_func(step=step, patterns=patterns)
 # main_func(step=2)
 # main_func(step=3)
