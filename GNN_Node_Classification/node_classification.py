@@ -1,6 +1,3 @@
-import os
-from os.path import join
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -19,6 +16,9 @@ from .utils_nc.data_loader import load_prediction_data
 
 from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
+
+# from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
+#     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 def valid(gnn_model, data_loader, device, threshold):
     """
@@ -48,8 +48,8 @@ def valid(gnn_model, data_loader, device, threshold):
             seeds = seeds.to(device)
 
             output = gnn_model(g, features, edge_types)
-            output = output[torch.eq(seeds, 0)]
-            labels = labels[torch.eq(seeds, 0)]
+            # output = output[torch.eq(seeds, 1)]
+            # labels = labels[torch.eq(seeds, 1)]
             # 计算 loss
             loss = criterion(output, labels)
             total_loss += loss.item()
@@ -145,8 +145,8 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             # 计算 accuracy
             accuracy_metrics = BinaryAccuracy(threshold=threshold).to(device)
             # 将 seed 为1的节点丢弃
-            output = output[torch.eq(seeds, 0)]
-            labels = labels[torch.eq(seeds, 0)]
+            # output = output[torch.eq(seeds, 0)]
+            # labels = labels[torch.eq(seeds, 0)]
             acc = accuracy_metrics(output, labels).item()
             train_accuracy += acc
             loss = criterion(output, labels)
@@ -214,7 +214,7 @@ def init(model_name, code_embedding, hidden_size, hidden_size_2, out_feats, drop
         model = GATModel4(code_embedding, hidden_size, out_feats, dropout, num_heads=8)
     elif model_name == 'GCN4':
         print('~~~~~~~~~~~GCN4~~~~~~~~~~~')
-        model = GCNModel4(code_embedding, hidden_size, out_feats, dropout)
+        model = GCNModel4(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
     elif model_name == 'GraphSAGE4':
         print('~~~~~~~~~~~GraphSAGE4~~~~~~~~~~~')
         model = GraphSAGEModel4(code_embedding, hidden_size, out_feats, dropout)

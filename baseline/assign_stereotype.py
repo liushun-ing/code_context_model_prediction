@@ -32,7 +32,8 @@ def main_func(project_model_name: str, step: int):
     stereotypes = pd.read_csv('./stereotype/all_types.tsv', sep=' ')
     print(stereotypes)
     # 读取code context model
-    model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    # model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    model_dir_list = os.listdir(project_path)
     all_stereotypes = {'FIELD'}
     for model_dir in model_dir_list:
         # print('---------------', model_dir)

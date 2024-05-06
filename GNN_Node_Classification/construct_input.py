@@ -36,10 +36,26 @@ mylyn_dataset_ratio = {
 }
 SEED_EMBEDDING = torch.nn.Embedding(2, 256)
 
+step_1 = ['POOL', 'PREDICATE-COLLABORATOR', 'DESTRUCTOR-LOCAL_CONTROLLER', 'PREDICATE', 'BOUNDARY',
+          'CONSTRUCTOR-COLLABORATOR', 'FACTORY', 'PROPERTY-COLLABORATOR', 'NON_VOID_COMMAND-LOCAL_CONTROLLER',
+          'PROPERTY', 'GET-LOCAL_CONTROLLER', 'PREDICATE-LOCAL_CONTROLLER', 'PURE_CONTROLLER', 'SET',
+          'GET-COLLABORATOR', 'CONSTRUCTOR-LOCAL_CONTROLLER', 'LOCAL_CONTROLLER', 'CONSTRUCTOR', 'BOUNDARY-COMMANDER',
+          'CONTROLLER', 'INTERFACE', 'COLLABORATOR', 'LAZY_CLASS', 'NON_VOID_COMMAND-COLLABORATOR', 'DEGENERATE',
+          'INCIDENTAL', 'FIELD', 'VOID_ACCESSOR-COLLABORATOR', 'FACTORY-LOCAL_CONTROLLER', 'COMMAND', 'DATA_PROVIDER',
+          'ABSTRACT', 'NOTFOUND', 'SET-LOCAL_CONTROLLER', 'BOUNDARY-DATA_PROVIDER', 'MINIMAL_ENTITY',
+          'CONSTRUCTOR-CONTROLLER', 'ENTITY', 'OTHER', 'COMMANDER', 'NON_VOID_COMMAND', 'FACTORY-COLLABORATOR',
+          'COMMAND-COLLABORATOR', 'DATA_CLASS', 'GET', 'EMPTY', 'FACTORY-CONTROLLER', 'LARGE_CLASS',
+          'PROPERTY-LOCAL_CONTROLLER', 'SET-COLLABORATOR', 'COMMAND-LOCAL_CONTROLLER'
+          ]
+STEREOTYPE_EMBEDDING = torch.nn.Embedding(len(step_1), 256)
+
 
 def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
                         description):
     if embedding_type == 'astnn+codebert':
+        embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
+        embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
+    elif embedding_type == 'astnn+codebert+stereotype':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
         embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
@@ -91,6 +107,14 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                 embedding_seed = SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 # 进行组合
                 embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
+                if embedding_type == 'astnn+codebert':
+                    embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
+                elif embedding_type == 'astnn+codebert+stereotype':
+                    stereotype = vertex.get('stereotype')
+                    embedding_stereotype = STEREOTYPE_EMBEDDING(
+                        torch.tensor(step_1.index(stereotype))).squeeze().tolist()
+                    embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed + embedding_stereotype
+                # embedding = embedding_1.tolist() + embedding_2.tolist()
                 nodes_tsv.append(
                     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
                 if int(vertex.get('origin')) == 1:
@@ -122,7 +146,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         embedding_file = f'{description}_{step}_glove_embedding.pkl'
     elif embedding_type == 'codebert':
         embedding_file = f'{description}_{step}_codebert_embedding.pkl'
-    elif embedding_type == 'astnn+codebert':
+    elif embedding_type == 'astnn+codebert' or embedding_type == 'astnn+codebert+stereotype':
         save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
                             description)
         return
@@ -173,11 +197,10 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 _id = int(vertex.get('id'))
                 # print(node_id)
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
-                embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0]
+                embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0].tolist()
+                embedding = embedding + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 nodes_tsv.append(
-                    [_id, embedding.tolist() + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist(),
-                     int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
-                # [_id, embedding.tolist(), int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
+                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')

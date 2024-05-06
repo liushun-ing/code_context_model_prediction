@@ -54,7 +54,7 @@ def main_func(project_model_name: str, step):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    index = model_dir_list.index('3025')
+    index = model_dir_list.index('3028')
     for model_dir in model_dir_list[index:]:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
@@ -74,15 +74,17 @@ def main_func(project_model_name: str, step):
             print('graph------------{}+{}'.format(len(all_nodes), len(all_edges)))
             vertices = graph.find('vertices').findall('vertex')
             edges = graph.find('edges').findall('edge')
+            # 保留 seed 也为 origin
             for node in vertices:
                 if node.get('origin') == '1':
                     node.set('seed', '1')
-                    node.set('origin', '0')
+                    # node.set('origin', '0')
                 else:
                     node.set('seed', '0')
                 if node.get('origin') == '0' and exist_node(all_nodes, node.get('ref_id')):
-                    if node.get('seed') == '0':
-                        node.set('origin', '1')
+                    # if node.get('seed') == '0':
+                    #     node.set('origin', '1')
+                    node.set('origin', '1')
                         # print('changed node origin to 1')
             for link in edges:
                 if link.get('origin') == '0' and exist_edge(all_nodes, vertices, link.get('start'), link.get('end')):

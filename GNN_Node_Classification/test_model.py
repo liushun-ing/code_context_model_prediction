@@ -4,13 +4,10 @@ from os.path import join
 
 import numpy as np
 import torch
-from dgl import DGLGraph
 from torch import nn
-from torchmetrics.classification import BinaryAccuracy
 from torchmetrics.classification import BinaryPrecision
 from torchmetrics.classification import BinaryRecall
 from torchmetrics.classification import BinaryF1Score
-from torchmetrics.classification import BinaryAUROC
 from torchmetrics.classification import BinaryAveragePrecision
 
 from .utils_nc import util
@@ -21,6 +18,8 @@ from .utils_nc.data_loader import load_prediction_data
 from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
+# from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
+#     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 def select_result(output: torch.Tensor):
     """如果推荐元素超过十个，就只留 top-75%"""
@@ -43,7 +42,7 @@ def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int, t
     labels = labels[torch.ge(top_k, threshold)]  # top_k 中只选择预测为真的
     true_positive = torch.sum(torch.eq(labels, 1)).item()
     precision = 0 if labels.shape[0] == 0 else true_positive / labels.shape[0]
-    recall = true_positive / true_number
+    recall = 0 if true_number == 0 else true_positive / true_number
     if precision + recall == 0:
         f1 = 0
     else:
@@ -52,6 +51,9 @@ def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int, t
 
 
 def calculate_result_full(labels, output, threshold, device):
+    if labels.shape[0] == 0:
+        print('0')
+        return [0, 0, 0, 0]
     # 计算 precision
     precision_metrics = BinaryPrecision(threshold=threshold).to(device)
     pre = precision_metrics(output, labels).item()
@@ -93,8 +95,8 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
             seeds = seeds.to(device)
 
             output = gnn_model(g, features, edge_types)
-            output = output[torch.eq(seeds, 0)]
-            labels = labels[torch.eq(seeds, 0)]
+            # output = output[torch.eq(seeds, 1)]
+            # labels = labels[torch.eq(seeds, 1)]
             # 计算 loss
             loss = criterion(output, labels)
             total_loss += loss.item()
@@ -172,7 +174,7 @@ def init(model_path, load_name, step, model_name, code_embedding, hidden_size, h
         model = GATModel4(code_embedding, hidden_size, out_feats, 0.0, num_heads=8)
     elif model_name == 'GCN4':
         print('~~~~~~~~~~~GCN4~~~~~~~~~~~')
-        model = GCNModel4(code_embedding, hidden_size, out_feats, 0.0)
+        model = GCNModel4(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
     elif model_name == 'GraphSAGE4':
         print('~~~~~~~~~~~GraphSAGE4~~~~~~~~~~~')
         model = GraphSAGEModel4(code_embedding, hidden_size, out_feats, 0.0)

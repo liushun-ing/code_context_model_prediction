@@ -128,26 +128,33 @@ class GCNModel2(nn.Module):
     """
     GraphConv based gnn link prediction model: GCN
     """
+    output_1 = None
     def __init__(self, in_feats, hidden_size, out_feats, dropout):
         super(GCNModel2, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
         self.conv1 = GraphConv(in_feats, hidden_size)
         self.conv2 = GraphConv(hidden_size, out_feats)
         self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
+        self.mlp1 = torch.nn.Linear(hidden_size + out_feats, out_feats)
+        self.mlp2 = torch.nn.Linear(out_feats, 1)
 
     def reset_parameters(self):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
-        self.pred.reset_parameters()
+        self.mlp1.reset_parameters()
+        self.mlp2.reset_parameters()
 
     def forward(self, g, features, edge_types):
         x = self.conv1(g, features)
         x = torch.relu(x)
+        self.output_1 = x.clone()
         x = self.dropout(x)
         x = self.conv2(g, x)
         x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
+        x = torch.cat((self.output_1, x), dim=1)
+        x = self.mlp1(x)
+        x = torch.relu(x)
+        x = self.mlp2(x).squeeze(1)
         return torch.sigmoid(x)
 
 
@@ -199,36 +206,49 @@ class GCNModel4(nn.Module):
     """
     GraphConv based gnn link prediction model: GCN
     """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
+    output_1, output_2, output_3 = None, None, None
+    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
         super(GCNModel4, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
         self.conv1 = GraphConv(in_feats, hidden_size)
-        self.conv2 = GraphConv(hidden_size, hidden_size)
-        self.conv3 = GraphConv(hidden_size, hidden_size)
-        self.conv4 = GraphConv(hidden_size, out_feats)
+        self.conv2 = GraphConv(hidden_size, hidden_size_2)
+        self.conv3 = GraphConv(hidden_size_2, hidden_size_2)
+        self.conv4 = GraphConv(hidden_size_2, out_feats)
         self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
+        self.mlp1 = torch.nn.Linear(hidden_size + hidden_size_2 + hidden_size_2 + out_feats, hidden_size_2 + hidden_size_2 + out_feats)
+        self.mlp2 = torch.nn.Linear(hidden_size_2 + hidden_size_2 + out_feats, out_feats)
+        self.mlp3 = torch.nn.Linear(out_feats, 1)
 
     def reset_parameters(self):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
         self.conv3.reset_parameters()
         self.conv4.reset_parameters()
-        self.pred.reset_parameters()
+        self.mlp1.reset_parameters()
+        self.mlp2.reset_parameters()
+        self.mlp3.reset_parameters()
 
     def forward(self, g, features, edge_types):
         x = self.conv1(g, features)
         x = torch.relu(x)
+        self.output_1 = x.clone()
         x = self.dropout(x)
         x = self.conv2(g, x)
         x = torch.relu(x)
+        self.output_2 = x.clone()
         x = self.dropout(x)
         x = self.conv3(g, x)
         x = torch.relu(x)
+        self.output_3 = x.clone()
         x = self.dropout(x)
         x = self.conv4(g, x)
         x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
+        x = torch.cat((self.output_1, self.output_2, self.output_3, x), dim=1)
+        x = self.mlp1(x)
+        x = torch.relu(x)
+        x = self.mlp2(x)
+        x = torch.relu(x)
+        x = self.mlp3(x).squeeze(1)
         return torch.sigmoid(x)
 
 

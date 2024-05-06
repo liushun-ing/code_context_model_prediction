@@ -1,5 +1,6 @@
 import os
 import random
+from decimal import Decimal
 from os.path import join
 
 import math
@@ -13,8 +14,8 @@ from networkx.algorithms import isomorphism
 
 root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
 
-
 random.seed(23)
+
 
 def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
     """
@@ -30,10 +31,12 @@ def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
     project_path = join(root_path, project, 'repo_first_3')
     model_dir_list = os.listdir(project_path)
     all_models = []
-    # random sample 352
-    sample_dir_list = random.sample(model_dir_list, 352)
-    print(sample_dir_list)
+    # random sample 343 except for 572
+    sample_dir_list = random.sample(model_dir_list, 346)
+    # print(sample_dir_list)
     for model_dir in sample_dir_list:
+        if model_dir in ['572', '2905', '1352', '2053']:
+            continue
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')
         # 如果不存在模型，跳过处理
@@ -180,10 +183,12 @@ def print_result(result, k):
             p += res[i][0]
             r += res[i][1]
             f += res[i][2]
-        print(f'----------result of top {k}-------\n'
-              f'Precision: {p / len(result)}, '
-              f'Recall: {r / len(result)}, '
-              f'F1: {f / len(result)}')
+        p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        print(
+            # f'----------result of top {k}-------\n'
+            f'Precision: {p}, Recall: {r}, F1: {f}')
 
 
 def graph_match(step, patterns):
@@ -213,21 +218,26 @@ def graph_match(step, patterns):
         confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)
         # print(f'{G1} confidence {confidence}')
         # 去掉所有有关 seed 的节点
-        new_confidence = []
-        for top_c in confidence:
-            node_id = top_c[0]
-            if int(G1.nodes.get(node_id)['seed']) == 0:
-                new_confidence.append(top_c)
-        confidence = new_confidence
+        # new_confidence = []
+        # for top_c in confidence:
+        #     node_id = top_c[0]
+        #     if int(G1.nodes.get(node_id)['seed']) == 0:
+        #         new_confidence.append(top_c)
+        # confidence = new_confidence
         output, labels = [], []
         for top_c in confidence:
             node_id = top_c[0]
             output.append(top_c[1])
             # print(G1.nodes.get(node_id))
-            labels.append(int(G1.nodes.get(node_id)['origin']))
+            if int(G1.nodes.get(node_id)['origin']) == 1 or int(G1.nodes.get(node_id)['seed']) == 0:
+                final_label = 1
+            else:
+                final_label = 0
+            labels.append(final_label)
         true_number = 0
         for n in list(G1.nodes):
-            true_number += int(G1.nodes.get(n)['origin'])
+            if int(G1.nodes.get(n)['origin']) == 1 or int(G1.nodes.get(n)['seed']) == 0:
+                true_number += 1
         result_full.append(calculate_result_full(labels, output, true_number))
     print_result(result_full, 0)
 
@@ -238,7 +248,7 @@ def graph_build_and_gspan(project_model_name='my_mylyn'):
     with open('./sample_graph.data', 'w') as f:
         # 读取code context model
         model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
-        print(len(model_dir_list))
+        print('model dir list len', len(model_dir_list))
         for model_dir in model_dir_list:
             # print('---------------', model_dir)
             model_path = join(project_path, model_dir)
@@ -271,9 +281,9 @@ def graph_build_and_gspan(project_model_name='my_mylyn'):
                 graph_index += 1
         f.write('t # -1')
         f.close()
-    print(graph_index)
+    print('total graph', graph_index)
 
-    min_support = math.ceil(0.007 * (graph_index - 1))  # 0.02 * num_of_graphs
+    min_support = math.ceil(0.05 * (graph_index - 1))  # 0.02 * num_of_graphs
     print('min_support: ', min_support)
     args_str = f'-s {min_support} ./sample_graph.data'
     FLAGS, _ = parser.parse_known_args(args=args_str.split())
@@ -281,7 +291,5 @@ def graph_build_and_gspan(project_model_name='my_mylyn'):
 
 
 if __name__ == '__main__':
-    graph_build_and_gspan()
-    # graph_match(step=1, patterns='./new-patterns-0.007')
-
-# TODO 生成种子后，进行扩展，分配原型，挖掘模式，进行匹配
+    # graph_build_and_gspan()
+    graph_match(step=1, patterns='./sample_patterns/p-0.01')

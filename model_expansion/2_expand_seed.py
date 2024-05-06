@@ -16,7 +16,7 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    index = model_dir_list.index('3025')
+    index = model_dir_list.index('3028')
     for model_dir in model_dir_list[index:]:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
