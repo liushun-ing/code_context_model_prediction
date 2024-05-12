@@ -259,8 +259,8 @@ class RGCNModel2(nn.Module):
     def __init__(self, in_feats, hidden_size, out_feats, dropout):
         super(RGCNModel2, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = RelGraphConv(in_feats, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv2 = RelGraphConv(hidden_size, out_feats, 4, regularizer='basis', num_bases=2)
+        self.conv1 = RelGraphConv(in_feats, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
+        self.conv2 = RelGraphConv(hidden_size, out_feats, 6, regularizer='basis', num_bases=6, self_loop=False)
         self.dropout = torch.nn.Dropout(p=dropout)
         self.pred = torch.nn.Linear(out_feats, 1)
 
@@ -284,9 +284,9 @@ class RGCNModel3(nn.Module):
     def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
         super(RGCNModel3, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = RelGraphConv(in_feats, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv2 = RelGraphConv(hidden_size, hidden_size_2, 4, regularizer='basis', num_bases=2)
-        self.conv3 = RelGraphConv(hidden_size_2, out_feats, 4, regularizer='basis', num_bases=2)
+        self.conv1 = RelGraphConv(in_feats, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
+        self.conv2 = RelGraphConv(hidden_size, hidden_size_2, 6, regularizer='basis', num_bases=6, self_loop=False)
+        self.conv3 = RelGraphConv(hidden_size_2, out_feats, 6, regularizer='basis', num_bases=6, self_loop=False)
         self.dropout = torch.nn.Dropout(p=dropout)
         self.pred = torch.nn.Linear(out_feats, 1)
 
@@ -313,10 +313,10 @@ class RGCNModel4(nn.Module):
     def __init__(self, in_feats, hidden_size, out_feats, dropout):
         super(RGCNModel4, self).__init__()
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = RelGraphConv(in_feats, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv2 = RelGraphConv(hidden_size, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv3 = RelGraphConv(hidden_size, hidden_size, 4, regularizer='basis', num_bases=2)
-        self.conv4 = RelGraphConv(hidden_size, out_feats, 4, regularizer='basis', num_bases=2)
+        self.conv1 = RelGraphConv(in_feats, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
+        self.conv2 = RelGraphConv(hidden_size, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
+        self.conv3 = RelGraphConv(hidden_size, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
+        self.conv4 = RelGraphConv(hidden_size, out_feats, 6, regularizer='basis', num_bases=6, self_loop=False)
         self.dropout = torch.nn.Dropout(p=dropout)
         self.pred = torch.nn.Linear(out_feats, 1)
 

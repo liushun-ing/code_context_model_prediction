@@ -12,11 +12,13 @@ root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), '
 def exist_edge(new_vertices: list[ET.Element], new_edge: ET.Element):
     start = new_edge.get('start')
     end = new_edge.get('end')
-    count = 0
+    is_start, is_end = False, False
     for node in new_vertices:
-        if node.get('id') == start or node.get('id') == end:
-            count += 1
-    return count == 2
+        if node.get('id') == start:
+            is_start = True
+        if node.get('id') == end:
+            is_end = True
+    return is_start and is_end
 
 
 def get_all_seed_graph(vertices: list[ET.Element], edges: list[ET.Element], step: int):
@@ -38,8 +40,8 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    index = model_dir_list.index('3028')
-    for model_dir in model_dir_list[index:]:
+    index = model_dir_list.index('459')
+    for model_dir in model_dir_list[index: index+10]:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')

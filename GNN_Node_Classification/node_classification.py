@@ -13,10 +13,10 @@ from .utils_nc.data_loader import load_prediction_data
 # from .utils_nc.prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
 #     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
-
 from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
+from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
 # from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
 #     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
@@ -119,7 +119,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     :return: none
     """
     gnn_model.train()
-    optimizer = optim.Adam(gnn_model.parameters(), lr=lr)
+    optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=1e-6)
     # optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=0.001)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
@@ -261,7 +261,7 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     print(
         f'model: {model_name}, step: {step}, dropout: {dropout}, undersampling: {under_sampling_threshold}, epoch: {epochs}')
     if model_name.startswith('RGCN'):
-        self_loop = False
+        self_loop = True
     else:
         self_loop = True
     device, model = init(model_name, code_embedding, hidden_size, hidden_size_2, out_feats, dropout, use_gpu)

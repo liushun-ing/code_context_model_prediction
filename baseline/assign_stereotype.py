@@ -34,12 +34,15 @@ def main_func(project_model_name: str, step: int):
     # 读取code context model
     # model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
     model_dir_list = os.listdir(project_path)
+    model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
+    # index = model_dir_list.index('459')
     all_stereotypes = {'FIELD'}
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         # model_file = join(model_path, 'code_context_model.xml')
-        model_file = join(model_path, f'{step}_step_seed_model.xml')
+        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        # model_file = join(model_path, f'{step}_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -114,7 +117,8 @@ def main_func(project_model_name: str, step: int):
                                     print(f'NOTFOUND-class-{vertex.get("label")}-{pack}.{cla}')
                                     vertex.set('stereotype', 'NOTFOUND')
                                     all_stereotypes.add('NOTFOUND')
-        tree.write(join(model_path, f'{step}_step_seed_model.xml'))
+        tree.write(join(model_path, f'{step}_step_expanded_model.xml'))
+        # tree.write(join(model_path, f'{step}_step_seed_model.xml'))
         # tree.write(join(model_path, 'code_context_model.xml'))
         print('stereotype {} code context model over~~~~~~~~~~~~'.format(model_file))
     print(all_stereotypes, len(all_stereotypes))
@@ -122,3 +126,16 @@ def main_func(project_model_name: str, step: int):
 
 # merge_stereotypes()
 main_func('my_mylyn', step=1)
+
+# {'PURE_CONTROLLER', 'EMPTY', 'BOUNDARY', 'VOID_ACCESSOR-COLLABORATOR', 'FACTORY', 'COMMAND',
+#  'CONSTRUCTOR-LOCAL_CONTROLLER', 'DEGENERATE', 'LOCAL_CONTROLLER', 'DESTRUCTOR-LOCAL_CONTROLLER', 'OTHER',
+#  'LARGE_CLASS', 'GET-LOCAL_CONTROLLER', 'ENTITY', 'ABSTRACT', 'DATA_PROVIDER', 'BOUNDARY-DATA_PROVIDER',
+#  'COMMAND-LOCAL_CONTROLLER', 'NON_VOID_COMMAND-COLLABORATOR', 'CONTROLLER', 'CONSTRUCTOR', 'POOL',
+#  'PREDICATE-LOCAL_CONTROLLER', 'DATA_CLASS', 'COMMAND-COLLABORATOR', 'PROPERTY', 'COLLABORATOR',
+#  'FACTORY-LOCAL_CONTROLLER', 'FIELD', 'MINIMAL_ENTITY', 'GET-COLLABORATOR', 'SET', 'PROPERTY-COLLABORATOR',
+#  'SET-COLLABORATOR', 'FACTORY-CONTROLLER', 'CONSTRUCTOR-CONTROLLER', 'COMMANDER', 'BOUNDARY-COMMANDER',
+#  'PROPERTY-LOCAL_CONTROLLER', 'INCIDENTAL', 'FACTORY-COLLABORATOR', 'LAZY_CLASS', 'PREDICATE-COLLABORATOR',
+#  'CONSTRUCTOR-COLLABORATOR', 'NON_VOID_COMMAND', 'GET', 'PREDICATE', 'NON_VOID_COMMAND-LOCAL_CONTROLLER', 'NOTFOUND',
+#  'SET-LOCAL_CONTROLLER', 'INTERFACE'}
+# 51
+# 1 step expanded model

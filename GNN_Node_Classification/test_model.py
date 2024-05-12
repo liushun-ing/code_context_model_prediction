@@ -18,6 +18,7 @@ from .utils_nc.data_loader import load_prediction_data
 from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
+from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
 # from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
 #     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
@@ -217,7 +218,7 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
                          use_gpu)
     print('----load test dataset----')
     if model_name.startswith('RGCN'):
-        self_loop = False
+        self_loop = True
     else:
         self_loop = True
     data_loader = load_prediction_data(model_path, 'test', batch_size=1, step=step, self_loop=self_loop,

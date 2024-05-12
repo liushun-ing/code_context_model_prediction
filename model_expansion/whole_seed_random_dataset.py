@@ -24,23 +24,16 @@ def exist_edge(new_vertices: list[ET.Element], new_edge: ET.Element):
 
 
 def get_all_seed_graph(vertices: list[ET.Element], edges: list[ET.Element], step: int):
-    """
-    生成所有 seed
-    """
     max_sup = len(vertices) - step
+    vertices = sorted(vertices, key=lambda x: x.get('timestamp'))
     res = []
     for sup in range(1, max_sup + 1):
-        print(f'--------------{sup}-----------')
-        # 需要抽取 sup 个种子节点
-        from itertools import combinations
-        new_vertices_list = combinations(vertices, sup)
-        for new_vertices in new_vertices_list:
-            # print(len(new_vertices))
-            new_edges = []
-            for new_edge in edges:
-                if exist_edge(new_vertices, new_edge):
-                    new_edges.append(new_edge)
-            res.append((new_vertices, new_edges))
+        new_vertices = vertices[0: sup]
+        new_edges = []
+        for new_edge in edges:
+            if exist_edge(new_vertices, new_edge):
+                new_edges.append(new_edge)
+        res.append((new_vertices, new_edges))
     return res
 
 
@@ -50,9 +43,7 @@ def extract_seed(project_model_name: str):
     # model_dir_list = random.sample(model_dir_list, 346)
     # print(model_dir_list)
     # 读取code context model ; except for 2905
-    for model_dir in model_dir_list[2328:]:
-        if model_dir in ['2905', '3674', '2812', '1087', '4585', '1273']:
-            continue
+    for model_dir in model_dir_list:
         print(f'------{model_dir_list.index(model_dir)}---------{model_dir}')
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')
@@ -116,9 +107,7 @@ def expand_random_dataset(project_model_name: str, step: int):
     # model_dir_list = random.sample(model_dir_list, 346)
     # print(model_dir_list)
     # 读取code context model ; except for 572 2905
-    for model_dir in model_dir_list[650:]:
-        if model_dir in ['2905', '3674', '2812', '1087', '4585', '1273']:
-            continue
+    for model_dir in model_dir_list:
         print(f'------{model_dir_list.index(model_dir)}---------{model_dir}')
         model_path = join(project_path, model_dir)
         model_file = join(model_path, f'{step}_step_model_sample.xml')
@@ -141,6 +130,6 @@ def expand_random_dataset(project_model_name: str, step: int):
 
 if __name__ == '__main__':
     # 拆分种子
-    # extract_seed('my_mylyn')
+    extract_seed('my_mylyn')
     # 扩展种子
     expand_random_dataset('my_mylyn', 1)

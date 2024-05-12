@@ -200,7 +200,7 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
         g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
         # 添加自环边
         if self_loop:
-            g = dgl.add_self_loop(g, edge_feat_names=['relation'], fill_data=4)
+            g = dgl.add_self_loop(g, edge_feat_names=['relation'], fill_data=5)
         graphs.append(g)
     # print(g, g.nodes(), g.edges())
     return graphs

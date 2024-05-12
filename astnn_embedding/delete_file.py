@@ -10,8 +10,6 @@ warnings.filterwarnings('ignore')
 
 repo_root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation',
                       'git_repo_code')
-root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'astnn_embedding')
-
 
 def main_func():
     for project_model_name in ['my_pde', 'my_platform', 'my_mylyn']:
@@ -22,7 +20,7 @@ def main_func():
         for model_dir in model_dir_list:
             print('---------------', model_dir)
             model_path = join(project_path, model_dir)
-            ast_path = join(model_path, 'glove_embedding.pkl')
+            ast_path = join(model_path, 'all_2_glove_embedding.pkl')
             # 如果不存在ast，跳过处理
             if os.path.exists(ast_path):
                 os.remove(ast_path)

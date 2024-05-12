@@ -179,3 +179,5 @@ baseline/stereotype/
 my_embedding/codebert_base/
 glove_embedding/glove/src/
 glove_embedding/glove/eval/
+baseline/sample_patterns/
+baseline/whole_patterns/

@@ -17,9 +17,10 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
         model_dir_list = os.listdir(project_path)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
         ratios = []
+        print(len(model_dir_list))
         for model_dir in model_dir_list:
             model_path = join(project_path, model_dir)
-            model_file = join(model_path, f'{str(step)}_step_seed_model.xml')
+            model_file = join(model_path, f'{str(step)}_step_expanded_model.xml')
             # 如果不存在模型，跳过处理
             if not os.path.exists(model_file):
                 continue
@@ -36,7 +37,7 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
                     # print(vertex.get('origin'))
                     if vertex.get('origin') == '1':
                         count += 1
-                if total > 0:
+                if count > 1 and total > 0:
                     ratios.append((total - count) / (count if count > 0 else 1))
         total_res += ratios
         res = np.array(ratios)

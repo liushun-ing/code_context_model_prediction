@@ -3,7 +3,7 @@ from os.path import join
 
 from GNN_Node_Classification import data_estimator, construct_input, node_classification, view, test_model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "9"  # GPU编号
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # GPU编号
 
 # see the sample ratios of four project
 # data_estimator.estimate_positive_and_negative_samples(['my_pde', 'my_platform', 'my_mylyn'], step=3)
@@ -13,7 +13,7 @@ description = 'mylyn'
 embedding_type = 'astnn'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 model_name = ['GCN3'][0]
-under_sampling_threshold = [5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 0][1]  # 0表示不进行欠采样 40 是比例最好的
+under_sampling_threshold = [5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 0][1]  # 0表示不进行欠采样 40 是比例最好的
 code_embedding = 768
 epochs = 100
 lr = 0.0001
@@ -22,7 +22,7 @@ batch_size = 16
 hidden_size = 256
 hidden_size_2 = 128
 out_feats = 64
-dropout = 0.2
+dropout = 0.1
 threshold = 0.4
 
 construct = False

@@ -22,7 +22,8 @@ edge_vector = {
     "declares": 0,
     "calls": 1,
     "inherits": 2,
-    "implements": 3
+    "implements": 3,
+    "uses": 4
 }
 dataset_ratio = {
     'train': [0.0, 0.8],
@@ -50,6 +51,19 @@ step_1 = ['POOL', 'PREDICATE-COLLABORATOR', 'DESTRUCTOR-LOCAL_CONTROLLER', 'PRED
 STEREOTYPE_EMBEDDING = torch.nn.Embedding(len(step_1), 256)
 
 
+def adjust_edge(edge: ET.Element, nodes: list[ET.Element]):
+    start = int(edge.get('start'))
+    end = int(edge.get('end'))
+    label = edge.get('label')
+    if label == 'calls':
+        for node in nodes:
+            if int(node.get('id')) == end and node.get('kind') == 'variable':
+                return [start, end, edge_vector['uses']]
+        return [start, end, edge_vector[label]]
+    else:
+        return [start, end, edge_vector[label]]
+
+
 def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
                         description):
     if embedding_type == 'astnn+codebert':
@@ -74,22 +88,22 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
         base = 0
-        seed_num_list = list()
+        # seed_num_list = list()
         if len(graphs) == 0:
             continue
-        for graph in graphs:
-            count = 0
-            vertices = graph.find('vertices')
-            vertex_list = vertices.findall('vertex')
-            for vertex in vertex_list:
-                if vertex.get('seed') == '1':
-                    count += 1
-            seed_num_list.append(count)
-        one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
-        remain_seed_list = list()
-        for i in range(len(one_seed_index) - 1):
-            remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
-        remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
+        # for graph in graphs:
+        #     count = 0
+        #     vertices = graph.find('vertices')
+        #     vertex_list = vertices.findall('vertex')
+        #     for vertex in vertex_list:
+        #         if vertex.get('seed') == '1':
+        #             count += 1
+        #     seed_num_list.append(count)
+        # one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
+        # remain_seed_list = list()
+        # for i in range(len(one_seed_index) - 1):
+        #     remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
+        # remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
         for graph in graphs:
             # 创建保存nodes和edges的数据结构
             nodes_tsv = list()
@@ -102,27 +116,31 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                 node_id = '_'.join([model_dir, vertex.get('kind'), vertex.get('ref_id')])
                 _id = int(vertex.get('id'))
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
+                # embedding_list_1[embedding_list_1['id'] == node_id]['embedding']
+                # print(node_id)
                 embedding_1 = embedding_list_1[embedding_list_1['id'] == node_id]['embedding'].iloc[0]
                 embedding_2 = embedding_list_2[embedding_list_2['id'] == node_id]['embedding'].iloc[0]
                 embedding_seed = SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 # 进行组合
+                # embedding = embedding_1.tolist() + embedding_2.tolist()
                 embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
                 if embedding_type == 'astnn+codebert':
-                    embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
+                    embedding = embedding
                 elif embedding_type == 'astnn+codebert+stereotype':
                     stereotype = vertex.get('stereotype')
                     embedding_stereotype = STEREOTYPE_EMBEDDING(
                         torch.tensor(step_1.index(stereotype))).squeeze().tolist()
-                    embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed + embedding_stereotype
-                # embedding = embedding_1.tolist() + embedding_2.tolist()
+                    embedding = embedding + embedding_stereotype
                 nodes_tsv.append(
                     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
+                # nodes_tsv.append(
+                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')
             edge_list = edges.findall('edge')
             for edge in edge_list:
-                edges_tsv.append([int(edge.get('start')), int(edge.get('end')), edge_vector[edge.get('label')]])
+                edges_tsv.append(adjust_edge(edge, vertex_list))
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
@@ -130,8 +148,9 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
             if os.path.exists(dest):
                 shutil.rmtree(dest)
             os.makedirs(dest)
-            if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
-                if true_node > 0:
+            # if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+            if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+                if true_node > 1:
                     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
@@ -167,22 +186,22 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
         base = 0
-        seed_num_list = list()
+        # seed_num_list = list()
         if len(graphs) == 0:
             continue
-        for graph in graphs:
-            count = 0
-            vertices = graph.find('vertices')
-            vertex_list = vertices.findall('vertex')
-            for vertex in vertex_list:
-                if vertex.get('seed') == '1':
-                    count += 1
-            seed_num_list.append(count)
-        one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
-        remain_seed_list = list()
-        for i in range(len(one_seed_index) - 1):
-            remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
-        remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
+        # for graph in graphs:
+        #     count = 0
+        #     vertices = graph.find('vertices')
+        #     vertex_list = vertices.findall('vertex')
+        #     for vertex in vertex_list:
+        #         if vertex.get('seed') == '1':
+        #             count += 1
+        #     seed_num_list.append(count)
+        # one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
+        # remain_seed_list = list()
+        # for i in range(len(one_seed_index) - 1):
+        #     remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
+        # remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
         for graph in graphs:
             # 创建保存nodes和edges的数据结构
             nodes_tsv = list()
@@ -198,6 +217,8 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 # print(node_id)
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
                 embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0].tolist()
+                # nodes_tsv.append(
+                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
                 embedding = embedding + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 nodes_tsv.append(
                     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
@@ -206,7 +227,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             edges = graph.find('edges')
             edge_list = edges.findall('edge')
             for edge in edge_list:
-                edges_tsv.append([int(edge.get('start')), int(edge.get('end')), edge_vector[edge.get('label')]])
+                edges_tsv.append(adjust_edge(edge, vertex_list))
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
@@ -215,8 +236,9 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 shutil.rmtree(dest)
             os.makedirs(dest)
             # 如果没有节点，或者没有边，或者节点数小于step 都需要过滤掉,也就是stimulation
-            if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
-                if true_node > 0:
+            # if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+            if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
+                if true_node > 1:
                     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(

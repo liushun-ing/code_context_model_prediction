@@ -16,8 +16,8 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    index = model_dir_list.index('3028')
-    for model_dir in model_dir_list[index:]:
+    index = model_dir_list.index('459')
+    for model_dir in model_dir_list[index: index+10]:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         model_file = join(model_path, '1_step_seed_model.xml')
