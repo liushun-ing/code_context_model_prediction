@@ -31,9 +31,9 @@ dataset_ratio = {
     'test': [0.9, 1.0]
 }
 mylyn_dataset_ratio = {
-    'train': [0, 0.74],
-    'valid': [0.74, 0.84],
-    'test': [0.84, 1]
+    'train': [0, 0.8],
+    'valid': [0.8, 0.9],
+    'test': [0.9, 1]
 }
 SEED_EMBEDDING = torch.nn.Embedding(2, 256)
 
@@ -76,7 +76,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{str(step)}_step_seed_model.xml')
+        model_file = join(model_path, f'{str(step)}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -120,10 +120,10 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                 # print(node_id)
                 embedding_1 = embedding_list_1[embedding_list_1['id'] == node_id]['embedding'].iloc[0]
                 embedding_2 = embedding_list_2[embedding_list_2['id'] == node_id]['embedding'].iloc[0]
-                embedding_seed = SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
+                # embedding_seed = SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 # 进行组合
-                # embedding = embedding_1.tolist() + embedding_2.tolist()
-                embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
+                embedding = embedding_1.tolist() + embedding_2.tolist()
+                # embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
                 if embedding_type == 'astnn+codebert':
                     embedding = embedding
                 elif embedding_type == 'astnn+codebert+stereotype':
@@ -131,10 +131,10 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                     embedding_stereotype = STEREOTYPE_EMBEDDING(
                         torch.tensor(step_1.index(stereotype))).squeeze().tolist()
                     embedding = embedding + embedding_stereotype
-                nodes_tsv.append(
-                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
                 # nodes_tsv.append(
-                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
+                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
+                nodes_tsv.append(
+                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')
@@ -175,7 +175,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{str(step)}_step_seed_model.xml')
+        model_file = join(model_path, f'{str(step)}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -217,11 +217,11 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 # print(node_id)
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
                 embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0].tolist()
-                # nodes_tsv.append(
-                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
-                embedding = embedding + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 nodes_tsv.append(
-                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
+                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
+                # embedding = embedding + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
+                # nodes_tsv.append(
+                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')
@@ -338,7 +338,7 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str):
         for project_model_name in project_model_list:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             for dataset in mylyn_dataset_ratio:
-                ratios = dataset_ratio.get(dataset)
+                ratios = mylyn_dataset_ratio.get(dataset)
                 model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
                 model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
                 save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,

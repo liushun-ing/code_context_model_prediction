@@ -181,3 +181,5 @@ glove_embedding/glove/src/
 glove_embedding/glove/eval/
 baseline/sample_patterns/
 baseline/whole_patterns/
+baseline/origin_patterns/
+baseline/origin_result

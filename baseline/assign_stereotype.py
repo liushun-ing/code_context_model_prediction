@@ -32,8 +32,8 @@ def main_func(project_model_name: str, step: int):
     stereotypes = pd.read_csv('./stereotype/all_types.tsv', sep=' ')
     print(stereotypes)
     # 读取code context model
-    # model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
-    model_dir_list = os.listdir(project_path)
+    model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    # model_dir_list = os.listdir(project_path)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     # index = model_dir_list.index('459')
     all_stereotypes = {'FIELD'}
@@ -125,7 +125,7 @@ def main_func(project_model_name: str, step: int):
 
 
 # merge_stereotypes()
-main_func('my_mylyn', step=1)
+main_func('my_mylyn', step=2)
 
 # {'PURE_CONTROLLER', 'EMPTY', 'BOUNDARY', 'VOID_ACCESSOR-COLLABORATOR', 'FACTORY', 'COMMAND',
 #  'CONSTRUCTOR-LOCAL_CONTROLLER', 'DEGENERATE', 'LOCAL_CONTROLLER', 'DESTRUCTOR-LOCAL_CONTROLLER', 'OTHER',
@@ -139,3 +139,15 @@ main_func('my_mylyn', step=1)
 #  'SET-LOCAL_CONTROLLER', 'INTERFACE'}
 # 51
 # 1 step expanded model
+
+# ['PREDICATE-LOCAL_CONTROLLER', 'FACTORY-LOCAL_CONTROLLER', 'CONSTRUCTOR-CONTROLLER', 'DATA_CLASS', 'FACTORY', 'FIELD',
+#  'INCIDENTAL', 'BOUNDARY-DATA_PROVIDER', 'GET', 'BOUNDARY-COMMANDER', 'SET', 'FACTORY-COLLABORATOR', 'COMMAND',
+#  'PREDICATE', 'NON_VOID_COMMAND-LOCAL_CONTROLLER', 'CONSTRUCTOR-LOCAL_CONTROLLER', 'COMMANDER', 'LOCAL_CONTROLLER',
+#  'ENTITY', 'PREDICATE-COLLABORATOR', 'SET-LOCAL_CONTROLLER', 'BOUNDARY', 'LAZY_CLASS', 'CONSTRUCTOR-COLLABORATOR',
+#  'ABSTRACT', 'GET-LOCAL_CONTROLLER', 'EMPTY', 'COMMAND-COLLABORATOR', 'PROPERTY-COLLABORATOR', 'CONTROLLER',
+#  'DEGENERATE', 'OTHER', 'NON_VOID_COMMAND', 'VOID_ACCESSOR-COLLABORATOR', 'POOL', 'MINIMAL_ENTITY', 'COLLABORATOR',
+#  'DATA_PROVIDER', 'INTERFACE', 'PROPERTY', 'CONSTRUCTOR', 'GET-COLLABORATOR', 'FACTORY-CONTROLLER',
+#  'PROPERTY-LOCAL_CONTROLLER', 'NON_VOID_COMMAND-COLLABORATOR', 'NOTFOUND', 'COMMAND-LOCAL_CONTROLLER',
+#  'SET-COLLABORATOR']
+# 48
+# 2 step expanded model

@@ -77,7 +77,7 @@ def main_func(project_model_name: str, step):
             for node in vertices:
                 if node.get('origin') == '0' and exist_node(all_nodes, node.get('ref_id')):
                     node.set('origin', '1')
-                    # print('changed node origin to 1')
+                    print('changed node origin to 1')
             for link in edges:
                 if link.get('origin') == '0' and exist_edge(all_nodes, vertices, link.get('start'), link.get('end')):
                     link.set('origin', '1')
@@ -95,4 +95,4 @@ def main_func(project_model_name: str, step):
 # main_func('my_platform')
 # # mylyn
 # print(root_path)
-main_func('my_mylyn', 3)
+main_func('my_mylyn', 2)

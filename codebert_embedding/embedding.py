@@ -88,4 +88,4 @@ def main_func(step, description):
             # gc.collect()
 
 
-main_func(1, 'mylyn')
+main_func(2, 'mylyn')

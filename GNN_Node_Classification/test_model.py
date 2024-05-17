@@ -96,8 +96,8 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
             seeds = seeds.to(device)
 
             output = gnn_model(g, features, edge_types)
-            # output = output[torch.eq(seeds, 1)]
-            # labels = labels[torch.eq(seeds, 1)]
+            # output = output[torch.eq(seeds, 0)]
+            # labels = labels[torch.eq(seeds, 0)]
             # 计算 loss
             loss = criterion(output, labels)
             total_loss += loss.item()
