@@ -223,7 +223,7 @@ def graph_match(step, patterns, batch_index):
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
     # f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     # for G1 in G1s:
-        if G1s.index(G1) in [116, 166, 316, 344]:
+        if G1s.index(G1) in [116, 166, 316, 344, 437]:
             continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0

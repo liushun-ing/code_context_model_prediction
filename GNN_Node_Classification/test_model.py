@@ -12,31 +12,9 @@ from torchmetrics.classification import BinaryAveragePrecision
 
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
-# from .utils_nc.prediction_model import GCNModel2, GATModel2, GraphSAGEModel2, GCNModel3, GCNModel4, GATModel3, \
-#     GATModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel2, RGCNModel4
 
-from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
-    GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
-
-from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
-from .utils_nc.final_prediction_model import GCNModel3, RGCNModel3
-
-
-# from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
-#     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
-
-def select_result(output: torch.Tensor):
-    """如果推荐元素超过十个，就只留 top-75%"""
-    indices = (output >= 0.4).nonzero(as_tuple=True)[0].tolist()
-    # print(indices)
-    if len(indices) < 15:
-        return output
-    count = math.floor(len(indices) * 0.75)
-    for t in range(len(indices), count, -1):
-        topk_indices = torch.topk(output, k=t).indices
-        # 将第 n 大的元素位置设为 0
-        output[topk_indices[-1]] = 0
-    return output
+from .utils_nc.concat_prediction_model import ConcatPredictionModel
+from .utils_nc.attention_prediction_model import AttentionPredictionModel
 
 
 def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int, threshold):
@@ -116,13 +94,6 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi, s_file=None):
         total_loss = 0.0
         result = []
         for g, features, labels, edge_types, seeds, kinds in data_loader:
-            g = g.to(device)
-            features = features.to(device)
-            labels = labels.to(device)
-            edge_types = edge_types.to(device)
-            seeds = seeds.to(device)
-            kinds = kinds.to(device)
-
             output = gnn_model(g, features, edge_types)
             # output = output[torch.eq(seeds, 0)]
             # labels = labels[torch.eq(seeds, 0)]
@@ -175,79 +146,51 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi, s_file=None):
             print(f'{line}')
 
 
-def init(model_path, load_name, step, model_name, code_embedding, hidden_size, hidden_size_2, out_feats, use_gpu):
+def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size, num_heads, num_edge_types,
+         use_gpu, attention_heads=10, approach='attention'):
     # 定义模型参数  GPU 或 CPU
     if use_gpu:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     else:
         device = 'cpu'
     # 创建模型
-    if model_name == 'GAT2':
-        print('~~~~~~~~~~~GAT2~~~~~~~~~~~')
-        model = GATModel2(code_embedding, hidden_size, out_feats, 0.0, num_heads=8)
-    elif model_name == 'GCN2':
-        print('~~~~~~~~~~~GCN2~~~~~~~~~~~')
-        model = GCNModel2(code_embedding, hidden_size, out_feats, 0.0)
-    elif model_name == 'GraphSAGE2':
-        print('~~~~~~~~~~~GraphSAGE2~~~~~~~~~~~')
-        model = GraphSAGEModel2(code_embedding, hidden_size, out_feats, 0.0)
-    elif model_name == 'GAT3':
-        print('~~~~~~~~~~~GAT3~~~~~~~~~~~')
-        model = GATModel3(code_embedding, hidden_size, out_feats, 0.0, num_heads=8, hidden_size_2=hidden_size_2)
-    elif model_name == 'GCN3':
-        print('~~~~~~~~~~~GCN3~~~~~~~~~~~')
-        model = GCNModel3(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
-    elif model_name == 'GraphSAGE3':
-        print('~~~~~~~~~~~GraphSAGE3~~~~~~~~~~~')
-        model = GraphSAGEModel3(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
-    elif model_name == 'GAT4':
-        print('~~~~~~~~~~~GAT4~~~~~~~~~~~')
-        model = GATModel4(code_embedding, hidden_size, out_feats, 0.0, num_heads=8)
-    elif model_name == 'GCN4':
-        print('~~~~~~~~~~~GCN4~~~~~~~~~~~')
-        model = GCNModel4(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
-    elif model_name == 'GraphSAGE4':
-        print('~~~~~~~~~~~GraphSAGE4~~~~~~~~~~~')
-        model = GraphSAGEModel4(code_embedding, hidden_size, out_feats, 0.0)
-    elif model_name == 'RGCN2':
-        print('~~~~~~~~~~~RGCN2~~~~~~~~~~~')
-        model = RGCNModel2(code_embedding, hidden_size, out_feats, 0.0)
-    elif model_name == 'RGCN3':
-        print('~~~~~~~~~~~RGCN3~~~~~~~~~~~')
-        model = RGCNModel3(code_embedding, hidden_size, out_feats, 0.0, hidden_size_2=hidden_size_2)
-    elif model_name == 'RGCN4':
-        print('~~~~~~~~~~~RGCN4~~~~~~~~~~~')
-        model = RGCNModel4(code_embedding, hidden_size, out_feats, 0.0)
+    if approach == 'concat':
+        model = ConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types)
+    elif approach == 'attention':
+        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                                         attention_heads)
     else:
-        print('~~~~~~~~~~~else GGNN~~~~~~~~~~~')
-        model = GatedGraphModel(code_embedding, hidden_size, out_feats, 5)
+        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                                         attention_heads)
     model = util.load_model(model, model_path, step, load_name)
     model.to(device)
     return model, device
 
 
-def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200, hidden_size=64, hidden_size_2=128,
-              out_feats=16,
-              use_gpu=True, load_lazy=True):
+def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_feats=1280, hidden_size=1024,
+              attention_heads=10, num_heads=8, num_edge_types=6, use_gpu=True, load_lazy=True, approach="attention"):
     """
     测试模型
 
-    :param model_path: path to model
-    :param load_name: model name
+    :param model_path: path to trained model
+    :param load_name: best model's name
     :param step: step
-    :param model_name: train model name:GCN, GAT, GraphSAGE
-    :param code_embedding: the size of code embedding
+    :param model_type: train model type: GCN, GAT, GraphSAGE, RGCN, GGNN
+    :param num_layers: number of graph convolution layers
+    :param in_feats: the size of code embedding
     :param hidden_size: hidden size of GNN
-    :param hidden_size_2: hidden size of second layer
-    :param out_feats: out feature size of GNN
+    :param attention_heads: number of graph attention heads
+    :param num_heads: number of graph convolution layer attention head
+    :param num_edge_types: number of edge type
     :param use_gpu: default true
     :param load_lazy: load dataset lazy
+    :param approach: train approach: attention or concat
     :return: None
     """
-    model, device = init(model_path, load_name, step, model_name, code_embedding, hidden_size, hidden_size_2, out_feats,
-                         use_gpu)
+    model, device = init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size,
+                         num_heads, num_edge_types, use_gpu, attention_heads, approach)
     print('----load test dataset----')
-    if model_name.startswith('RGCN'):
+    if model_type.startswith('RGCN'):
         self_loop = True
     else:
         self_loop = True
@@ -257,7 +200,7 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     thresholds = [0.4, 0.5]
     with open(join(model_path, 'result4.txt'), 'a') as f:
-        f.write(f'model: {model_name} + step: {step}\n')
+        f.write(f'model: {model_type} + step: {step}\n')
         for t in thresholds:
             print()
             for k in [0]:

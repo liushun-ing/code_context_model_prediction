@@ -20,7 +20,7 @@ def main_func(project_model_name: str):
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, 'code_context_model.xml')
+        model_file = join(model_path, '_code_context_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -33,13 +33,13 @@ def main_func(project_model_name: str):
         print('----metrics loaded')
         # 1 step扩展
         # 读code context model
-        # model_graphs = model_loader.load_code_context_model(model_file)
-        # expand_graph.expand_model(model_graphs, all_repo_metrics, 1)
-        # model_loader.save_expanded_model(model_graphs, join(model_path, '1_step_expanded_model.xml'))
-        # # 2 step扩展 需要重置
         model_graphs = model_loader.load_code_context_model(model_file)
-        expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
-        model_loader.save_expanded_model(model_graphs, join(model_path, '2_step_expanded_model.xml'))
+        expand_graph.expand_model(model_graphs, all_repo_metrics, 1)
+        model_loader.save_expanded_model(model_graphs, join(model_path, '1_step_expanded_model.xml'))
+        # # 2 step扩展 需要重置
+        # model_graphs = model_loader.load_code_context_model(model_file)
+        # expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
+        # model_loader.save_expanded_model(model_graphs, join(model_path, '2_step_expanded_model.xml'))
         # # 3 step扩展
         # model_graphs = model_loader.load_code_context_model(model_file)
         # expand_graph.expand_model(model_graphs, all_repo_metrics, 3)

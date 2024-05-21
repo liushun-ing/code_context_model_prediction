@@ -13,23 +13,27 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"  # GPU编号
 description = 'mylyn'
 embedding_type = 'astnn+codebert'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
-model_name = ['GCN3'][0]
-threshold = 0.4
-epochs = 80
+
 steps = [1]
 construct = False
-load_lazy = False
+load_lazy = True
 
 args = {
     'under_sampling_threshold': 15.0,
-    'code_embedding': 1280,
+    'model_type': 'GCN',
+    'num_layers': 3,
+    'in_feats': 1280,
+    'hidden_size': 1024,
+    'dropout': 0.1,
+    'attention_heads': 10,
+    'num_heads': 8,
+    'num_edge_types': 6,
+    'epochs': 80,
     'lr': 0.001,
     'batch_size': 16,
-    'hidden_size': 512,
-    'hidden_size_2': 128,
-    'out_feats': 64,
-    'dropout': 0.3,
-    'weight_decay': 1e-6
+    'threshold': 0.4,
+    'weight_decay': 1e-6,
+    'approach': 'attention'
 }
 
 
@@ -45,22 +49,10 @@ def run():
     # parser.add_argument('--dropout', type=int, default=0.1, help='dropout')
     # parser.add_argument('--weight_decay', type=int, default=1e-6, help='weight_decay')
     # args = parser.parse_args()
-
-    under_sampling_threshold = args['under_sampling_threshold']
-    code_embedding = args['code_embedding']
-    lr = args['lr']
-    result_name = f'{description}_{model_name}_{embedding_type}_{under_sampling_threshold}_model'
-    batch_size = args['batch_size']
-    hidden_size = args['hidden_size']
-    hidden_size_2 = args['hidden_size_2']
-    out_feats = args['out_feats']
-    dropout = args['dropout']
-    weight_decay = args['weight_decay']
+    result_name = f'{description}_{args["model_type"]}_{embedding_type}_{args["under_sampling_threshold"]}_model'
 
     for step in steps:
-        print(f'model: {model_name}, step: {step}, epoch: {epochs}, undersampling: {under_sampling_threshold}, '
-              f'hidden_size: {hidden_size}, hidden_size_2: {hidden_size_2}, out_feats: {out_feats}, lr: {lr}, '
-              f'dropout: {dropout}, batch_size: {batch_size}, weight_decay: {weight_decay}')
+        print(f'step: {step}', args)
         # construct input: train, valid, test dataset of four project
         if construct and not load_lazy:
             construct_input.main_func(
@@ -75,19 +67,22 @@ def run():
             save_path=current_path,
             save_name=result_name,
             step=step,
-            under_sampling_threshold=under_sampling_threshold,
-            model_name=model_name,
-            code_embedding=code_embedding,
-            epochs=epochs,
-            lr=lr,
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            hidden_size_2=hidden_size_2,
-            out_feats=out_feats,
-            dropout=dropout,
-            threshold=threshold,
+            under_sampling_threshold=args['under_sampling_threshold'],
+            model_type=args['model_type'],
+            num_layers=args['num_layers'],
+            in_feats=args['in_feats'],
+            hidden_size=args['hidden_size'],
+            dropout=args['dropout'],
+            attention_heads=args['attention_heads'],
+            num_heads=args['num_heads'],
+            num_edge_types=args['num_edge_types'],
+            epochs=args['epochs'],
+            lr=args['lr'],
+            batch_size=args['batch_size'],
+            threshold=args['threshold'],
+            weight_decay=args['weight_decay'],
+            approach=args['approach'],
             load_lazy=load_lazy,
-            weight_decay=weight_decay
         )
 
         # show train result
@@ -102,16 +97,17 @@ def run():
             model_path=current_path,
             load_name=result_name,
             step=step,
-            model_name=model_name,
-            code_embedding=code_embedding,
-            hidden_size=hidden_size,
-            hidden_size_2=hidden_size_2,
-            out_feats=out_feats,
-            load_lazy=load_lazy
+            model_type=args['model_type'],
+            num_layers=args['num_layers'],
+            in_feats=args['in_feats'],
+            hidden_size=args['hidden_size'],
+            attention_heads=args['attention_heads'],
+            num_heads=args['num_heads'],
+            num_edge_types=args['num_edge_types'],
+            load_lazy=load_lazy,
+            approach=args['approach']
         )
 
 
 if __name__ == '__main__':
-    for under_sampling_threshold in [2.0, 5.0, 10.0, 20.0, 25.0, 30.0]:
-        args['under_sampling_threshold'] = under_sampling_threshold
-        run()
+    run()

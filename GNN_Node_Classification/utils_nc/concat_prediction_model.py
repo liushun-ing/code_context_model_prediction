@@ -3,460 +3,78 @@ import torch.nn as nn
 from dgl.nn.pytorch import GATConv, GraphConv, SAGEConv, GatedGraphConv, RelGraphConv
 
 
-# GAT
-class GATModel2(nn.Module):
+class ConcatPredictionModel(nn.Module):
     """
-    GATConv based link prediction model: GAT
+    Concatenate prediction model
     """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8):
-        super(GATModel2, self).__init__()
-        self.conv1 = GATConv(in_feats, hidden_size, num_heads=num_heads)
-        self.conv2 = GATConv(hidden_size * num_heads, out_feats, num_heads=1)
-        self.pred = torch.nn.Linear(out_feats, 1)
-        self.dropout = torch.nn.Dropout(p=dropout)
 
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        # print(h.shape)
-        # Concat last 2 dim (num_heads * out_dim)
-        x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        # Squeeze the head dim as it's = 1
-        x = x.squeeze(1)  # (in_feat, 1, out_dim) -> (in_feat, out_dim)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-class GATModel3(nn.Module):
-    """
-    GATConv based link prediction model: GAT
-    """
-    output_1, output_2 = None, None
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8, hidden_size_2=128):
-        super(GATModel3, self).__init__()
-        self.conv1 = GATConv(in_feats, hidden_size, num_heads=num_heads)
-        self.conv2 = GATConv(hidden_size * num_heads, hidden_size_2, num_heads=4)
-        self.conv3 = GATConv(hidden_size_2 * 4, out_feats, num_heads=1)
-        h1 = hidden_size * num_heads
-        h2 = hidden_size_2 * 4
-        self.mlp1 = torch.nn.Linear(h1 + h2 + out_feats, h2 + out_feats)
-        self.mlp2 = torch.nn.Linear(h2 + out_feats, out_feats)
-        self.mlp3 = torch.nn.Linear(out_feats, 1)
-        self.dropout = torch.nn.Dropout(p=dropout)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        self.mlp1.reset_parameters()
-        self.mlp2.reset_parameters()
-        self.mlp3.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
-        x = torch.relu(x)
-        self.output_1 = x
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
-        x = torch.relu(x)
-        self.output_2 = x
-        x = self.dropout(x)
-        x = self.conv3(g, x)
-        x = x.squeeze(1)  # (in_feat, 1, out_dim) -> (in_feat, out_dim)
-        x = torch.relu(x)
-        # MLP
-        x = torch.cat((self.output_1, self.output_2, x), dim=1)
-        x = self.mlp1(x)
-        x = torch.relu(x)
-        x = self.mlp2(x)
-        x = torch.relu(x)
-        x = self.mlp3(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class GATModel4(nn.Module):
-    """
-    GATConv based link prediction model: GAT
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, num_heads=8):
-        super(GATModel4, self).__init__()
-        self.conv1 = GATConv(in_feats, hidden_size, num_heads=num_heads)
-        self.conv2 = GATConv(hidden_size * num_heads, hidden_size, num_heads=4)
-        self.conv3 = GATConv(hidden_size * 4, hidden_size, num_heads=2)
-        self.conv4 = GATConv(hidden_size * 2, out_feats, num_heads=1)
-        self.pred = torch.nn.Linear(out_feats, 1)
-        self.dropout = torch.nn.Dropout(p=dropout)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        self.conv4.reset_parameters()
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv3(g, x)
-        x = x.view(-1, x.size(1) * x.size(2))  # (in_feat, num_heads, out_dim) -> (in_feat, num_heads * out_dim)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv4(g, x)
-        x = x.squeeze(1)  # (in_feat, 1, out_dim) -> (in_feat, out_dim)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-# GCN
-class GCNModel2(nn.Module):
-    """
-    GraphConv based gnn link prediction model: GCN
-    """
-    output_1 = None
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
-        super(GCNModel2, self).__init__()
+    def __init__(self, model_type, number_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types):
+        """
+        :param model_type: model type [GCN, GAT, GraphSAGE, RGCN, GGNN]
+        :param number_layers: graph network neural layers
+        :param in_feats: number of input
+        :param hidden_size: hidden size
+        :param dropout: dropout rate
+        :param num_heads: number of attention heads
+        :param num_edge_types: number of edge
+        """
+        super(ConcatPredictionModel, self).__init__()
+        print("concat prediction model")
+        self.model_type = model_type
+        self.number_layers = number_layers
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = GraphConv(in_feats, hidden_size)
-        self.conv2 = GraphConv(hidden_size, out_feats)
+        self.merge = torch.nn.Linear(in_feats, hidden_size)
+        self.gnn_layers = nn.ModuleList()
+        self.output = []
+        self.mlp = nn.ModuleList()
+        if model_type == 'GCN':
+            for i in range(self.number_layers):
+                self.gnn_layers.append(GraphConv(hidden_size, hidden_size))
+        elif model_type == 'GAT':
+            self.gnn_layers.append(GATConv(hidden_size, hidden_size, num_heads=num_heads))
+            for i in range(self.number_layers - 2):
+                self.gnn_layers.append(GATConv(hidden_size * num_heads, hidden_size, num_heads=num_heads))
+            self.gnn_layers.append(GATConv(hidden_size * num_heads, hidden_size, num_heads=1))
+        elif model_type == 'GraphSAGE':
+            for i in range(self.number_layers):
+                self.gnn_layers.append(SAGEConv(hidden_size, hidden_size, aggregator_type='mean'))
+        elif model_type == 'RGCN':
+            for i in range(self.number_layers):
+                self.gnn_layers.append(RelGraphConv(hidden_size, hidden_size, num_edge_types, regularizer='basis',
+                                                    num_bases=num_edge_types, self_loop=False))
+        elif model_type == 'GGNN':
+            for i in range(self.number_layers):
+                self.gnn_layers.append(GatedGraphConv(hidden_size, hidden_size, n_steps=2, n_etypes=num_edge_types))
         self.dropout = torch.nn.Dropout(p=dropout)
-        self.mlp1 = torch.nn.Linear(hidden_size + out_feats, out_feats)
-        self.mlp2 = torch.nn.Linear(out_feats, 1)
+        for i in range(self.number_layers - 1):
+            n = self.number_layers - i
+            self.mlp.append(torch.nn.Linear(hidden_size * n, hidden_size * (n - 1)))
+        self.mlp.append(torch.nn.Linear(hidden_size, 1))
 
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.mlp1.reset_parameters()
-        self.mlp2.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = torch.relu(x)
-        self.output_1 = x.clone()
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = torch.relu(x)
-        x = torch.cat((self.output_1, x), dim=1)
-        x = self.mlp1(x)
-        x = torch.relu(x)
-        x = self.mlp2(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class GCNModel3(nn.Module):
-    """
-    GraphConv based gnn link prediction model: GCN
-    """
-    output_1, output_2 = None, None
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
-        super(GCNModel3, self).__init__()
-        # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = GraphConv(in_feats, hidden_size)
-        self.conv2 = GraphConv(hidden_size, hidden_size_2)
-        self.conv3 = GraphConv(hidden_size_2, out_feats)
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.mlp1 = torch.nn.Linear(hidden_size + hidden_size_2 + out_feats, hidden_size_2 + out_feats)
-        self.mlp2 = torch.nn.Linear(hidden_size_2 + out_feats, out_feats)
-        self.mlp3 = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        self.mlp1.reset_parameters()
-        self.mlp2.reset_parameters()
-        self.mlp3.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = torch.relu(x)
-        self.output_1 = x.clone()
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = torch.relu(x)
-        self.output_2 = x.clone()
-        x = self.dropout(x)
-        x = self.conv3(g, x)
-        x = torch.relu(x)
-        x = torch.cat((self.output_1, self.output_2, x), dim=1)
-        x = self.mlp1(x)
-        x = torch.relu(x)
-        x = self.mlp2(x)
-        x = torch.relu(x)
-        x = self.mlp3(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class GCNModel4(nn.Module):
-    """
-    GraphConv based gnn link prediction model: GCN
-    """
-    output_1, output_2, output_3 = None, None, None
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
-        super(GCNModel4, self).__init__()
-        # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = GraphConv(in_feats, hidden_size)
-        self.conv2 = GraphConv(hidden_size, hidden_size_2)
-        self.conv3 = GraphConv(hidden_size_2, hidden_size_2)
-        self.conv4 = GraphConv(hidden_size_2, out_feats)
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.mlp1 = torch.nn.Linear(hidden_size + hidden_size_2 + hidden_size_2 + out_feats, hidden_size_2 + hidden_size_2 + out_feats)
-        self.mlp2 = torch.nn.Linear(hidden_size_2 + hidden_size_2 + out_feats, out_feats)
-        self.mlp3 = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        self.conv4.reset_parameters()
-        self.mlp1.reset_parameters()
-        self.mlp2.reset_parameters()
-        self.mlp3.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = torch.relu(x)
-        self.output_1 = x.clone()
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = torch.relu(x)
-        self.output_2 = x.clone()
-        x = self.dropout(x)
-        x = self.conv3(g, x)
-        x = torch.relu(x)
-        self.output_3 = x.clone()
-        x = self.dropout(x)
-        x = self.conv4(g, x)
-        x = torch.relu(x)
-        x = torch.cat((self.output_1, self.output_2, self.output_3, x), dim=1)
-        x = self.mlp1(x)
-        x = torch.relu(x)
-        x = self.mlp2(x)
-        x = torch.relu(x)
-        x = self.mlp3(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class RGCNModel2(nn.Module):
-    """
-    RelGraphConv based gnn link prediction model: RGCN
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
-        super(RGCNModel2, self).__init__()
-        # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = RelGraphConv(in_feats, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.conv2 = RelGraphConv(hidden_size, out_feats, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features, edge_types)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x, edge_types)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class RGCNModel3(nn.Module):
-    """
-    RelGraphConv based gnn link prediction model: RGCN
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
-        super(RGCNModel3, self).__init__()
-        # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = RelGraphConv(in_feats, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.conv2 = RelGraphConv(hidden_size, hidden_size_2, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.conv3 = RelGraphConv(hidden_size_2, out_feats, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features, edge_types)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x, edge_types)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv3(g, x, edge_types)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class RGCNModel4(nn.Module):
-    """
-    RelGraphConv based gnn link prediction model: RGCN
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
-        super(RGCNModel4, self).__init__()
-        # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
-        self.conv1 = RelGraphConv(in_feats, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.conv2 = RelGraphConv(hidden_size, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.conv3 = RelGraphConv(hidden_size, hidden_size, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.conv4 = RelGraphConv(hidden_size, out_feats, 6, regularizer='basis', num_bases=6, self_loop=False)
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features, edge_types)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x, edge_types)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv3(g, x, edge_types)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv4(g, x, edge_types)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-# GraphSAGE
-class GraphSAGEModel2(nn.Module):
-    """
-    GraphSAGE layer from Inductive Representation Learning on Large Graphs
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
-        super(GraphSAGEModel2, self).__init__()
-        self.conv1 = SAGEConv(in_feats, hidden_size, aggregator_type='mean')
-        self.conv2 = SAGEConv(hidden_size, out_feats, aggregator_type='mean')
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class GraphSAGEModel3(nn.Module):
-    """
-    GraphSAGE layer from Inductive Representation Learning on Large Graphs
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout, hidden_size_2=128):
-        super(GraphSAGEModel3, self).__init__()
-        self.conv1 = SAGEConv(in_feats, hidden_size, aggregator_type='mean')
-        self.conv2 = SAGEConv(hidden_size, hidden_size_2, aggregator_type='mean')
-        self.conv3 = SAGEConv(hidden_size_2, out_feats, aggregator_type='mean')
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv3(g, x)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-class GraphSAGEModel4(nn.Module):
-    """
-    GraphSAGE layer from Inductive Representation Learning on Large Graphs
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, dropout):
-        super(GraphSAGEModel4, self).__init__()
-        self.conv1 = SAGEConv(in_feats, hidden_size, aggregator_type='mean')
-        self.conv2 = SAGEConv(hidden_size, hidden_size, aggregator_type='mean')
-        self.conv3 = SAGEConv(hidden_size, hidden_size, aggregator_type='mean')
-        self.conv4 = SAGEConv(hidden_size, out_feats, aggregator_type='mean')
-        self.dropout = torch.nn.Dropout(p=dropout)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        self.conv4.reset_parameters()
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv2(g, x)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv3(g, x)
-        x = torch.relu(x)
-        x = self.dropout(x)
-        x = self.conv4(g, x)
-        x = torch.relu(x)
-        x = self.pred(x).squeeze(1)
-        return torch.sigmoid(x)
-
-
-# GGNN
-class GatedGraphModel(nn.Module):
-    """
-    Gated Graph Convolution layer from Gated Graph Sequence Neural Networks
-    """
-    def __init__(self, in_feats, hidden_size, out_feats, num_edge_types):
-        super(GatedGraphModel, self).__init__()
-        self.conv1 = GatedGraphConv(in_feats, in_feats, n_steps=2, n_etypes=num_edge_types)
-        self.conv2 = GatedGraphConv(in_feats, in_feats, n_steps=2, n_etypes=num_edge_types)
-        self.conv3 = torch.nn.Linear(in_feats, hidden_size)
-        self.conv4 = torch.nn.Linear(hidden_size, out_feats)
-        self.pred = torch.nn.Linear(out_feats, 1)
-
-    def reset_parameters(self):
-        self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.pred.reset_parameters()
-
-    def forward(self, g, features, edge_types):
-        x = self.conv1(g, features, edge_types)
-        x = torch.relu(x)
-        x = self.conv2(g, x, edge_types)
-        x = torch.relu(x)
-        x = torch.relu(self.conv3(x))
-        x = torch.relu(self.conv4(x))
-        x = self.pred(x).squeeze(1)
+    def forward(self, g, x, edge_types):
+        self.output = []
+        x = self.merge(x)
+        if self.model_type == 'GGNN' or self.model_type == 'RGCN':
+            for i in range(self.number_layers):
+                x = torch.relu(self.gnn_layers[i](g, x, edge_types))
+                if not i == self.number_layers - 1:
+                    self.output[i] = x.clone()
+                    x = self.dropout(x)
+        elif self.model_type == 'GAT':
+            for i in range(self.number_layers):
+                x = torch.relu(self.gnn_layers[i](g, x)).view(x.shape[0], -1)
+                if not i == self.number_layers - 1:
+                    self.output.append(x.clone())
+                    x = self.dropout(x)
+        else:
+            for i in range(self.number_layers):
+                x = torch.relu(self.gnn_layers[i](g, x))
+                if i != self.number_layers - 1:
+                    self.output.append(x.clone())
+                    x = self.dropout(x)
+        self.output.append(x)
+        x = torch.cat(self.output, dim=1)
+        for i in range(self.number_layers - 1):
+            x = torch.relu(self.mlp[i](x))
+        x = self.mlp[self.number_layers - 1](x).squeeze(1)
         return torch.sigmoid(x)

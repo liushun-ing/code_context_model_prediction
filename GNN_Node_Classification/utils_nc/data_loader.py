@@ -114,64 +114,6 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     return final_graphs
 
 
-# def random_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: float):
-#     """
-#     随机欠采样，根据阈值随机欠采样，如果超过阈值，则随机采样生成多对结果，count = neg / pos / threshold
-#
-#     :param nodes: 节点数据 columns=['node_id', 'code_embedding', 'label']
-#     :param edges: 边数据 columns=['start_node_id', 'end_node_id', 'relation']
-#     :param threshold: 欠采样阈值 负样本/正样本
-#     :param mode: 样本选择，train, valid, test
-#     :return: 随机欠采样后的节点数据和边数据,可能有多对
-#     """
-#     # 验证集和测试集不需要采样 阈值为0也不用采样
-#     # if mode == 'valid' or mode == 'test' or threshold == 0:
-#     #     return [(nodes, edges)]
-#     neg_count = (nodes['label'] == 0).sum()
-#     pos_count = (nodes['label'] == 1).sum()
-#     if pos_count == 0:
-#         pos_count = 1
-#     # 如果没有达到阈值，不需要采样
-#     if neg_count / pos_count <= threshold:
-#         return [(nodes, edges)]
-#     count = math.floor(neg_count / pos_count / threshold)
-#     final_graphs = []
-#     # print(neg_count, pos_count)
-#     all_neg_nodes = nodes[nodes['label'] == 0]
-#     need_sample_num = pos_count * threshold
-#     # 循环不重复采样，生成多个图，防止信息过分丢失
-#     for _ in range(min(count, 1)):
-#         _nodes = nodes.copy(deep=True)
-#         _edges = edges.copy(deep=True)
-#         sample_neg_nodes = all_neg_nodes.sample(int(need_sample_num)).copy(deep=True)
-#         # delete already sampled
-#         all_neg_nodes = pd.merge(all_neg_nodes, sample_neg_nodes, how='outer', indicator=True)
-#         all_neg_nodes = all_neg_nodes.loc[lambda x: x['_merge'] == 'left_only']
-#         all_neg_nodes = all_neg_nodes.drop(columns=['_merge'])
-#         final_nodes = pd.concat([_nodes[_nodes['label'] == 1], sample_neg_nodes])
-#         merged_ids = final_nodes['node_id'].tolist()
-#         final_edges = _edges[_edges['start_node_id'].isin(merged_ids) & _edges['end_node_id'].isin(merged_ids)]
-#         final_nodes.reset_index(drop=True, inplace=True)  # 下面需要根据索引修改，需要重置
-#         final_edges.reset_index(drop=True, inplace=True)
-#         # 构建新的节点id映射关系
-#         map_ids = dict()
-#         index = 0
-#         id_list = final_nodes['node_id'].tolist()
-#         # print('id_list', id_list)
-#         # 更新节点
-#         for _id in id_list:
-#             map_ids[_id] = index
-#             final_nodes.at[index, 'node_id'] = index
-#             index += 1
-#         # 更新边
-#         for i, row in final_edges.iterrows():
-#             # 在这里可以添加修改 'column1' 的逻辑
-#             final_edges.at[i, 'start_node_id'] = map_ids.get(row['start_node_id'])
-#             final_edges.at[i, 'end_node_id'] = map_ids.get(row['end_node_id'])
-#         final_graphs.append((final_nodes, final_edges))
-#     return final_graphs
-
-
 def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_threshold: float, self_loop=True):
     """
     加载图，从nodes.tsv,edges.tsv文件加载节点特征和边信息
@@ -210,20 +152,9 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
 
 
 # 构建数据集和 DataLoader
-class GraphDataset(torch.utils.data.Dataset):
-    def __init__(self, gs: list[DGLGraph]):
-        self.graphs = gs
-
-    def __len__(self):
-        return len(self.graphs)
-
-    def __getitem__(self, idx):
-        return self.graphs[idx]
-
-
 class PreloadedGraphDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset, device):
-        self.graphs = [graph.to(device) for graph in dataset]
+    def __init__(self, gs: list[DGLGraph], device):
+        self.graphs = [graph.to(device) for graph in gs]
 
     def __len__(self):
         return len(self.graphs)
@@ -280,13 +211,9 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
         graphs = []
         for node_file, edge_file in get_graph_files(dataset_path, mode, step):
             graphs = graphs + load_graph_data(node_file, edge_file, mode, under_sampling_threshold, self_loop)
-        pd.to_pickle(graphs, old_data_path)
         # 创建数据集和 DataLoader
-        # print(graphs)
-        dataset = GraphDataset(graphs)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        preloaded_dataset = PreloadedGraphDataset(dataset, device)
-        # 这里的batch_size还有问题
+        preloaded_dataset = PreloadedGraphDataset(graphs, device)
         shuffle = True if mode == 'train' else False
         data_loader = DataLoader(preloaded_dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate)
         pd.to_pickle(data_loader, old_data_path)

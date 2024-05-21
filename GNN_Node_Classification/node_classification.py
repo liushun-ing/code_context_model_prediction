@@ -12,17 +12,10 @@ from torchmetrics.classification import BinaryAUROC
 
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
-# from .utils_nc.prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
-#     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
-from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
-    GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
+from .utils_nc.concat_prediction_model import ConcatPredictionModel
+from .utils_nc.attention_prediction_model import AttentionPredictionModel
 
-from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
-from .utils_nc.final_prediction_model import GCNModel3, RGCNModel3
-
-# from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
-#     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 def valid(gnn_model, data_loader, device, threshold):
     """
@@ -45,12 +38,6 @@ def valid(gnn_model, data_loader, device, threshold):
         auprc = 0.0
         f_1 = 0.0
         for g, features, labels, edge_types, seeds, kinds in data_loader:
-            # g = g.to(device)
-            # features = features.to(device)
-            # labels = labels.to(device)
-            # edge_types = edge_types.to(device)
-            # seeds = seeds.to(device)
-
             output = gnn_model(g, features, edge_types)
             # output = output[torch.eq(seeds, 1)]
             # labels = labels[torch.eq(seeds, 1)]
@@ -90,10 +77,6 @@ def valid(gnn_model, data_loader, device, threshold):
         auroc = auroc / len(data_loader)
         # auprc = auprc / len(data_loader)
         f_1 = f_1 / len(data_loader)
-        # if precision + recall == 0:
-        #     f_1 = 0
-        # else:
-        #     f_1 = 2 * precision * recall / (precision + recall)  # 使用precision和recall的平均值计算
         print(f'--valid: '
               # f'Loss: {total_loss}, '
               # f'Accuracy: {accuracy}, '
@@ -126,7 +109,6 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     """
     gnn_model.train()
     optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=weight_decay)
-    # optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=0.001)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
     valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
@@ -134,22 +116,15 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     print(f'valid total graphs: {len(valid_data_loader)}')
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
-    max_epoch = [0, 0, 0, 0]  # precision recall f1
+    max_epoch = [0, 0, 0, 0]  # epoch precision recall f1
     best_count = 0
     patience = 20
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
         for g, features, labels, edge_types, seeds, kinds in data_loader:
-            g = g.to(device)
-            features = features.to(device)
-            labels = labels.to(device)
-            edge_types = edge_types.to(device)
-            seeds = seeds.to(device)
-
             optimizer.zero_grad()
             output = gnn_model(g, features, edge_types)
-            # print('++++++++++++++++', output, labels)
             # 计算 accuracy
             accuracy_metrics = BinaryAccuracy(threshold=threshold).to(device)
             # 将 seed 为1的节点丢弃
@@ -181,6 +156,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             best_count += 1
             if best_count >= patience:
                 print("Early stopping")
+                print(f"best model: {max_epoch}")
                 break
     util.save_result(result, save_path, step, save_name)
 
@@ -196,60 +172,30 @@ def start_train(save_path, save_name, step, under_sampling_threshold, model, dev
           weight_decay)
 
 
-def init(model_name, code_embedding, hidden_size, hidden_size_2, out_feats, dropout, use_gpu):
+def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
+         attention_heads=10, approach='attention'):
     # 定义模型参数  GPU 或 CPU
     if use_gpu:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     else:
         device = 'cpu'
     # 创建模型
-    if model_name == 'GAT2':
-        print('~~~~~~~~~~~GAT2~~~~~~~~~~~')
-        model = GATModel2(code_embedding, hidden_size, out_feats, dropout, num_heads=8)
-    elif model_name == 'GCN2':
-        print('~~~~~~~~~~~GCN2~~~~~~~~~~~')
-        model = GCNModel2(code_embedding, hidden_size, out_feats, dropout)
-    elif model_name == 'GraphSAGE2':
-        print('~~~~~~~~~~~GraphSAGE2~~~~~~~~~~~')
-        model = GraphSAGEModel2(code_embedding, hidden_size, out_feats, dropout)
-    elif model_name == 'GAT3':
-        print('~~~~~~~~~~~GAT3~~~~~~~~~~~')
-        model = GATModel3(code_embedding, hidden_size, out_feats, dropout, num_heads=8, hidden_size_2=hidden_size_2)
-    elif model_name == 'GCN3':
-        print('~~~~~~~~~~~GCN3~~~~~~~~~~~')
-        model = GCNModel3(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
-    elif model_name == 'GraphSAGE3':
-        print('~~~~~~~~~~~GraphSAGE3~~~~~~~~~~~')
-        model = GraphSAGEModel3(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
-    elif model_name == 'GAT4':
-        print('~~~~~~~~~~~GAT4~~~~~~~~~~~')
-        model = GATModel4(code_embedding, hidden_size, out_feats, dropout, num_heads=8)
-    elif model_name == 'GCN4':
-        print('~~~~~~~~~~~GCN4~~~~~~~~~~~')
-        model = GCNModel4(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
-    elif model_name == 'GraphSAGE4':
-        print('~~~~~~~~~~~GraphSAGE4~~~~~~~~~~~')
-        model = GraphSAGEModel4(code_embedding, hidden_size, out_feats, dropout)
-    elif model_name == 'RGCN2':
-        print('~~~~~~~~~~~RGCN2~~~~~~~~~~~')
-        model = RGCNModel2(code_embedding, hidden_size, out_feats, dropout)
-    elif model_name == 'RGCN3':
-        print('~~~~~~~~~~~RGCN3~~~~~~~~~~~')
-        model = RGCNModel3(code_embedding, hidden_size, out_feats, dropout, hidden_size_2=hidden_size_2)
-    elif model_name == 'RGCN4':
-        print('~~~~~~~~~~~RGCN4~~~~~~~~~~~')
-        model = RGCNModel4(code_embedding, hidden_size, out_feats, dropout)
+    if approach == 'concat':
+        model = ConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types)
+    elif approach == 'attention':
+        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                                         num_edge_types, attention_heads)
     else:
-        print('~~~~~~~~~~~default GGNN~~~~~~~~~~~')
-        model = GatedGraphModel(code_embedding, hidden_size, out_feats, 5)
-    model.to(device)
-    model.reset_parameters()
+        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                                         num_edge_types, attention_heads)
+    model = model.to(device)
     return device, model
 
 
-def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_name: str,
-              code_embedding=200, epochs=50, lr=0.001, batch_size=16, hidden_size=64, hidden_size_2=64, out_feats=16,
-              dropout=0.2, threshold=0.5, use_gpu=True, load_lazy=True, weight_decay=1e-6):
+def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_type="GCN",
+              num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=10, num_heads=8,
+              num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
+              weight_decay=1e-6, approach='attention'):
     """
     node classification
 
@@ -257,24 +203,29 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     :param save_name: 保存的模型的名字
     :param step: 步长
     :param under_sampling_threshold: 欠采样比例阈值 default: 5.0
-    :param model_name: 需要选择的模型： GCN, GAT, GraphSAGE, GGNN default:GCN
-    :param code_embedding: 节点嵌入维度 default: 200
+    :param model_type: 需要选择的模型： GCN, GAT, RGCN, GraphSAGE, GGNN default:GCN
+    :param num_layers: 图卷积层数， default: 3
+    :param in_feats: 节点嵌入维度 default: 1280
+    :param hidden_size: 图卷积层，隐藏层大小 default: 1024
+    :param dropout: dropout rate
+    :param attention_heads: number of gnn attention head
+    :param num_heads: GAT的注意力机制头数 default: 8
+    :param num_edge_types: 边的类型数 default: 6
     :param epochs: 训练次数 default: 50
     :param lr: 学习率 default: 0.001
     :param batch_size: 批次大小 default: 16
-    :param hidden_size: 隐藏层大小 default: 64
-    :param out_feats: 输出层大小 default:16,（全连接层的输入），全连接层最终输出维度为 1
     :param threshold: classification threshold
-    :param dropout: dropout rate
     :param use_gpu: default True
     :param load_lazy: 是否懒加载图数据，default True
     :param weight_decay: Adam 权重衰减系数 default: 1e-6
+    :param approach: train approach: attention or concat
     :return: None
     """
-    if model_name.startswith('RGCN'):
+    if model_type.startswith('RGCN'):
         self_loop = True
     else:
         self_loop = True
-    device, model = init(model_name, code_embedding, hidden_size, hidden_size_2, out_feats, dropout, use_gpu)
+    device, model = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
+                         attention_heads, approach)
     start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
                 self_loop, load_lazy, weight_decay)
