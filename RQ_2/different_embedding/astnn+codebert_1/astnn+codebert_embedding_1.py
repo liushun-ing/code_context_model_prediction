@@ -4,7 +4,7 @@ from os.path import join
 
 from GNN_Node_Classification import data_estimator, construct_input, node_classification, view, test_model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"  # GPU编号
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # GPU编号
 
 # see the sample ratios of four project
 # data_estimator.estimate_positive_and_negative_samples(['my_pde', 'my_platform', 'my_mylyn'], step=3)
@@ -18,7 +18,7 @@ threshold = 0.4
 epochs = 80
 steps = [1]
 construct = False
-load_lazy = False
+load_lazy = True
 
 args = {
     'under_sampling_threshold': 15.0,
@@ -112,6 +112,17 @@ def run():
 
 
 if __name__ == '__main__':
-    for under_sampling_threshold in [2.0, 5.0, 10.0, 20.0, 25.0, 30.0]:
-        args['under_sampling_threshold'] = under_sampling_threshold
+    selection = [
+        # (512, 128, 64),
+        (768, 512, 128),
+        (768, 512, 64),
+        (768, 256, 128),
+        (768, 256, 64),
+        (768, 128, 64),
+        (768, 128, 32)
+    ]
+    for hidden_size, hidden_size_2, out_feats in selection:
+        args['hidden_size'] = hidden_size
+        args['hidden_size_2'] = hidden_size_2
+        args['out_feats'] = out_feats
         run()

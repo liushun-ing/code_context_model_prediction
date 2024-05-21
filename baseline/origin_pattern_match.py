@@ -197,14 +197,34 @@ def print_result(result, k):
               f'F1: {f}')
 
 
+def save_result_stereotype(confidence, nodes, f):
+    f.write("----new match---\n")
+    confidence = dict(confidence)
+    for node_id in nodes:
+        origin_label = nodes.get(node_id)['origin']
+        if confidence.get(node_id):
+            conf = confidence.get(node_id)
+            # node_id = c[0]
+            # conf = Decimal(conf).quantize(Decimal("0.01"), rounding="ROUND_FLOOR")
+            stereotype = nodes.get(node_id)['label']
+            f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
+        elif origin_label == '1':
+            conf = 0.0
+            stereotype = nodes.get(node_id)['label']
+            f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
+
+
 def graph_match(step, patterns, batch_index):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
     for G1 in G1s[batch_index * 100: (batch_index + 1) * 100]:
-        # if G1s.index(G1) in [1136]:
-        #     continue
+    # f = open(f'origin_result/match_result_{step}.txt', 'w')
+    # f.write("node_id origin_label confidence stereotype label_result predict_result\n")
+    # for G1 in G1s:
+        if G1s.index(G1) in [116, 166, 316, 344]:
+            continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()
@@ -223,7 +243,7 @@ def graph_match(step, patterns, batch_index):
                     # print(sub_G1.nodes.data(), sub_G1.edges.data())
         for i in confidence:
             confidence[i] = confidence.get(i) / total_match
-        confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)
+        confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True) #[(3, 1.0), (17, 0.5), (14, 0.5)]
         # print(f'{G1} confidence {confidence}')
         # k = 1
         # if k > 0:
@@ -282,6 +302,7 @@ def graph_match(step, patterns, batch_index):
         k = 0
         if k == 0:
             output, labels = [], []
+            # print(confidence)
             for top_c in confidence:
                 node_id = top_c[0]
                 output.append(top_c[1])
@@ -291,6 +312,7 @@ def graph_match(step, patterns, batch_index):
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
             result_full.append(calculate_result_full(labels, output, true_number))
+            # save_result_stereotype(confidence, G1.nodes, f)
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)
@@ -349,9 +371,11 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 
 
 if __name__ == '__main__':
-    step = sys.argv[1] if len(sys.argv) > 1 else 1
-    batch_index = sys.argv[2] if len(sys.argv) > 1 else 0
-    min_sup = 0.01
+    # print(sys.argv)
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
+    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 3
+    # print(step, batch_index)
+    min_sup = 0.015
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
     # graph_build_and_gspan(min_sup=min_sup)
-    graph_match(step=step, patterns=f'./origin_patterns/sup-{min_sup}', batch_index=int(batch_index))
+    graph_match(step=step, patterns=f'./origin_patterns/sup-{min_sup}', batch_index=batch_index)

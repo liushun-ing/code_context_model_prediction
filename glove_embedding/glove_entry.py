@@ -15,8 +15,8 @@ def train_glove(step, description, ratio):
     # subprocess.run(f'bash {description}_{step}_{ratio}.sh', shell=True)
 
 
-for step in [1, 2, 3]:
-    description = 'all'
+for step in [1]:
+    description = 'mylyn'
     ratio = 0.8
     # 预处理数据
     print('process data')

@@ -59,7 +59,7 @@ def get_all(glove_model, tokens):
         if word in glove_model:
             res.append(glove_model[word])
         else:  # if OOV random generate a tensor
-            res.append(torch.randn(200).tolist())
+            res.append(torch.randn(512).tolist())
     return torch.tensor(res)
 
 

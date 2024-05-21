@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -42,7 +44,7 @@ def valid(gnn_model, data_loader, device, threshold):
         auroc = 0.0
         auprc = 0.0
         f_1 = 0.0
-        for g, features, labels, edge_types, seeds in data_loader:
+        for g, features, labels, edge_types, seeds, kinds in data_loader:
             g = g.to(device)
             features = features.to(device)
             labels = labels.to(device)
@@ -77,29 +79,29 @@ def valid(gnn_model, data_loader, device, threshold):
             roc = metric(output, labels).item()
             auroc += roc
             # AUPRC
-            metric = BinaryAveragePrecision(thresholds=None).to(device)
-            prc = metric(output, labels.int()).item()
-            auprc += 0 if np.isnan(prc) else prc
+            # metric = BinaryAveragePrecision(thresholds=None).to(device)
+            # prc = metric(output, labels.int()).item()
+            # auprc += 0 if np.isnan(prc) else prc
             # print(f'precision: {pre}, recall: {rec}, f1_score: {f1}, AUROC: {roc}, AUPRC: {prc}')
         total_loss = total_loss / len(data_loader)
         accuracy = accuracy / len(data_loader)
         precision = precision / len(data_loader)
         recall = recall / len(data_loader)
         auroc = auroc / len(data_loader)
-        auprc = auprc / len(data_loader)
+        # auprc = auprc / len(data_loader)
         f_1 = f_1 / len(data_loader)
         # if precision + recall == 0:
         #     f_1 = 0
         # else:
         #     f_1 = 2 * precision * recall / (precision + recall)  # 使用precision和recall的平均值计算
-        print(f'----------valid average result-------\n'
-              f'Loss: {total_loss}, '
-              f'Accuracy: {accuracy}, '
-              f'Precision: {precision}, '
-              f'Recall: {recall}, '
-              f'F1: {f_1}, '
-              f'AUROC: {auroc},'
-              f'AUPRC: {auprc}')
+        print(f'--valid: '
+              # f'Loss: {total_loss}, '
+              # f'Accuracy: {accuracy}, '
+              f'Precision: {Decimal(precision).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
+              f'Recall: {Decimal(recall).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
+              f'F1: {Decimal(f_1).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}')
+        # f'AUROC: {auroc},'
+        # f'AUPRC: {auprc}')
         return [total_loss, accuracy, precision, recall, f_1, auroc]
 
 
@@ -136,7 +138,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
-        for g, features, labels, edge_types, seeds in data_loader:
+        for g, features, labels, edge_types, seeds, kinds in data_loader:
             g = g.to(device)
             features = features.to(device)
             labels = labels.to(device)
@@ -157,10 +159,10 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        print('------train average result------')
-        print(f'Train Epoch {epoch}, '
-              f'Average Loss: {total_loss / len(data_loader)}, '
-              f'Average Accuracy: {train_accuracy / len(data_loader)}')
+        print(f'--train: '
+              f'Epoch {epoch}, '
+              f'Loss: {Decimal(total_loss / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
+              f'Acc: {Decimal(train_accuracy / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}')
         res = valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
         res.insert(0, epoch)
         res.insert(1, total_loss / len(data_loader))
@@ -184,7 +186,7 @@ def start_train(save_path, save_name, step, under_sampling_threshold, model, dev
     data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
                                        load_lazy)
     print(f'train total graphs: {len(data_loader) * batch_size}')
-    print('----start train----')
+    # print('----start train----')
     train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
           weight_decay)
 
@@ -264,8 +266,6 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     :param weight_decay: Adam 权重衰减系数 default: 1e-6
     :return: None
     """
-    print(
-        f'model: {model_name}, step: {step}, dropout: {dropout}, undersampling: {under_sampling_threshold}, epoch: {epochs}')
     if model_name.startswith('RGCN'):
         self_loop = True
     else:

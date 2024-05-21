@@ -23,7 +23,12 @@ edge_vector = {
     "calls": 1,
     "inherits": 2,
     "implements": 3,
-    "uses": 4
+    "uses": 4,
+    "declares_rev": 6,
+    "calls_rev": 7,
+    "inherits_rev": 8,
+    "implements_rev": 9,
+    "uses_rev": 10,
 }
 dataset_ratio = {
     'train': [0.0, 0.8],
@@ -140,7 +145,9 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
             edges = graph.find('edges')
             edge_list = edges.findall('edge')
             for edge in edge_list:
-                edges_tsv.append(adjust_edge(edge, vertex_list))
+                start, end, edge_label = adjust_edge(edge, vertex_list)
+                edges_tsv.append([start, end, edge_label])
+                # edges_tsv.append([end, start, edge_label + 6]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
@@ -227,7 +234,9 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             edges = graph.find('edges')
             edge_list = edges.findall('edge')
             for edge in edge_list:
-                edges_tsv.append(adjust_edge(edge, vertex_list))
+                start, end, edge_label = adjust_edge(edge, vertex_list)
+                edges_tsv.append([start, end, edge_label])
+                # edges_tsv.append([end, start, edge_label + 6]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,

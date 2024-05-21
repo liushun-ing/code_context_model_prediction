@@ -19,6 +19,8 @@ from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEMod
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
+
+
 # from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
 #     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
@@ -71,7 +73,31 @@ def calculate_result_full(labels, output, threshold, device):
     return [pre, rec, f1, prc]
 
 
-def test(gnn_model, data_loader, device, top_k, threshold, fi):
+def save_specific_result(labels, output, threshold, kinds, s_file):
+    """
+    Save specific results based on conditions to a file.
+
+    Parameters:
+    labels (torch.Tensor): The labels' tensor.
+    output (torch.Tensor): The output tensor.
+    threshold (float): The threshold value.
+    kinds (torch.Tensor): The kinds' tensor.
+    s_file (file object): The file object to write the results to.
+    """
+    s_file.write('---new predict---\n')
+    # Iterate through the tensors and apply the conditions
+    for i in range(len(labels)):
+        label = labels[i].item()
+        out = output[i].item()
+        kind = kinds[i].item()
+        kind_mapping = ['variable', 'function', 'class', 'interface']
+        if label == 1:
+            s_file.write(f"{i} {label} {out} {kind_mapping[int(kind)]} {label == 1} {out >= threshold}\n")
+        elif label == 0 and out > threshold:
+            s_file.write(f"{i} {label} {out} {kind_mapping[int(kind)]} {label == 1} {out >= threshold}\n")
+
+
+def test(gnn_model, data_loader, device, top_k, threshold, fi, s_file=None):
     """
     使用测试集测试最终的模型
 
@@ -88,12 +114,13 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
         criterion = nn.BCELoss()  # 二元交叉熵
         total_loss = 0.0
         result = []
-        for g, features, labels, edge_types, seeds in data_loader:
+        for g, features, labels, edge_types, seeds, kinds in data_loader:
             g = g.to(device)
             features = features.to(device)
             labels = labels.to(device)
             edge_types = edge_types.to(device)
             seeds = seeds.to(device)
+            kinds = kinds.to(device)
 
             output = gnn_model(g, features, edge_types)
             # output = output[torch.eq(seeds, 0)]
@@ -108,6 +135,8 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi):
                 # output = select_result(output)
                 # print(labels, output)
                 result.append(calculate_result_full(labels, output, threshold, device))
+                if s_file is not None:
+                    save_specific_result(labels, output, threshold, kinds, s_file)
         if top_k != 0:
             p, r, f = 0.0, 0.0, 0.0
             for res in result:
@@ -230,9 +259,13 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
         f.write(f'model: {model_name} + step: {step}\n')
         for t in thresholds:
             print()
-            for k in [1, 0]:
+            for k in [0]:
                 # for k in [1, 3, 5, 0]:
                 print(f'---threshold:{t} top-k:{k}---')
                 f.write(f'---threshold:{t} top-k:{k}---\n')
-                test(model, data_loader, device, k, t, f)
+                if t == 0.4:
+                    with open(f'specific_result_{step}.txt', 'w') as s_file:
+                        test(model, data_loader, device, k, t, f, s_file)
+                else:
+                    test(model, data_loader, device, k, t, f)
         f.close()

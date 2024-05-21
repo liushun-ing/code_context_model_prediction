@@ -26,7 +26,7 @@ def save_result(result, root_path, step: STEP, save_name):
                       columns=['epoch', 'Train Loss', 'Train Accuracy', 'Loss', 'Accuracy', 'Precision', 'Recall', 'F1',
                                'AUROC'])
     df.to_csv(result_path, index=False)
-    print(f'result saved to {result_path}')
+    # print(f'result saved to {result_path}')
 
 
 def maintain_best_model(root_path, step: STEP, save_name, best_epoch):
@@ -51,7 +51,7 @@ def maintain_best_model(root_path, step: STEP, save_name, best_epoch):
             else:
                 best_pth = pth
     os.rename(join(model_path, best_pth), join(model_path, f'{best_pth[:best_pth.rindex("_")]}_best.pth'))
-    print('has maintain the best model')
+    # print('has maintain the best model')
 
 
 def save_model(model, root_path, step: STEP, save_name):
@@ -69,7 +69,7 @@ def save_model(model, root_path, step: STEP, save_name):
         os.makedirs(model_path)
     model_path = join(model_path, f'{save_name}.pth')
     torch.save(model.state_dict(), model_path)
-    print(f'Model saved to {model_path}')
+    # print(f'Model saved to {model_path}')
 
 
 def load_model(model, root_path, step: STEP, load_name):
