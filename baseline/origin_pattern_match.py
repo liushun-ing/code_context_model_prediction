@@ -373,7 +373,7 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 if __name__ == '__main__':
     # print(sys.argv)
     step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
-    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 3
+    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 4
     # print(step, batch_index)
     min_sup = 0.015
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可

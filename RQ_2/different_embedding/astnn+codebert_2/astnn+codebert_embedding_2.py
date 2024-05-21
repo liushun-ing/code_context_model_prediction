@@ -18,14 +18,14 @@ threshold = 0.4
 epochs = 80
 steps = [1]
 construct = False
-load_lazy = True
+load_lazy = False
 
 args = {
     'under_sampling_threshold': 15.0,
     'code_embedding': 1280,
     'lr': 0.001,
     'batch_size': 16,
-    'hidden_size': 512,
+    'hidden_size': 1280,
     'hidden_size_2': 128,
     'out_feats': 64,
     'dropout': 0.1,
@@ -112,25 +112,4 @@ def run():
 
 
 if __name__ == '__main__':
-    selection = [
-        # (512, 128, 64),
-        (1024, 512, 128),
-        (1024, 512, 64),
-        (1024, 256, 128),
-        (1024, 256, 64),
-        (512, 256, 32),
-        (512, 256, 64),
-        (512, 256, 128),
-        (512, 128, 32),
-        (512, 64, 32),
-        (256, 128, 64),
-        (256, 128, 128),
-        (256, 128, 32),
-        (256, 64, 32),
-        (256, 64, 16)
-    ]
-    for hidden_size, hidden_size_2, out_feats in selection:
-        args['hidden_size'] = hidden_size
-        args['hidden_size_2'] = hidden_size_2
-        args['out_feats'] = out_feats
-        run()
+    run()

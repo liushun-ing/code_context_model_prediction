@@ -218,6 +218,17 @@ class GraphDataset(torch.utils.data.Dataset):
         return len(self.graphs)
 
     def __getitem__(self, idx):
+        return self.graphs[idx]
+
+
+class PreloadedGraphDataset(torch.utils.data.Dataset):
+    def __init__(self, dataset, device):
+        self.graphs = [graph.to(device) for graph in dataset]
+
+    def __len__(self):
+        return len(self.graphs)
+
+    def __getitem__(self, idx):
         gra = self.graphs[idx]
         features = gra.ndata['embedding']
         labels = gra.ndata['label']
@@ -263,16 +274,20 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
     old_data_path = join(dataset_path, f'model_dataset_{str(step)}', f'{mode}', f'old_data_{mode}.pkl')
     if load_lazy and os.path.exists(old_data_path):
         print('lazyload...')
-        graphs = pd.read_pickle(old_data_path)
+        return pd.read_pickle(old_data_path)
     else:
         # 从文件加载多个图数据
         graphs = []
         for node_file, edge_file in get_graph_files(dataset_path, mode, step):
             graphs = graphs + load_graph_data(node_file, edge_file, mode, under_sampling_threshold, self_loop)
         pd.to_pickle(graphs, old_data_path)
-    # 创建数据集和 DataLoader
-    # print(graphs)
-    dataset = GraphDataset(graphs)
-    # 这里的batch_size还有问题
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate)
-    return data_loader
+        # 创建数据集和 DataLoader
+        # print(graphs)
+        dataset = GraphDataset(graphs)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        preloaded_dataset = PreloadedGraphDataset(dataset, device)
+        # 这里的batch_size还有问题
+        shuffle = True if mode == 'train' else False
+        data_loader = DataLoader(preloaded_dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate)
+        pd.to_pickle(data_loader, old_data_path)
+        return data_loader

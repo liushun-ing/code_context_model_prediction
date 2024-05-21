@@ -19,6 +19,7 @@ from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEMod
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
+from .utils_nc.final_prediction_model import GCNModel3, RGCNModel3
 
 
 # from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
@@ -250,7 +251,7 @@ def main_func(model_path, load_name, step, model_name='GCN', code_embedding=200,
         self_loop = True
     else:
         self_loop = True
-    data_loader = load_prediction_data(model_path, 'test', batch_size=1, step=step, self_loop=self_loop,
+    data_loader = load_prediction_data(model_path, 'test', batch_size=32, step=step, self_loop=self_loop,
                                        load_lazy=load_lazy)
     print(f'total test graph: {len(data_loader)}')
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]

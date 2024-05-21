@@ -1,7 +1,10 @@
 import os
 from os.path import join
 
+from pathlib import Path
+os.sys.path.append(str(Path(__file__).absolute().parent.parent.parent))
 from GNN_Node_Classification import data_estimator, construct_input, node_classification, view, test_model
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # GPU编号
 

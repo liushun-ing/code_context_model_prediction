@@ -74,6 +74,9 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
     if embedding_type == 'astnn+codebert':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
         embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
+    elif embedding_type == 'astnn+glove':
+        embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
+        embedding_file_2 = f'{description}_{step}_glove_embedding.pkl'
     elif embedding_type == 'astnn+codebert+stereotype':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
         embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
@@ -172,7 +175,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         embedding_file = f'{description}_{step}_glove_embedding.pkl'
     elif embedding_type == 'codebert':
         embedding_file = f'{description}_{step}_codebert_embedding.pkl'
-    elif embedding_type == 'astnn+codebert' or embedding_type == 'astnn+codebert+stereotype':
+    elif embedding_type == 'astnn+codebert' or embedding_type == 'astnn+glove' or embedding_type == 'astnn+codebert+stereotype':
         save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
                             description)
         return

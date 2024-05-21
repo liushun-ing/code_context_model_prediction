@@ -25,10 +25,10 @@ args = {
     'code_embedding': 1280,
     'lr': 0.001,
     'batch_size': 16,
-    'hidden_size': 512,
+    'hidden_size': 1024,
     'hidden_size_2': 128,
     'out_feats': 64,
-    'dropout': 0.3,
+    'dropout': 0.1,
     'weight_decay': 1e-6
 }
 
@@ -112,17 +112,4 @@ def run():
 
 
 if __name__ == '__main__':
-    selection = [
-        # (512, 128, 64),
-        (768, 512, 128),
-        (768, 512, 64),
-        (768, 256, 128),
-        (768, 256, 64),
-        (768, 128, 64),
-        (768, 128, 32)
-    ]
-    for hidden_size, hidden_size_2, out_feats in selection:
-        args['hidden_size'] = hidden_size
-        args['hidden_size_2'] = hidden_size_2
-        args['out_feats'] = out_feats
-        run()
+    run()

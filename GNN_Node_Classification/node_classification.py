@@ -19,7 +19,7 @@ from .utils_nc.concat_prediction_model import GATModel2, GCNModel2, GraphSAGEMod
     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
 
 from .utils_nc.attention_prediction_model import GCNModel3, RGCNModel3
-
+from .utils_nc.final_prediction_model import GCNModel3, RGCNModel3
 
 # from .utils_nc.merge_prediction_model import GATModel2, GCNModel2, GraphSAGEModel2, GATModel3, GATModel4, GCNModel3, \
 #     GCNModel4, GraphSAGEModel3, GraphSAGEModel4, GatedGraphModel, RGCNModel3, RGCNModel4, RGCNModel2
@@ -45,11 +45,11 @@ def valid(gnn_model, data_loader, device, threshold):
         auprc = 0.0
         f_1 = 0.0
         for g, features, labels, edge_types, seeds, kinds in data_loader:
-            g = g.to(device)
-            features = features.to(device)
-            labels = labels.to(device)
-            edge_types = edge_types.to(device)
-            seeds = seeds.to(device)
+            # g = g.to(device)
+            # features = features.to(device)
+            # labels = labels.to(device)
+            # edge_types = edge_types.to(device)
+            # seeds = seeds.to(device)
 
             output = gnn_model(g, features, edge_types)
             # output = output[torch.eq(seeds, 1)]
@@ -129,12 +129,14 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     # optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=0.001)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
-    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop,
+    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
                                              load_lazy=load_lazy)  # 加载验证集合
     print(f'valid total graphs: {len(valid_data_loader)}')
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
     max_epoch = [0, 0, 0, 0]  # precision recall f1
+    best_count = 0
+    patience = 20
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
@@ -168,16 +170,19 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         res.insert(1, total_loss / len(data_loader))
         res.insert(2, train_accuracy / len(data_loader))
         result.append(res)
-        # 如何保存最优模型
+        # 如何保存最优模型 + 早停机制
         if res[7] > max_epoch[3]:
             # if res[5] + res[6] + res[7] > max_epoch[1] + max_epoch[2] + max_epoch[3]:
             max_epoch = [epoch, res[5], res[6], res[7]]
-        # 保存训练好的模型
-        util.save_model(gnn_model, save_path, step, f'{save_name}_{epoch}')
+            best_count = 0
+            # 保存最好的模型
+            util.save_model(gnn_model, save_path, step, f'{save_name}_best')
+        else:
+            best_count += 1
+            if best_count >= patience:
+                print("Early stopping")
+                break
     util.save_result(result, save_path, step, save_name)
-    # 保留最好的模型，其余的模型丢弃
-    print('the best model is: ', max_epoch)
-    util.maintain_best_model(save_path, step, save_name, max_epoch[0])
 
 
 def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
