@@ -4,6 +4,7 @@ from os.path import join
 
 import numpy as np
 import torch
+import nni
 from torch import nn
 from torchmetrics.classification import BinaryPrecision
 from torchmetrics.classification import BinaryRecall
@@ -76,7 +77,7 @@ def save_specific_result(labels, output, threshold, kinds, s_file):
             s_file.write(f"{i} {label} {out} {kind_mapping[int(kind)]} {label == 1} {out >= threshold}\n")
 
 
-def test(gnn_model, data_loader, device, top_k, threshold, fi, s_file=None):
+def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=None):
     """
     使用测试集测试最终的模型
 
@@ -137,6 +138,8 @@ def test(gnn_model, data_loader, device, top_k, threshold, fi, s_file=None):
             r /= length
             f /= length
             a /= length
+            if use_nni:
+                nni.report_final_result(f)
             p = Decimal(p).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             r = Decimal(r).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             f = Decimal(f).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
@@ -168,7 +171,8 @@ def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_s
 
 
 def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_feats=1280, hidden_size=1024,
-              attention_heads=10, num_heads=8, num_edge_types=6, use_gpu=True, load_lazy=True, approach="attention"):
+              attention_heads=8, num_heads=8, num_edge_types=6, use_gpu=True, load_lazy=True, approach="attention",
+              use_nni=False, under_sampling_threshold=15.0):
     """
     测试模型
 
@@ -185,6 +189,8 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
     :param use_gpu: default true
     :param load_lazy: load dataset lazy
     :param approach: train approach: attention or concat
+    :param use_nni: default true
+    :param under_sampling_threshold: under sampling threshold
     :return: None
     """
     model, device = init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size,
@@ -195,7 +201,7 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
     else:
         self_loop = True
     data_loader = load_prediction_data(model_path, 'test', batch_size=32, step=step, self_loop=self_loop,
-                                       load_lazy=load_lazy)
+                                       load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
     print(f'total test graph: {len(data_loader)}')
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     thresholds = [0.4, 0.5]
@@ -209,7 +215,7 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
                 f.write(f'---threshold:{t} top-k:{k}---\n')
                 if t == 0.4:
                     with open(f'specific_result_{step}.txt', 'w') as s_file:
-                        test(model, data_loader, device, k, t, f, s_file)
+                        test(model, data_loader, device, k, t, use_nni, f, s_file)
                 else:
-                    test(model, data_loader, device, k, t, f)
+                    test(model, data_loader, device, k, t, use_nni, f)
         f.close()

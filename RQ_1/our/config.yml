@@ -1,0 +1,45 @@
+experimentName: astnn_codebert_attention
+#experiment_working_directory: xxx
+searchSpace:
+  batch_size:
+    _type: choice
+    _value: [ 8, 16, 32, 64, 128, 256 ]
+  lr:
+    _type: choice
+    _value: [ 0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001, 0.00001 ]
+  hidden_size: # 图卷积层大小
+    _type: choice
+    _value: [ 768, 512, 256 ]
+  attention_heads: # 图卷积层注意力机制 head
+    _type: choice
+    _value: [ 4, 8, 12, 16 ]
+  dropout:
+    _type: choice
+    _value: [ 0.1, 0.2, 0.3, 0.4, 0.5 ]
+  epochs:
+    _type: choice
+    _value: [ 100 ]
+  num_layers: # 图卷积层数
+    _type: choice
+    _value: [ 2, 3, 4 ]
+
+trial_command: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 1
+trial_code_directory: .
+trialGpuNumber: 1
+maxTrialNumber: 100
+trialConcurrency: 4 # 同时执行几个任务
+
+tuner:
+  name: TPE
+  class_args:
+    optimize_mode: maximize
+training_service:
+  platform: local
+  maxTrialNumberPerGpu: 1
+  gpuIndices: [ 0, 1, 2, 3 ]
+  use_active_gpu: true
+
+# ssh -N -f -L 8080:127.0.0.1:8080 shunliu@115.236.33.122 -p 9997
+# -N: 此选项告诉 SSH 不要执行远程命令。它在你只想转发端口时非常有用。
+# -f: 此选项告诉 SSH 在命令执行之前转入后台运行。这样可以在后台运行隧道。
+# -L 8080:127.0.0.1:8080: 此选项指定本地端口转发。它将本地机器上的端口 8080 转发到远程地址 127.0.0.1 的端口 8080。

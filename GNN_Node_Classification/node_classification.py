@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import nni
 from torchmetrics.classification import BinaryAccuracy, BinaryAveragePrecision
 from torchmetrics.classification import BinaryPrecision
 from torchmetrics.classification import BinaryRecall
@@ -89,7 +90,7 @@ def valid(gnn_model, data_loader, device, threshold):
 
 
 def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay):
+          weight_decay, use_nni, under_sampling_threshold):
     """
     训练函数
 
@@ -112,7 +113,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
     valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
-                                             load_lazy=load_lazy)  # 加载验证集合
+                                             load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)  # 加载验证集合
     print(f'valid total graphs: {len(valid_data_loader)}')
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
@@ -145,6 +146,8 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         res.insert(1, total_loss / len(data_loader))
         res.insert(2, train_accuracy / len(data_loader))
         result.append(res)
+        if use_nni:
+            nni.report_intermediate_result(res[7])
         # 如何保存最优模型 + 早停机制
         if res[7] > max_epoch[3]:
             # if res[5] + res[6] + res[7] > max_epoch[1] + max_epoch[2] + max_epoch[3]:
@@ -162,14 +165,14 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
 
 
 def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay):
+                self_loop, load_lazy, weight_decay, use_nni):
     print('----load train dataset----')
     data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
                                        load_lazy)
     print(f'train total graphs: {len(data_loader) * batch_size}')
     # print('----start train----')
     train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay)
+          weight_decay, use_nni, under_sampling_threshold)
 
 
 def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
@@ -193,9 +196,9 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
 
 
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_type="GCN",
-              num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=10, num_heads=8,
+              num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=8, num_heads=8,
               num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
-              weight_decay=1e-6, approach='attention'):
+              weight_decay=1e-6, approach='attention', use_nni=False):
     """
     node classification
 
@@ -219,6 +222,7 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     :param load_lazy: 是否懒加载图数据，default True
     :param weight_decay: Adam 权重衰减系数 default: 1e-6
     :param approach: train approach: attention or concat
+    :param use_nni: default False
     :return: None
     """
     if model_type.startswith('RGCN'):
@@ -228,4 +232,4 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     device, model = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
                          attention_heads, approach)
     start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay)
+                self_loop, load_lazy, weight_decay, use_nni)
