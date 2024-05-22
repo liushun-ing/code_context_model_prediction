@@ -15,7 +15,7 @@ embedding_type = 'astnn+codebert'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 
 steps = [1]
-construct = False
+construct = True
 load_lazy = True
 
 args = {
@@ -54,12 +54,13 @@ def run():
     for step in steps:
         print(f'step: {step}', args)
         # construct input: train, valid, test dataset of four project
-        if construct and not load_lazy:
+        if construct:
             construct_input.main_func(
                 description=description,
                 step=step,
                 dest_path=current_path,
-                embedding_type=embedding_type
+                embedding_type=embedding_type,
+                under_sampling_threshold=args['under_sampling_threshold'],
             )
 
         # train and save model

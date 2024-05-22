@@ -17,7 +17,7 @@ embedding_type = 'astnn+codebert'
 current_path = join(os.path.dirname(os.path.realpath(__file__)))  # save to current dir
 
 steps = [1]
-construct = False
+construct = True
 load_lazy = True
 
 args = {
@@ -25,7 +25,7 @@ args = {
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
-    'hidden_size': 1024,
+    'hidden_size': 512,
     'dropout': 0.1,
     'attention_heads': 10,
     'num_heads': 8,
@@ -56,12 +56,13 @@ def run():
     for step in steps:
         print(f'step: {step}', args)
         # construct input: train, valid, test dataset of four project
-        if construct and not load_lazy:
+        if construct:
             construct_input.main_func(
                 description=description,
                 step=step,
                 dest_path=current_path,
-                embedding_type=embedding_type
+                embedding_type=embedding_type,
+                under_sampling_threshold=args['under_sampling_threshold']
             )
 
         # train and save model

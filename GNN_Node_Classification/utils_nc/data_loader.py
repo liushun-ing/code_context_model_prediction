@@ -14,13 +14,13 @@ from torch.utils.data import DataLoader
 LOAD_MODE = Literal['train', 'valid', 'test']
 
 
-def get_graph_files(dataset_path, mode: LOAD_MODE, step: int):
+def get_graph_files(dataset_path, mode: LOAD_MODE, step: int, under_sampling_threshold):
     """
     获取图数据保存文件
 
     :return: [(nodes.tsv, edges.tsv), ...]
     """
-    graph_path = join(dataset_path, f'model_dataset_{str(step)}')
+    graph_path = join(dataset_path, f'model_dataset_{str(step)}_{under_sampling_threshold}')
     graph_files = []
     if mode == 'train':
         if os.path.exists(join(graph_path, 'train')):
@@ -202,14 +202,15 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
     :param load_lazy: 是否加载之前的数据
     :return: 相应数据集的DataLoader
     """
-    old_data_path = join(dataset_path, f'model_dataset_{str(step)}', f'{mode}', f'old_data_{mode}.pkl')
+    old_data_path = join(dataset_path, f'model_dataset_{str(step)}_{under_sampling_threshold}', f'{mode}',
+                         f'old_data_{mode}.pkl')
     if load_lazy and os.path.exists(old_data_path):
         print('lazyload...')
         return pd.read_pickle(old_data_path)
     else:
         # 从文件加载多个图数据
         graphs = []
-        for node_file, edge_file in get_graph_files(dataset_path, mode, step):
+        for node_file, edge_file in get_graph_files(dataset_path, mode, step, under_sampling_threshold):
             graphs = graphs + load_graph_data(node_file, edge_file, mode, under_sampling_threshold, self_loop)
         # 创建数据集和 DataLoader
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

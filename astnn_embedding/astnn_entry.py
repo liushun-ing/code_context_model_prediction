@@ -48,6 +48,6 @@ def train_noplatform(step, hidden_dim):
     embedding.main_func(step=step, description='noplatform', hidden_dim=hidden_dim)
 
 
-train_mylyn(step=2, r=0.8, hidden_dim=256, code_dim=256)
+train_mylyn(step=1, r=0.8, hidden_dim=256, code_dim=256)
 # train_mylyn(step=2, r=0.8, hidden_dim=256)
 # train_mylyn(step=3, r=0.84)
