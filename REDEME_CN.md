@@ -179,15 +179,17 @@ params_validation
 
 ### 数据信息
 
-1.3 数据清洗后，形成的数据集文件夹 -- 数据集统计信息，除了原先的表格，增加如下统计：
+代码上下文模型规模数据
 
+<img src="./REDEME_CN.assets/statistics_dataset_1.png" alt="screenshot2024-05-23 19.35.57" style="zoom: 67%;" />
 
+代码上下文模型节点类型数据
 
-1.3.1 Node分成3个类别进行统计，即class，method，field分别统计；
+<img src="./REDEME_CN.assets/code_context_model_node.png" alt="screenshot2024-05-23 21.03.30" style="zoom:67%;" />
 
+代码上下文模型边类型数据
 
-
-1.3.2 Edge分类别进行统计，即declares、calls、（**uses field**)、implements、inherits等分别统计。
+<img src="./REDEME_CN.assets/code_context_model_edge.png" alt="screenshot2024-05-23 21.05.46" style="zoom:67%;" />
 
 
 

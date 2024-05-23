@@ -176,6 +176,18 @@ We have organized the source code files and the code context model files at the 
 
 ### Dataset Details
 
+Code Context Model Statistics
+
+<img src="./REDEME_CN.assets/statistics_dataset_1.png" alt="screenshot2024-05-23 19.35.57" style="zoom: 67%;" />
+
+Code Context Model Node Type Statistics
+
+<img src="./REDEME_CN.assets/code_context_model_node.png" alt="screenshot2024-05-23 21.03.30" style="zoom:67%;" />
+
+Code Context Model Edge Type Statistics
+
+<img src="./REDEME_CN.assets/code_context_model_edge.png" alt="screenshot2024-05-23 21.05.46" style="zoom:67%;" />
+
 
 
 ## Research Questions
