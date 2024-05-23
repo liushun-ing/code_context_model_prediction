@@ -11,7 +11,8 @@ from tqdm.auto import tqdm
 tqdm.pandas()
 warnings.filterwarnings('ignore')
 
-repo_root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
+repo_root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation',
+                      'git_repo_code')
 
 
 def get_parsed_source(input_file: str, output_file=None):
@@ -71,11 +72,12 @@ def main_func(project_model_name: str):
         if os.path.exists(join(model_path, 'astnn_ast.pkl')):
             print('ast exist, now removed')
             os.remove(join(model_path, 'astnn_ast.pkl'))
-        get_parsed_source(input_file=join(model_path, 'processed_java_codes.tsv'), output_file=join(model_path, 'astnn_ast.pkl'))
+        get_parsed_source(input_file=join(model_path, 'processed_java_codes.tsv'),
+                          output_file=join(model_path, 'astnn_ast.pkl'))
 
 
-main_func('my_mylyn')
-main_func('my_pde')
-main_func('my_platform')
-main_func('my_ecf')
-
+if __name__ == '__main__':
+    main_func('my_mylyn')
+    main_func('my_pde')
+    main_func('my_platform')
+    main_func('my_ecf')

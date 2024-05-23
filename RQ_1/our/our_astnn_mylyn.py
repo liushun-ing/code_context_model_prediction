@@ -64,7 +64,6 @@ if construct:
         step=my_params['step'],
         dest_path=my_params['current_path'],
         embedding_type=my_params['embedding_type'],
-        under_sampling_threshold=my_params['under_sampling_threshold']
     )
 
 concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
@@ -116,5 +115,6 @@ test_model.main_func(
     load_lazy=load_lazy,
     approach=my_params['approach'],
     use_nni=args.nni,
+    under_sampling_threshold=my_params['under_sampling_threshold'],
     concurrency_string=concurrency_string
 )

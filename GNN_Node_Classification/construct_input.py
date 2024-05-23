@@ -70,7 +70,7 @@ def adjust_edge(edge: ET.Element, nodes: list[ET.Element]):
 
 
 def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
-                        description, under_sampling_threshold):
+                        description):
     if embedding_type == 'astnn+codebert':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
         embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
@@ -153,7 +153,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                 # edges_tsv.append([end, start, edge_label + 6]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
-            dest = join(dest_path, f'model_dataset_{str(step)}_{under_sampling_threshold}', dataset,
+            dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
                         f'{project_model_name}_{model_dir}_{str(base)}')
             if os.path.exists(dest):
                 shutil.rmtree(dest)
@@ -168,8 +168,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
             base += 1
 
 
-def save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description,
-               under_sampling_threshold):
+def save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type, description):
     if embedding_type == 'astnn':
         embedding_file = f'{description}_{step}_astnn_embedding.pkl'
     elif embedding_type == 'glove':
@@ -178,7 +177,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         embedding_file = f'{description}_{step}_codebert_embedding.pkl'
     elif embedding_type == 'astnn+codebert' or embedding_type == 'astnn+glove' or embedding_type == 'astnn+codebert+stereotype':
         save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
-                            description, under_sampling_threshold)
+                            description)
         return
     else:
         embedding_file = f'{description}_{step}_astnn_embedding.pkl'
@@ -243,7 +242,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 # edges_tsv.append([end, start, edge_label + 6]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
-            dest = join(dest_path, f'model_dataset_{str(step)}_{under_sampling_threshold}', dataset,
+            dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
                         f'{project_model_name}_{model_dir}_{str(base)}')
             if os.path.exists(dest):
                 shutil.rmtree(dest)
@@ -270,7 +269,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             base += 1
 
 
-def main_func(description: str, step: int, dest_path: str, embedding_type: str, under_sampling_threshold: str):
+def main_func(description: str, step: int, dest_path: str, embedding_type: str):
     """
     构建并拆分数据集
     all: 四个项目分别拆分成train,valid,test : 比例8:1:1 \n
@@ -283,8 +282,8 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str, 
     :param dest_path: 数据集保存的路径
     :return:
     """
-    if os.path.exists(join(dest_path, f'model_dataset_{str(step)}_{under_sampling_threshold}')):
-        shutil.rmtree(join(dest_path, f'model_dataset_{str(step)}_{under_sampling_threshold}'))
+    if os.path.exists(join(dest_path, f'model_dataset_{str(step)}')):
+        shutil.rmtree(join(dest_path, f'model_dataset_{str(step)}'))
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
         for project_model_name in project_model_list:
@@ -294,58 +293,58 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str, 
                 model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
                 model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
                 save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
-                           description, under_sampling_threshold)
+                           description)
     elif description == 'onlymylyn':
         project_model_name = 'my_mylyn'
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
         save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type,
-                   description, under_sampling_threshold)
+                   description)
         for project_model_name in ['my_pde', 'my_platform']:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             model_dir_list = get_models_by_ratio(project_model_name, 0, 0.5)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
             save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type,
-                       description, under_sampling_threshold)
+                       description)
             model_dir_list = get_models_by_ratio(project_model_name, 0.5, 1)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
             save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type,
-                       description, under_sampling_threshold)
+                       description)
     elif description == 'nopde':
         project_model_name = 'my_pde'
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0, 0.5)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
         save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type,
-                   description, under_sampling_threshold)
+                   description)
         model_dir_list = get_models_by_ratio(project_model_name, 0.5, 1)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
         save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type,
-                   description, under_sampling_threshold)
+                   description)
         for project_model_name in ['my_mylyn', 'my_platform']:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
             save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type,
-                       description, under_sampling_threshold)
+                       description)
     elif description == 'noplatform':
         project_model_name = 'my_platform'
         project_path = join(root_path, project_model_name, 'repo_first_3')
         model_dir_list = get_models_by_ratio(project_model_name, 0, 0.5)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
         save_model(project_path, model_dir_list, step, dest_path, 'valid', project_model_name, embedding_type,
-                   description, under_sampling_threshold)
+                   description)
         model_dir_list = get_models_by_ratio(project_model_name, 0.5, 1)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
         save_model(project_path, model_dir_list, step, dest_path, 'test', project_model_name, embedding_type,
-                   description, under_sampling_threshold)
+                   description)
         for project_model_name in ['my_mylyn', 'my_pde']:
             project_path = join(root_path, project_model_name, 'repo_first_3')
             model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
             model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
             save_model(project_path, model_dir_list, step, dest_path, 'train', project_model_name, embedding_type,
-                       description, under_sampling_threshold)
+                       description)
     elif description == 'mylyn':
         project_model_list = ['my_mylyn']
         for project_model_name in project_model_list:
@@ -355,4 +354,4 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str, 
                 model_dir_list = get_models_by_ratio(project_model_name, ratios[0], ratios[1])
                 model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
                 save_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
-                           description, under_sampling_threshold)
+                           description)

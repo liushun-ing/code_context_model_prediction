@@ -127,6 +127,7 @@ def find_connected_nodes_with_labels(digraph, node_id):
 
     return reachable_from_node_labels, reachable_to_node_labels
 
+
 def field_analyse(step):
     G1s = load_targets('my_mylyn', step)
     print('G1s', len(G1s))
@@ -167,6 +168,6 @@ def field_analyse(step):
     for string, (frequency, ratio) in frequencies_and_ratios.items():
         print(f"{string} {frequency} {ratio:.2%}")
 
+
 if __name__ == '__main__':
-    # 需要人工处理模式库，才能运行 graph_match
     field_analyse(step=1)

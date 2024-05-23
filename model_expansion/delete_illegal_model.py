@@ -40,13 +40,12 @@ def main_func(project_model_name: str):
     print(count)
 
 
-
-
-# ecf
-# main_func('my_ecf')
-# pde
-main_func('my_pde')
-# platform
-main_func('my_platform')
-# # mylyn
-main_func('my_mylyn')
+if __name__ == '__main__':
+    # ecf
+    # main_func('my_ecf')
+    # pde
+    main_func('my_pde')
+    # platform
+    main_func('my_platform')
+    # # mylyn
+    main_func('my_mylyn')

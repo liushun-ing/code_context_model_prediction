@@ -46,6 +46,7 @@ def train_noplatform(step):
     embedding.main_func(step=step, description='noplatform')
 
 
-# train_onlymylyn(step=1)
-# train_onlymylyn(step=2)
-# train_onlymylyn(step=3)
+if __name__ == '__main__':
+    train_onlymylyn(step=1)
+    train_onlymylyn(step=2)
+    train_onlymylyn(step=3)

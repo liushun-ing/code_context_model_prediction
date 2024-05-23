@@ -48,6 +48,7 @@ def train_noplatform(step):
     embedding.main_func(step=step, description='noplatform')
 
 
-# train_nopde(step=1)
-# train_nopde(step=2)
-# train_nopde(step=3)
+if __name__ == '__main__':
+    train_nopde(step=1)
+    train_nopde(step=2)
+    train_nopde(step=3)

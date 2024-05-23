@@ -24,7 +24,7 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 15.0,
+    'under_sampling_threshold': 20.0,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
@@ -61,8 +61,7 @@ if construct:
         description=my_params['description'],
         step=my_params['step'],
         dest_path=my_params['current_path'],
-        embedding_type=my_params['embedding_type'],
-        under_sampling_threshold=my_params['under_sampling_threshold']
+        embedding_type=my_params['embedding_type']
     )
 
 # train and save model
@@ -110,5 +109,6 @@ test_model.main_func(
     num_edge_types=my_params['num_edge_types'],
     load_lazy=load_lazy,
     approach=my_params['approach'],
+    under_sampling_threshold=my_params['under_sampling_threshold'],
     use_nni=args.nni
 )

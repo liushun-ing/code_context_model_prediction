@@ -79,6 +79,7 @@ def view_result():
     plt.show()
 
 
-transfer_files()
-validate_embedding()
-view_result()
+if __name__ == '__main__':
+    transfer_files()
+    validate_embedding()
+    view_result()

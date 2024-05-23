@@ -102,13 +102,13 @@ def main_func(project_model_name: str):
         new_tree.write(model_file)
 
 
-
-# ecf
-# main_func('my_ecf')
-# pde
-main_func('my_pde')
-# platform
-main_func('my_platform')
-# mylyn
-# print(root_path)
-main_func('my_mylyn')
+if __name__ == '__main__':
+    # ecf
+    # main_func('my_ecf')
+    # pde
+    main_func('my_pde')
+    # platform
+    main_func('my_platform')
+    # mylyn
+    # print(root_path)
+    main_func('my_mylyn')

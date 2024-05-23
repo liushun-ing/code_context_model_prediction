@@ -1,7 +1,3 @@
-"""
-根据 glove 模型生成词向量
-"""
-import gc
 import os
 from os.path import join
 import pandas as pd
@@ -72,7 +68,7 @@ def main_func(step, description):
         project_path = join(repo_root_path, project_model_name, 'repo_first_3')
         model_dir_list = os.listdir(project_path)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        for model_dir in model_dir_list[model_dir_list.index('2130'):]:
+        for model_dir in model_dir_list:
             print('---------------', model_dir)
             model_path = join(project_path, model_dir)
             tokens_path = join(model_path, 'java_tokens.tsv')
@@ -88,4 +84,5 @@ def main_func(step, description):
             # gc.collect()
 
 
-main_func(2, 'mylyn')
+if __name__ == '__main__':
+    main_func(3, 'mylyn')

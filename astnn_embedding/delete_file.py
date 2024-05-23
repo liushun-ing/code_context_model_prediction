@@ -11,6 +11,7 @@ warnings.filterwarnings('ignore')
 repo_root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation',
                       'git_repo_code')
 
+
 def main_func():
     for project_model_name in ['my_pde', 'my_platform', 'my_mylyn']:
         print('************', project_model_name)
@@ -26,4 +27,6 @@ def main_func():
                 os.remove(ast_path)
                 # os.rename(ast_path, join(model_path, 'mylyn_1_astnn_embedding.pkl'))
 
-main_func()
+
+if __name__ == '__main__':
+    main_func()

@@ -56,7 +56,7 @@ def true_positive(data):
 
     print("\nstereotype数据的统计:")
     for key, count in fourth_column_counts.items():
-        print(f"{key}: {count} ({fourth_column_proportions[key]:.2%})")
+        print(f"{key} {count} {fourth_column_proportions[key]:.2%}")
 
 
 def false_positive(data):
@@ -100,7 +100,7 @@ def false_positive(data):
 
     print("\nstereotype数据的统计:")
     for key, count in fourth_column_counts.items():
-        print(f"{key}: {count} ({fourth_column_proportions[key]:.2%})")
+        print(f"{key} {count} {fourth_column_proportions[key]:.2%}")
 
 
 def false_negative(data):
@@ -119,7 +119,7 @@ def false_negative(data):
 
     print("\nstereotype数据的统计:")
     for key, count in fourth_column_counts.items():
-        print(f"{key}: {count} ({fourth_column_proportions[key]:.2%})")
+        print(f"{key} {count} {fourth_column_proportions[key]:.2%}")
 
 
 if __name__ == '__main__':

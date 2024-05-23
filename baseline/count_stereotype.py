@@ -38,7 +38,7 @@ def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
     return m[int(len(m) * start_ratio):int(len(m) * end_ratio), 0]
 
 
-def get_graph(graphs: list[ET.Element], step: int):
+def get_graph(graphs: list[ET.Element]):
     gs = []
     if len(graphs) == 0:
         return gs
@@ -53,9 +53,9 @@ def get_graph(graphs: list[ET.Element], step: int):
         # 转化为图结构
         for node in vertex_list:
             g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
-                       seed=node.get('seed'))
-            if int(node.get('origin')) == 1:
-                true_node += 1
+                       seed=node.get('origin'))
+            # if int(node.get('origin')) == 1:
+            true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
             # if int(link.get('origin')) == 1:
@@ -65,16 +65,22 @@ def get_graph(graphs: list[ET.Element], step: int):
     return gs
 
 
-def load_targets(project_model_name: str, step):
+def load_targets(project_model_name: str, step, mode):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     G1s = []
     # 读取code context model
-    model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
+    if mode == 'train':
+        model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
+    else:
+        model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        if mode == 'train':
+            model_file = join(model_path, f'code_context_model.xml')
+        else:
+            model_file = join(model_path, f'{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -82,12 +88,12 @@ def load_targets(project_model_name: str, step):
         tree = ET.parse(model_file)  # 拿到xml树
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
-        G1s = G1s + get_graph(graphs, step)
+        G1s = G1s + get_graph(graphs)
     return G1s
 
 
-def count_stereotype(step):
-    G1s = load_targets('my_mylyn', step)
+def count_stereotype(step, mode):
+    G1s = load_targets('my_mylyn', step, mode)
     print('G1s', len(G1s))
     # 用于存储所有图的 label 分布
     all_label_values = []
@@ -108,9 +114,11 @@ def count_stereotype(step):
     print("Label Distribution across all graphs:")
     for label, frequency in label_distribution.items():
         ratio = frequency / total_nodes
-        print(f'{label}: {frequency} ({ratio:.2%})')
+        print(f'{label} {frequency} {ratio:.2%}')
 
 
 if __name__ == '__main__':
-    # 需要人工处理模式库，才能运行 graph_match
-    count_stereotype(step=1)
+    # mode = 'train'
+    mode = 'test'
+    step = 3
+    count_stereotype(step=step, mode=mode)

@@ -220,8 +220,8 @@ def graph_match(step, patterns, batch_index):
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
     # for G1 in G1s[batch_index * 100: (batch_index + 1) * 100]:
-    # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    # f.write("node_id origin_label confidence stereotype label_result predict_result\n")
+    f = open(f'origin_result/match_result_{step}.txt', 'w')
+    f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
         # if G1s.index(G1) in [116, 166, 316, 344, 437, 524]:
         #     continue
@@ -312,7 +312,7 @@ def graph_match(step, patterns, batch_index):
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
             result_full.append(calculate_result_full(labels, output, true_number))
-            # save_result_stereotype(confidence, G1.nodes, f)
+            save_result_stereotype(confidence, G1.nodes, f)
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)
@@ -372,7 +372,7 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 2
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
     batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 5
     # print(step, batch_index)
     min_sup = 0.02

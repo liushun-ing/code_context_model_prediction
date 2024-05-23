@@ -22,10 +22,11 @@ def print_result(result, k):
               f'F1: {f}')
 
 
-step = 1
-all_result = []
-for batch_index in range(13):
-    res = pd.read_pickle(f'./origin_result/result_full_{step}_{batch_index}.pkl')
-    all_result = all_result + res
-print(len(all_result))
-print_result(all_result, 0)
+if __name__ == '__main__':
+    step = 1
+    all_result = []
+    for batch_index in range(13):
+        res = pd.read_pickle(f'./origin_result/result_full_{step}_{batch_index}.pkl')
+        all_result = all_result + res
+    print(len(all_result))
+    print_result(all_result, 0)

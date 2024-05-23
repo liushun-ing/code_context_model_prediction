@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from os.path import join
 
 from pathlib import Path
@@ -16,7 +18,7 @@ parser.add_argument("--step", type=int, required=False, default=1)
 parser.add_argument("--gpu", type=str, required=False, default='0')
 args = parser.parse_args()
 
-construct = False
+construct = True
 load_lazy = True
 
 my_params = {
@@ -61,9 +63,10 @@ if construct:
         description=my_params['description'],
         step=my_params['step'],
         dest_path=my_params['current_path'],
-        embedding_type=my_params['embedding_type'],
-        under_sampling_threshold=my_params['under_sampling_threshold']
+        embedding_type=my_params['embedding_type']
     )
+
+concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 # train and save model
 node_classification.main_func(
@@ -86,7 +89,8 @@ node_classification.main_func(
     weight_decay=my_params['weight_decay'],
     approach=my_params['approach'],
     load_lazy=load_lazy,
-    use_nni=args.nni
+    use_nni=args.nni,
+    concurrency_string=concurrency_string
 )
 
 # show train result
@@ -110,5 +114,7 @@ test_model.main_func(
     num_edge_types=my_params['num_edge_types'],
     load_lazy=load_lazy,
     approach=my_params['approach'],
-    use_nni=args.nni
+    under_sampling_threshold=my_params['under_sampling_threshold'],
+    use_nni=args.nni,
+    concurrency_string=concurrency_string
 )
