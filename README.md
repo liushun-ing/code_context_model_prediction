@@ -51,7 +51,7 @@ bug_dataset
 └── mylyn_zip
      ├── Mylyn
      │     └── 102663
-     │						└── 102263_42671.zip
+     │			└── 102263_42671.zip
      ├── ECF
      ├── PDE
      └── Platfrom
@@ -73,9 +73,9 @@ Run the `2_periods_break.py` file under the `params_validation/working_periods/`
 working_periods
 └── periods
      ├── 00
-     │		├── ...
+     │	  ├── ...
      │    └── Mylyn
-     │					└── 1.xml
+     │			└── 1.xml
      ├── ...
      └── 09
 ```
@@ -88,9 +88,9 @@ Run the `4_periods_filter.py` file under the `params_validation/working_periods/
 working_periods
 └── code_elements
      ├── 00
-     │		├── ...
+     │	  ├── ...
      │    └── Mylyn
-     │					└── 1.xml
+     │			└── 1.xml
      ├── ...
      └── 09
 ```
@@ -103,9 +103,9 @@ Run the `1_extract_code_elements_and_timestamp.py` file under the `params_valida
 repo_vs_commit_order
 └── code_timestamp
      └── 05
-     		 ├── ...
+     	 ├── ...
          └── Mylyn
-     					└── 1.xml
+     		  └── 1.xml
 ```
 
 > **Calculate IQR and filter outliers**
@@ -116,9 +116,9 @@ Run the `2_quartile_IQR.py` file under the `params_validation/repo_vs_commit_ord
 repo_vs_commit_order
 └── IQR_code_timestamp
      └── 05
-     		 ├── ...
+     	 ├── ...
          └── Mylyn
-     					└── 1.xml
+     		  └── 1.xml
 ```
 
 > **Clone github repository**
@@ -145,9 +145,9 @@ params_validation
      │		├── eclipse.platform.ui
      │		└── eclipse.platform.releng.buildtools
      ├── ecf
-     │		└── ecf
+     │	  └── ecf
      └── pde
-     			└── eclipse.pde
+     	  └── eclipse.pde
 ```
 
 > **Construct code context model**
@@ -159,12 +159,12 @@ params_validation
 └── git_repo_code
      ├── my_mylyn
      │		└── 42
-     │				 ├── doxygen (Doxygen Parsing File)
-     │				 			├── org.eclipse.mylyn.tasks.tests
-     │				 			└── org.eclipse.mylyn.tasks.ui
-     │				 ├── org.eclipse.mylyn.tasks.tests (Source File)
-     │				 ├── org.eclipse.mylyn.tasks.ui (Source File)
-     │				 └── code_context_model.xml (Code Context Model File)
+     │			 ├── doxygen (Doxygen Parsing File)
+     │				 	├── org.eclipse.mylyn.tasks.tests
+     │				 	└── org.eclipse.mylyn.tasks.ui
+     │			 ├── org.eclipse.mylyn.tasks.tests (Source File)
+     │			 ├── org.eclipse.mylyn.tasks.ui (Source File)
+     │			 └── code_context_model.xml (Code Context Model File)
      ├── my_platform
      ├── my_ecf
      └── my_pde

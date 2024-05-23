@@ -53,7 +53,7 @@ bug_dataset
 └── mylyn_zip
      ├── Mylyn
      │     └── 102663
-     │						└── 102263_42671.zip
+     │			 └── 102263_42671.zip
      ├── ECF
      ├── PDE
      └── Platfrom
@@ -75,9 +75,9 @@ bug_dataset
 working_periods
 └── periods
      ├── 00
-     │		├── ...
+     │	  ├── ...
      │    └── Mylyn
-     │					└── 1.xml
+     │			└── 1.xml
      ├── ...
      └── 09
 ```
@@ -90,9 +90,9 @@ working_periods
 working_periods
 └── code_elements
      ├── 00
-     │		├── ...
+     │	  ├── ...
      │    └── Mylyn
-     │					└── 1.xml
+     │			└── 1.xml
      ├── ...
      └── 09
 ```
@@ -105,9 +105,9 @@ working_periods
 repo_vs_commit_order
 └── code_timestamp
      └── 05
-     		 ├── ...
+     	 ├── ...
          └── Mylyn
-     					└── 1.xml
+     		  └── 1.xml
 ```
 
 > 计算 IQR，进一步过滤
@@ -119,9 +119,9 @@ Q3 + 3 * IQR]`值，更新到 `3_IQR_filter.py` 文件中（修改 `main_func` �
 repo_vs_commit_order
 └── IQR_code_timestamp
      └── 05
-     		 ├── ...
+     	 ├── ...
          └── Mylyn
-     					└── 1.xml
+     		   └── 1.xml
 ```
 
 > 拉取 `github repository`
@@ -148,9 +148,9 @@ params_validation
      │		├── eclipse.platform.ui
      │		└── eclipse.platform.releng.buildtools
      ├── ecf
-     │		└── ecf
+     │	  └── ecf
      └── pde
-     			└── eclipse.pde
+     	  └── eclipse.pde
 ```
 
 > 构建 `code context model`
@@ -162,12 +162,12 @@ params_validation
 └── git_repo_code
      ├── my_mylyn
      │		└── 42
-     │				 ├── doxygen (doxygen解析文件)
-     │				 			├── org.eclipse.mylyn.tasks.tests
-     │				 			└── org.eclipse.mylyn.tasks.ui
-     │				 ├── org.eclipse.mylyn.tasks.tests (源代码文件)
-     │				 ├── org.eclipse.mylyn.tasks.ui (源代码文件)
-     │				 └── code_context_model.xml (code context model 文件)
+     │		     ├── doxygen (doxygen解析文件)
+     │				 	├── org.eclipse.mylyn.tasks.tests
+     │				 	└── org.eclipse.mylyn.tasks.ui
+     │			 ├── org.eclipse.mylyn.tasks.tests (源代码文件)
+     │			 ├── org.eclipse.mylyn.tasks.ui (源代码文件)
+     │			 └── code_context_model.xml (code context model 文件)
      ├── my_platform
      ├── my_ecf
      └── my_pde
