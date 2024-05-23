@@ -53,7 +53,7 @@ bug_dataset
 └── mylyn_zip
      ├── Mylyn
      │     └── 102663
-     │			 └── 102263_42671.zip
+     │           └── 102263_42671.zip
      ├── ECF
      ├── PDE
      └── Platfrom
@@ -77,7 +77,7 @@ working_periods
      ├── 00
      │	  ├── ...
      │    └── Mylyn
-     │			└── 1.xml
+     │          └── 1.xml
      ├── ...
      └── 09
 ```
@@ -92,7 +92,7 @@ working_periods
      ├── 00
      │	  ├── ...
      │    └── Mylyn
-     │			└── 1.xml
+     │          └── 1.xml
      ├── ...
      └── 09
 ```
@@ -107,7 +107,7 @@ repo_vs_commit_order
      └── 05
      	 ├── ...
          └── Mylyn
-     		  └── 1.xml
+     	        └── 1.xml
 ```
 
 > 计算 IQR，进一步过滤
@@ -121,10 +121,10 @@ repo_vs_commit_order
      └── 05
      	 ├── ...
          └── Mylyn
-     		   └── 1.xml
+     	        └── 1.xml
 ```
 
-> 拉取 `github repository`
+> 拉取 `GitHub repository`
 
 根据 `params_validation/git_repos.txt` 中的提示，克隆对应的仓库到本地，克隆结束应当形成如下目录结构：
 
@@ -132,21 +132,21 @@ repo_vs_commit_order
 params_validation
 └── git_repo_code
      ├── mylyn
-     │		├── org.eclipse.mylyn
-     │		├── org.eclipse.mylyn.builds
-     │		├── org.eclipse.mylyn.commons
-     │		├── org.eclipse.mylyn.context
-     │		├── org.eclipse.mylyn.context.mft
-     │		├── org.eclipse.mylyn.docs
-     │		├── org.eclipse.mylyn.incubator
-     │		├── org.eclipse.mylyn.reviews
-     │		├── org.eclipse.mylyn.tasks
-     │		└── org.eclipse.mylyn.versions
+     │      ├── org.eclipse.mylyn
+     │      ├── org.eclipse.mylyn.builds
+     │      ├── org.eclipse.mylyn.commons
+     │      ├── org.eclipse.mylyn.context
+     │      ├── org.eclipse.mylyn.context.mft
+     │      ├── org.eclipse.mylyn.docs
+     │      ├── org.eclipse.mylyn.incubator
+     │      ├── org.eclipse.mylyn.reviews
+     │      ├── org.eclipse.mylyn.tasks
+     │      └── org.eclipse.mylyn.versions
      ├── platform
-     │		├── eclipse.platform
-     │		├── eclipse.platform.swt
-     │		├── eclipse.platform.ui
-     │		└── eclipse.platform.releng.buildtools
+     │      ├── eclipse.platform
+     │      ├── eclipse.platform.swt
+     │      ├── eclipse.platform.ui
+     │	    └── eclipse.platform.releng.buildtools
      ├── ecf
      │	  └── ecf
      └── pde
@@ -161,13 +161,13 @@ params_validation
 params_validation
 └── git_repo_code
      ├── my_mylyn
-     │		└── 42
-     │		     ├── doxygen (doxygen解析文件)
-     │				 	├── org.eclipse.mylyn.tasks.tests
-     │				 	└── org.eclipse.mylyn.tasks.ui
-     │			 ├── org.eclipse.mylyn.tasks.tests (源代码文件)
-     │			 ├── org.eclipse.mylyn.tasks.ui (源代码文件)
-     │			 └── code_context_model.xml (code context model 文件)
+     │      └── 42
+     │          ├── doxygen (Doxygen Parsing File)
+     │          │       ├── org.eclipse.mylyn.tasks.tests
+     │          │       └── org.eclipse.mylyn.tasks.ui
+     │          ├── org.eclipse.mylyn.tasks.tests (Source File)
+     │          ├── org.eclipse.mylyn.tasks.ui (Source File)
+     │          └── code_context_model.xml (Code Context Model File)
      ├── my_platform
      ├── my_ecf
      └── my_pde

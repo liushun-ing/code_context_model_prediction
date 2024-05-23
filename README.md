@@ -51,7 +51,7 @@ bug_dataset
 └── mylyn_zip
      ├── Mylyn
      │     └── 102663
-     │			└── 102263_42671.zip
+     │           └── 102263_42671.zip
      ├── ECF
      ├── PDE
      └── Platfrom
@@ -75,7 +75,7 @@ working_periods
      ├── 00
      │	  ├── ...
      │    └── Mylyn
-     │			└── 1.xml
+     │          └── 1.xml
      ├── ...
      └── 09
 ```
@@ -90,7 +90,7 @@ working_periods
      ├── 00
      │	  ├── ...
      │    └── Mylyn
-     │			└── 1.xml
+     │          └── 1.xml
      ├── ...
      └── 09
 ```
@@ -105,7 +105,7 @@ repo_vs_commit_order
      └── 05
      	 ├── ...
          └── Mylyn
-     		  └── 1.xml
+     	        └── 1.xml
 ```
 
 > **Calculate IQR and filter outliers**
@@ -118,10 +118,10 @@ repo_vs_commit_order
      └── 05
      	 ├── ...
          └── Mylyn
-     		  └── 1.xml
+     	        └── 1.xml
 ```
 
-> **Clone github repository**
+> **Clone GitHub repository**
 
 According to the instructions in `params_validation/git_repos.txt`, clone the corresponding repositories to your local machine. After cloning, the directory structure should resemble the following:
 
@@ -129,21 +129,21 @@ According to the instructions in `params_validation/git_repos.txt`, clone the co
 params_validation
 └── git_repo_code
      ├── mylyn
-     │		├── org.eclipse.mylyn
-     │		├── org.eclipse.mylyn.builds
-     │		├── org.eclipse.mylyn.commons
-     │		├── org.eclipse.mylyn.context
-     │		├── org.eclipse.mylyn.context.mft
-     │		├── org.eclipse.mylyn.docs
-     │		├── org.eclipse.mylyn.incubator
-     │		├── org.eclipse.mylyn.reviews
-     │		├── org.eclipse.mylyn.tasks
-     │		└── org.eclipse.mylyn.versions
+     │      ├── org.eclipse.mylyn
+     │      ├── org.eclipse.mylyn.builds
+     │      ├── org.eclipse.mylyn.commons
+     │      ├── org.eclipse.mylyn.context
+     │      ├── org.eclipse.mylyn.context.mft
+     │      ├── org.eclipse.mylyn.docs
+     │      ├── org.eclipse.mylyn.incubator
+     │      ├── org.eclipse.mylyn.reviews
+     │      ├── org.eclipse.mylyn.tasks
+     │      └── org.eclipse.mylyn.versions
      ├── platform
-     │		├── eclipse.platform
-     │		├── eclipse.platform.swt
-     │		├── eclipse.platform.ui
-     │		└── eclipse.platform.releng.buildtools
+     │      ├── eclipse.platform
+     │      ├── eclipse.platform.swt
+     │      ├── eclipse.platform.ui
+     │	    └── eclipse.platform.releng.buildtools
      ├── ecf
      │	  └── ecf
      └── pde
@@ -158,13 +158,13 @@ Run the `4_extract_model_repo_first.py` file under the `params_validation/repo_v
 params_validation
 └── git_repo_code
      ├── my_mylyn
-     │		└── 42
-     │			 ├── doxygen (Doxygen Parsing File)
-     │				 	├── org.eclipse.mylyn.tasks.tests
-     │				 	└── org.eclipse.mylyn.tasks.ui
-     │			 ├── org.eclipse.mylyn.tasks.tests (Source File)
-     │			 ├── org.eclipse.mylyn.tasks.ui (Source File)
-     │			 └── code_context_model.xml (Code Context Model File)
+     │      └── 42
+     │          ├── doxygen (Doxygen Parsing File)
+     │          │       ├── org.eclipse.mylyn.tasks.tests
+     │          │       └── org.eclipse.mylyn.tasks.ui
+     │          ├── org.eclipse.mylyn.tasks.tests (Source File)
+     │          ├── org.eclipse.mylyn.tasks.ui (Source File)
+     │          └── code_context_model.xml (Code Context Model File)
      ├── my_platform
      ├── my_ecf
      └── my_pde
