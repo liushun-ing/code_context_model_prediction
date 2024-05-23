@@ -46,7 +46,7 @@ def write_xsl(row: list):
         sheet1.write(line_index, i, row[i])
 
 
-path = '../2023_dataset/mylyn_zip'
+path = '../bug_dataset/mylyn_zip'
 
 project_dir_list = os.listdir(path)
 

@@ -12,8 +12,8 @@ import nni
 # parameters
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
-parser.add_argument("--step", type=int, required=False, default=1)
-parser.add_argument("--gpu", type=str, required=False, default='0')
+parser.add_argument("--step", type=int, required=False, default=2)
+parser.add_argument("--gpu", type=str, required=False, default='4')
 args = parser.parse_args()
 
 construct = True

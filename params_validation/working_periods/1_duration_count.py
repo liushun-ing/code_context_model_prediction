@@ -14,7 +14,7 @@ import pandas as pd
 from data_count.time_util import get_common_time
 
 
-path = '../../2023_dataset/mylyn_zip'
+path = '../../bug_dataset/mylyn_zip'
 
 
 def get_duration_of_event(date_list: list[str]):

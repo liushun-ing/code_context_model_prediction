@@ -102,7 +102,7 @@ def break_interaction_history(events_nodes: list[ET.Element], bug_id, project_na
 def main_fun():
     global TOTAL_DATA
     global PERIOD_INDEX
-    path = '../../2023_dataset/mylyn_zip'
+    path = '../../bug_dataset/mylyn_zip'
     project_dir_list = os.listdir(path)
     TOTAL_DATA = []
     for project in project_dir_list:

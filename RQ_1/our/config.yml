@@ -1,6 +1,6 @@
-experimentName: astnn_codebert_attention
+experiment_name: astnn_codebert_attention
 #experiment_working_directory: xxx
-searchSpace:
+search_space:
   batch_size:
     _type: choice
     _value: [ 8, 16, 32, 64, 128, 256 ]
@@ -18,16 +18,16 @@ searchSpace:
     _value: [ 0.1, 0.2, 0.3, 0.4, 0.5 ]
   epochs:
     _type: choice
-    _value: [ 100 ]
+    _value: [ 100, 150 ]
   num_layers: # 图卷积层数
     _type: choice
     _value: [ 2, 3, 4 ]
 
 trial_command: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 1
 trial_code_directory: .
-trialGpuNumber: 1
-maxTrialNumber: 100
-trialConcurrency: 4 # 同时执行几个任务
+trial_gpu_number: 1
+max_trial_number: 100
+trial_concurrency: 4 # 同时执行几个任务
 
 tuner:
   name: TPE
@@ -35,9 +35,11 @@ tuner:
     optimize_mode: maximize
 training_service:
   platform: local
-  maxTrialNumberPerGpu: 1
-  gpuIndices: [ 0, 1, 2, 3 ]
+  max_trial_number_per_gpu: 1
+  gpu_indices: [ 0, 1, 2, 3 ]
   use_active_gpu: true
+
+# nnictl create --config config.yml --port 8080
 
 # ssh -N -f -L 8080:127.0.0.1:8080 shunliu@115.236.33.122 -p 9997
 # -N: 此选项告诉 SSH 不要执行远程命令。它在你只想转发端口时非常有用。

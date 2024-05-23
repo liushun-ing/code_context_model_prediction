@@ -90,7 +90,7 @@ def valid(gnn_model, data_loader, device, threshold):
 
 
 def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay, use_nni, under_sampling_threshold):
+          weight_decay, use_nni, under_sampling_threshold, concurrency_string):
     """
     训练函数
 
@@ -154,25 +154,25 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             max_epoch = [epoch, res[5], res[6], res[7]]
             best_count = 0
             # 保存最好的模型
-            util.save_model(gnn_model, save_path, step, f'{save_name}_best')
+            util.save_model(gnn_model, save_path, step, f'{save_name}_best', concurrency_string)
         else:
             best_count += 1
             if best_count >= patience:
                 print("Early stopping")
-                print(f"best model: {max_epoch}")
                 break
+    print(f"best model: {max_epoch}")
     util.save_result(result, save_path, step, save_name)
 
 
 def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay, use_nni):
+                self_loop, load_lazy, weight_decay, use_nni, concurrency_string):
     print('----load train dataset----')
     data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
                                        load_lazy)
     print(f'train total graphs: {len(data_loader) * batch_size}')
     # print('----start train----')
     train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay, use_nni, under_sampling_threshold)
+          weight_decay, use_nni, under_sampling_threshold, concurrency_string)
 
 
 def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
@@ -198,7 +198,7 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_type="GCN",
               num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=8, num_heads=8,
               num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
-              weight_decay=1e-6, approach='attention', use_nni=False):
+              weight_decay=1e-6, approach='attention', use_nni=False, concurrency_string=''):
     """
     node classification
 
@@ -223,6 +223,7 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     :param weight_decay: Adam 权重衰减系数 default: 1e-6
     :param approach: train approach: attention or concat
     :param use_nni: default False
+    :param concurrency_string: concurrency string
     :return: None
     """
     if model_type.startswith('RGCN'):
@@ -232,4 +233,4 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     device, model = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
                          attention_heads, approach)
     start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay, use_nni)
+                self_loop, load_lazy, weight_decay, use_nni, concurrency_string)

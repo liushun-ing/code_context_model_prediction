@@ -57,7 +57,7 @@ def merged_3_and_4(bz_api: Bugzilla, component_bugs: dict[str, list[Bug]], produ
     """
     count = 1
     has_att = 0
-    file_dir = '2023_dataset/'
+    file_dir = 'bug_dataset/'
     output_dir_3 = file_dir + 'mylyn_zip/' + product
     make_dir(output_dir_3)
 

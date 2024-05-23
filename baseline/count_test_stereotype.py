@@ -69,7 +69,7 @@ def load_targets(project_model_name: str, step):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     G1s = []
     # 读取code context model
-    model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     for model_dir in model_dir_list:
         # print('---------------', model_dir)

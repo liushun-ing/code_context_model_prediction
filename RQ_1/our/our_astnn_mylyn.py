@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from os.path import join
 
 from pathlib import Path
@@ -65,6 +67,8 @@ if construct:
         under_sampling_threshold=my_params['under_sampling_threshold']
     )
 
+concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+
 # train and save model
 node_classification.main_func(
     save_path=my_params['current_path'],
@@ -86,7 +90,8 @@ node_classification.main_func(
     weight_decay=my_params['weight_decay'],
     approach=my_params['approach'],
     load_lazy=load_lazy,
-    use_nni=args.nni
+    use_nni=args.nni,
+    concurrency_string=concurrency_string,
 )
 
 # show train result
@@ -110,5 +115,6 @@ test_model.main_func(
     num_edge_types=my_params['num_edge_types'],
     load_lazy=load_lazy,
     approach=my_params['approach'],
-    use_nni=args.nni
+    use_nni=args.nni,
+    concurrency_string=concurrency_string
 )

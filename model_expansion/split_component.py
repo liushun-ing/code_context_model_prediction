@@ -38,7 +38,7 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    # index = model_dir_list.index('5232')
+    # index = model_dir_list.index('4585')
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
@@ -78,7 +78,8 @@ def main_func(project_model_name: str):
                 new_edges.set('total', str(len(subgraph.edges)))
                 id_map = dict()
                 count = 0
-                for i in sorted(subgraph.nodes):
+                print(subgraph.nodes)
+                for i in sorted(subgraph.nodes, key=lambda x: int(x)):
                     id_map[i] = str(count)
                     count += 1
                 for node in subgraph.nodes:
@@ -108,6 +109,6 @@ def main_func(project_model_name: str):
 main_func('my_pde')
 # platform
 main_func('my_platform')
-# # mylyn
+# mylyn
 # print(root_path)
 main_func('my_mylyn')

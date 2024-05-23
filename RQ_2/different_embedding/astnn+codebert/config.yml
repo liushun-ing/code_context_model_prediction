@@ -27,7 +27,7 @@ trial_command: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 1
 trial_code_directory: .
 trialGpuNumber: 1
 maxTrialNumber: 100
-trialConcurrency: 4 # 同时执行几个任务
+trialConcurrency: 1 # 同时执行几个任务
 
 tuner:
   name: TPE
@@ -38,6 +38,8 @@ training_service:
   maxTrialNumberPerGpu: 1
   gpuIndices: [ 0, 1, 2, 3 ]
   use_active_gpu: true
+
+# nnictl create --config config.yml --port 8080
 
 # ssh -N -f -L 8080:127.0.0.1:8080 shunliu@115.236.33.122 -p 9997
 # -N: 此选项告诉 SSH 不要执行远程命令。它在你只想转发端口时非常有用。

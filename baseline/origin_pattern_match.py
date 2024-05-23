@@ -219,12 +219,12 @@ def graph_match(step, patterns, batch_index):
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
-    for G1 in G1s[batch_index * 100: (batch_index + 1) * 100]:
+    # for G1 in G1s[batch_index * 100: (batch_index + 1) * 100]:
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
     # f.write("node_id origin_label confidence stereotype label_result predict_result\n")
-    # for G1 in G1s:
-        if G1s.index(G1) in [116, 166, 316, 344, 437]:
-            continue
+    for G1 in G1s:
+        # if G1s.index(G1) in [116, 166, 316, 344, 437, 524]:
+        #     continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()
@@ -316,7 +316,7 @@ def graph_match(step, patterns, batch_index):
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)
-    pd.to_pickle(result_full, f'./origin_result/result_full_{step}_{batch_index}.pkl')
+    # pd.to_pickle(result_full, f'./origin_result/result_full_{step}_{batch_index}.pkl')
     print_result(result_full, 0)
 
 
@@ -372,10 +372,10 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
-    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 2
+    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 5
     # print(step, batch_index)
-    min_sup = 0.015
+    min_sup = 0.02
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
     # graph_build_and_gspan(min_sup=min_sup)
     graph_match(step=step, patterns=f'./origin_patterns/sup-{min_sup}', batch_index=batch_index)

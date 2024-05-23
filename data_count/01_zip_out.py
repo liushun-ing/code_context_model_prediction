@@ -17,7 +17,7 @@ def make_dir(directory):
     os.makedirs(directory)
 
 
-path = '../2023_dataset/mylyn_zip'
+path = '../bug_dataset/mylyn_zip'
 
 project_dir_list = os.listdir(path)
 

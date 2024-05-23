@@ -38,7 +38,7 @@ root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), '
 
 
 def main_func(git_path: list[str], project_name: str, project_input: str):
-    commit_index_threshold = 1  # 最近的commit_index的阈值 待取值为1，2，3
+    commit_index_threshold = 3  # 最近的commit_index的阈值 待取值为1，2，3
     file_path = join(os.path.dirname(os.path.realpath(__file__)), 'IQR_code_timestamp')
     file_dir_list = os.listdir(file_path)
     # 读取working periods

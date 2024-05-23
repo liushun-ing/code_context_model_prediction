@@ -159,7 +159,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-2023_dataset/
+bug_dataset/
 .idea/
 data_count/ECF/
 data_count/Mylyn/

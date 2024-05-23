@@ -4,7 +4,7 @@ from os.path import join, isdir
 import numpy as np
 
 
-path = '../2023_dataset/mylyn_zip'
+path = '../bug_dataset/mylyn_zip'
 project_dir_list = os.listdir(path)
 print(project_dir_list)
 total_count = []
