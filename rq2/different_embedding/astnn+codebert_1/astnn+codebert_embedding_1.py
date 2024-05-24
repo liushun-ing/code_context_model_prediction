@@ -9,14 +9,14 @@ os.sys.path.append(str(Path(__file__).absolute().parent.parent.parent.parent))
 from GNN_Node_Classification import construct_input, node_classification, test_model
 import nni
 
-# parameters
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
-parser.add_argument("--step", type=int, required=False, default=3)
-parser.add_argument("--gpu", type=str, required=False, default='8')
+parser.add_argument("--step", type=int, required=False, default=2)
+parser.add_argument("--gpu", type=str, required=False, default='0')
+parser.add_argument("--concurrency", type=bool, required=False, default=True)
 args = parser.parse_args()
 
-construct = True
+construct = False
 load_lazy = True
 
 my_params = {
@@ -24,7 +24,7 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 30.0,
+    'under_sampling_threshold': 20.0,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
@@ -51,18 +51,28 @@ else:
         if param in optimized_params:
             my_params[param] = optimized_params[param]
 
-my_params[
-    "result_name"] = f"{my_params['description']}_{my_params['model_type']}_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}_model"
+if args.concurrency:
+    concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    my_params[
+        "result_name"] = (f"{my_params['description']}_{my_params['model_type']}"
+                          f"_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}"
+                          f"_{concurrency_string}_model")
+else:
+    my_params[
+        "result_name"] = (f"{my_params['description']}_{my_params['model_type']}"
+                          f"_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}_model")
 
-print(my_params)
+# print(my_params)
 # construct input: train, valid, test dataset of four project
 if construct:
     construct_input.main_func(
         description=my_params['description'],
         step=my_params['step'],
         dest_path=my_params['current_path'],
-        embedding_type=my_params['embedding_type']
+        embedding_type=my_params['embedding_type'],
     )
+
+concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 # train and save model
 node_classification.main_func(
@@ -109,6 +119,6 @@ test_model.main_func(
     num_edge_types=my_params['num_edge_types'],
     load_lazy=load_lazy,
     approach=my_params['approach'],
-    under_sampling_threshold=my_params['under_sampling_threshold'],
-    use_nni=args.nni
+    use_nni=args.nni,
+    under_sampling_threshold=my_params['under_sampling_threshold']
 )

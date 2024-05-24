@@ -52,7 +52,7 @@ def true_positive(data):
 
     print("\nconfidence数据的分段统计 (0 到 1 间隔 0.1):")
     for i in range(len(hist)):
-        print(f"{bin_edges[i]} - {bin_edges[i + 1]}: {hist[i]} ({proportions[i]:.2%})")
+        print(f"{bin_edges[i]}-{bin_edges[i + 1]} {hist[i]} {proportions[i]:.2%}")
 
     print("\nstereotype数据的统计:")
     for key, count in fourth_column_counts.items():
@@ -96,7 +96,7 @@ def false_positive(data):
 
     print("\nconfidence数据的分段统计 (0 到 1 间隔 0.1):")
     for i in range(len(hist)):
-        print(f"{bin_edges[i]} - {bin_edges[i + 1]}: {hist[i]} ({proportions[i]:.2%})")
+        print(f"{bin_edges[i]}-{bin_edges[i + 1]} {hist[i]} {proportions[i]:.2%}")
 
     print("\nstereotype数据的统计:")
     for key, count in fourth_column_counts.items():
@@ -123,7 +123,7 @@ def false_negative(data):
 
 
 if __name__ == '__main__':
-    step = 1
+    step = 2
     result = read_result(step)
     print(len(result))
     false_positive(result)

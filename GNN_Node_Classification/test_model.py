@@ -150,7 +150,7 @@ def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=N
 
 
 def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size, num_heads, num_edge_types,
-         use_gpu, attention_heads=10, approach='attention', concurrency_string=''):
+         use_gpu, attention_heads=10, approach='attention'):
     # 定义模型参数  GPU 或 CPU
     if use_gpu:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -165,14 +165,14 @@ def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_s
     else:
         model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
                                          attention_heads)
-    model = util.load_model(model, model_path, step, load_name, concurrency_string)
+    model = util.load_model(model, model_path, step, load_name)
     model.to(device)
     return model, device
 
 
 def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_feats=1280, hidden_size=1024,
               attention_heads=8, num_heads=8, num_edge_types=6, use_gpu=True, load_lazy=True, approach="attention",
-              use_nni=False, under_sampling_threshold=15.0, concurrency_string=''):
+              use_nni=False, under_sampling_threshold=15.0):
     """
     测试模型
 
@@ -191,11 +191,10 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
     :param approach: train approach: attention or concat
     :param use_nni: default true
     :param under_sampling_threshold: under sampling threshold
-    :param concurrency_string: concurrency string
     :return: None
     """
     model, device = init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size,
-                         num_heads, num_edge_types, use_gpu, attention_heads, approach, concurrency_string)
+                         num_heads, num_edge_types, use_gpu, attention_heads, approach)
     print('----load test dataset----')
     if model_type.startswith('RGCN'):
         self_loop = True
@@ -203,7 +202,6 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
         self_loop = True
     data_loader = load_prediction_data(model_path, 'test', batch_size=32, step=step, self_loop=self_loop,
                                        load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
-    print(f'total test graph: {len(data_loader)}')
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     thresholds = [0.4]
     with open(join(model_path, 'result4.txt'), 'a') as f:

@@ -217,6 +217,7 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         preloaded_dataset = PreloadedGraphDataset(graphs, device)
         pd.to_pickle(preloaded_dataset, old_data_path)
+    print(f'total graph: {len(preloaded_dataset)}')
     shuffle = True if mode == 'train' else False
     data_loader = DataLoader(preloaded_dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate)
     return data_loader

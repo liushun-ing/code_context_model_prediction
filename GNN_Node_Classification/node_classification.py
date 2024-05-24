@@ -90,7 +90,7 @@ def valid(gnn_model, data_loader, device, threshold):
 
 
 def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay, use_nni, under_sampling_threshold, concurrency_string):
+          weight_decay, use_nni, under_sampling_threshold):
     """
     训练函数
 
@@ -113,8 +113,8 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
     valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
-                                             load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)  # 加载验证集合
-    print(f'valid total graphs: {len(valid_data_loader)}')
+                                             load_lazy=load_lazy,
+                                             under_sampling_threshold=under_sampling_threshold)  # 加载验证集合
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
     max_epoch = [0, 0, 0, 0]  # epoch precision recall f1
@@ -154,7 +154,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             max_epoch = [epoch, res[5], res[6], res[7]]
             best_count = 0
             # 保存最好的模型
-            util.save_model(gnn_model, save_path, step, f'{save_name}_best', concurrency_string)
+            util.save_model(gnn_model, save_path, step, f'{save_name}_best')
         else:
             best_count += 1
             if best_count >= patience:
@@ -165,14 +165,13 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
 
 
 def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay, use_nni, concurrency_string):
+                self_loop, load_lazy, weight_decay, use_nni):
     print('----load train dataset----')
     data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
                                        load_lazy)
-    print(f'train total graphs: {len(data_loader) * batch_size}')
     # print('----start train----')
     train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay, use_nni, under_sampling_threshold, concurrency_string)
+          weight_decay, use_nni, under_sampling_threshold)
 
 
 def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
@@ -198,7 +197,7 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_type="GCN",
               num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=8, num_heads=8,
               num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
-              weight_decay=1e-6, approach='attention', use_nni=False, concurrency_string=''):
+              weight_decay=1e-6, approach='attention', use_nni=False):
     """
     node classification
 
@@ -223,7 +222,6 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     :param weight_decay: Adam 权重衰减系数 default: 1e-6
     :param approach: train approach: attention or concat
     :param use_nni: default False
-    :param concurrency_string: concurrency string
     :return: None
     """
     if model_type.startswith('RGCN'):
@@ -233,4 +231,4 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
     device, model = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
                          attention_heads, approach)
     start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay, use_nni, concurrency_string)
+                self_loop, load_lazy, weight_decay, use_nni)

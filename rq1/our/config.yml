@@ -1,12 +1,12 @@
-experimentName: astnn_codebert_attention_origin
-#experiment_working_directory: xxx
+experimentName: astnn_codebert_attention
+#experimentWorkingDirectory: xxx
 searchSpace:
   batch_size:
     _type: choice
     _value: [ 8, 16, 32, 64, 128, 256 ]
   lr:
     _type: choice
-    _value: [ 0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001, 0.00001 ]
+    _value: [ 0.01, 0.005, 0.001, 0.0005, 0.0001, 0.00001 ]
   hidden_size: # 图卷积层大小
     _type: choice
     _value: [ 768, 512, 256 ]
@@ -23,21 +23,27 @@ searchSpace:
     _type: choice
     _value: [ 2, 3, 4 ]
 
-trial_command: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 2
-trial_code_directory: .
+debug: True
+trialCommand: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 1
+trialCodeDirectory: .
 trialGpuNumber: 1
 maxTrialNumber: 100
+maxTrialDuration: 2h
 trialConcurrency: 4 # 同时执行几个任务
+tunerGpuIndices: [ 1, 2, 5, 8, 9 ]
 
 tuner:
-  name: TPE
-  class_args:
-    optimize_mode: maximize
-training_service:
+  name: GridSearch
+#  name: TPE
+#  class_args:
+#    optimize_mode: maximize
+trainingService:
   platform: local
   maxTrialNumberPerGpu: 1
-  gpuIndices: [ 0, 1, 2, 3 ]
-  use_active_gpu: true
+  gpuIndices: [ 1, 2, 5, 8, 9 ]
+  useActiveGpu: true
+
+# nnictl create --config config.yml --port 8080
 
 # ssh -N -f -L 8080:127.0.0.1:8080 shunliu@115.236.33.122 -p 9997
 # -N: 此选项告诉 SSH 不要执行远程命令。它在你只想转发端口时非常有用。

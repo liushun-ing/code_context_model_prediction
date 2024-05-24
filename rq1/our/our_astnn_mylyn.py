@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
 parser.add_argument("--step", type=int, required=False, default=1)
 parser.add_argument("--gpu", type=str, required=False, default='0')
+parser.add_argument("--concurrency", type=bool, required=False, default=True)
 args = parser.parse_args()
 
 construct = False
@@ -53,8 +54,16 @@ else:
         if param in optimized_params:
             my_params[param] = optimized_params[param]
 
-my_params[
-    "result_name"] = f"{my_params['description']}_{my_params['model_type']}_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}_model"
+if args.concurrency:
+    concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    my_params[
+        "result_name"] = (f"{my_params['description']}_{my_params['model_type']}"
+                          f"_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}"
+                          f"_{concurrency_string}_model")
+else:
+    my_params[
+        "result_name"] = (f"{my_params['description']}_{my_params['model_type']}"
+                          f"_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}_model")
 
 # print(my_params)
 # construct input: train, valid, test dataset of four project
@@ -89,8 +98,7 @@ node_classification.main_func(
     weight_decay=my_params['weight_decay'],
     approach=my_params['approach'],
     load_lazy=load_lazy,
-    use_nni=args.nni,
-    concurrency_string=concurrency_string,
+    use_nni=args.nni
 )
 
 # show train result
@@ -115,6 +123,5 @@ test_model.main_func(
     load_lazy=load_lazy,
     approach=my_params['approach'],
     use_nni=args.nni,
-    under_sampling_threshold=my_params['under_sampling_threshold'],
-    concurrency_string=concurrency_string
+    under_sampling_threshold=my_params['under_sampling_threshold']
 )

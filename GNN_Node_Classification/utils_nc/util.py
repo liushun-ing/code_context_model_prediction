@@ -29,7 +29,7 @@ def save_result(result, root_path, step: STEP, save_name):
     # print(f'result saved to {result_path}')
 
 
-def save_model(model, root_path, step: STEP, save_name, concurrency_string):
+def save_model(model, root_path, step: STEP, save_name):
     """
     保存训练好的模型
 
@@ -39,7 +39,7 @@ def save_model(model, root_path, step: STEP, save_name, concurrency_string):
     :param save_name: 模型名字
     :return: none
     """
-    model_path = join(root_path, 'model_' + str(step) + concurrency_string)
+    model_path = join(root_path, 'model_' + str(step))
     if not os.path.exists(model_path):
         os.makedirs(model_path)
     model_path = join(model_path, f'{save_name}.pth')
@@ -47,7 +47,7 @@ def save_model(model, root_path, step: STEP, save_name, concurrency_string):
     # print(f'Model saved to {model_path}')
 
 
-def load_model(model, root_path, step: STEP, load_name, concurrency_string):
+def load_model(model, root_path, step: STEP, load_name):
     """
     加载训练好的模型 \n
     loaded_model = GATModel() \n
@@ -60,7 +60,7 @@ def load_model(model, root_path, step: STEP, load_name, concurrency_string):
     :param load_name: 模型名字
     :return: none
     """
-    model_path = join(root_path, 'model_' + str(step) + concurrency_string)
+    model_path = join(root_path, 'model_' + str(step))
     model_path = join(model_path, f'{load_name}_best.pth')
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path))
