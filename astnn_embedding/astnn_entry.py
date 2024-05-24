@@ -49,6 +49,6 @@ def train_noplatform(step, hidden_dim):
 
 
 if __name__ == '__main__':
-    train_mylyn(step=2, r=0.8, hidden_dim=256, code_dim=256)
+    train_mylyn(step=3, r=0.8, hidden_dim=256, code_dim=256)
     # train_mylyn(step=2, r=0.8, hidden_dim=256)
     # train_mylyn(step=3, r=0.84)

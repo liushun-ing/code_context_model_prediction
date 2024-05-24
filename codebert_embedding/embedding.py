@@ -68,7 +68,8 @@ def main_func(step, description):
         project_path = join(repo_root_path, project_model_name, 'repo_first_3')
         model_dir_list = os.listdir(project_path)
         model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-        for model_dir in model_dir_list:
+        index = model_dir_list.index('1115')
+        for model_dir in model_dir_list[index:]:
             print('---------------', model_dir)
             model_path = join(project_path, model_dir)
             tokens_path = join(model_path, 'java_tokens.tsv')

@@ -5,7 +5,8 @@ import networkx as nx
 import xml.etree.ElementTree as ET
 import numpy as np
 
-root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
+root_path = join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'params_validation',
+                 'git_repo_code')
 
 
 def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
@@ -120,5 +121,5 @@ def count_stereotype(step, mode):
 if __name__ == '__main__':
     # mode = 'train'
     mode = 'test'
-    step = 3
+    step = 1
     count_stereotype(step=step, mode=mode)

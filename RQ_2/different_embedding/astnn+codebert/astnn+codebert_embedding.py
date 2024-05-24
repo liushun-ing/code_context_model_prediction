@@ -40,7 +40,7 @@ my_params = {
     'batch_size': 16,
     'threshold': 0.4,
     'weight_decay': 1e-6,
-    'approach': 'concat'
+    'approach': 'attention'
 }
 
 if not args.nni:

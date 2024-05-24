@@ -95,4 +95,4 @@ if __name__ == '__main__':
     # main_func('my_platform')
     # # mylyn
     # print(root_path)
-    main_func('my_mylyn', 3)
+    main_func('my_mylyn', 1)

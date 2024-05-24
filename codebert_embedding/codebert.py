@@ -7,9 +7,10 @@ from tokenizers import Tokenizer
 import torch
 
 tokenizer = AutoTokenizer.from_pretrained("./codebert_base")
-model = AutoModel.from_pretrained("./codebert_base")
+model = AutoModel.from_pretrained("./codebert_base", )
 
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
 # BPE_tokenizer = Tokenizer.from_file("./tokens/all_1_0.8_tokens_128.json")
 # torch.Size([1, 23, 768])
 # tensor([[-0.1423,  0.3766,  0.0443,  ..., -0.2513, -0.3099,  0.3183],
@@ -32,7 +33,7 @@ def single_embedding(node: str):
         for i in range(math.floor(len(tokens_ids) / 512) + 1):
             sub_tokens = tokens_ids[i * 512: (i + 1) * 512]
             if len(sub_tokens) > 0:
-                context_embeddings = model(torch.tensor(sub_tokens)[None, :])[0]
+                context_embeddings = model(torch.tensor(sub_tokens).to(device)[None, :])[0]
                 all_embeddings.append(torch.mean(context_embeddings, dim=1))
                 del context_embeddings, sub_tokens
         # if len(tokens_ids) == 0:
@@ -41,7 +42,7 @@ def single_embedding(node: str):
         # del all_embeddings, tokens, tokens_ids
         # print(gc.collect())
         torch.cuda.empty_cache()
-        return torch.mean(torch.stack(all_embeddings), dim=0).squeeze(0)
+        return torch.mean(torch.stack(all_embeddings), dim=0).squeeze(0).to(torch.device('cpu'))
 
 node = """
 nnn

@@ -56,7 +56,7 @@ else:
 my_params[
     "result_name"] = f"{my_params['description']}_{my_params['model_type']}_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}_model"
 
-print(my_params)
+# print(my_params)
 # construct input: train, valid, test dataset of four project
 if construct:
     construct_input.main_func(

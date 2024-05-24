@@ -11,7 +11,8 @@ from networkx.algorithms import isomorphism
 from gspan_mining.config import parser
 from gspan_mining.main import main
 
-root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
+root_path = join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'params_validation',
+                 'git_repo_code')
 
 
 def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
@@ -243,7 +244,7 @@ def graph_match(step, patterns, batch_index):
                     # print(sub_G1.nodes.data(), sub_G1.edges.data())
         for i in confidence:
             confidence[i] = confidence.get(i) / total_match
-        confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True) #[(3, 1.0), (17, 0.5), (14, 0.5)]
+        confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)  # [(3, 1.0), (17, 0.5), (14, 0.5)]
         # print(f'{G1} confidence {confidence}')
         # k = 1
         # if k > 0:

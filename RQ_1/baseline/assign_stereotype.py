@@ -7,7 +7,8 @@ import pandas as pd
 
 from dataset_split_util import get_models_by_ratio
 
-root_path = join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'params_validation', 'git_repo_code')
+root_path = join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'params_validation',
+                 'git_repo_code')
 
 
 def merge_stereotypes():
@@ -126,5 +127,4 @@ def main_func(project_model_name: str, step: int):
 
 if __name__ == '__main__':
     # merge_stereotypes()
-    main_func('my_mylyn', step=3)
-
+    main_func('my_mylyn', step=1)
