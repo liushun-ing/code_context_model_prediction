@@ -111,7 +111,7 @@ def main_func(project_name: str):
             'implements': []
         }
         for model_dir in model_dir_list:
-            model_path = join(strategy_path, model_dir, '_code_context_model.xml')
+            model_path = join(strategy_path, model_dir, 'new_1_step_expanded_model.xml')
             if not os.path.exists(model_path):
                 continue
             model_total += 1
@@ -128,6 +128,6 @@ def main_func(project_name: str):
 
 
 if __name__ == '__main__':
-    main_func('my_pde')
-    main_func('my_platform')
+    # main_func('my_pde')
+    # main_func('my_platform')
     main_func('my_mylyn')

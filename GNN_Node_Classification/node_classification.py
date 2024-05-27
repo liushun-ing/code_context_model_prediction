@@ -113,8 +113,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
     valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
-                                             load_lazy=load_lazy,
-                                             under_sampling_threshold=under_sampling_threshold)  # 加载验证集合
+                                             load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
     max_epoch = [0, 0, 0, 0]  # epoch precision recall f1
@@ -194,7 +193,7 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
     return device, model
 
 
-def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold: float, model_type="GCN",
+def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold=15, model_type="GCN",
               num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=8, num_heads=8,
               num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
               weight_decay=1e-6, approach='attention', use_nni=False):

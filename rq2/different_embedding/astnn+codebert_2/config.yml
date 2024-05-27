@@ -23,7 +23,7 @@ searchSpace:
     _type: choice
     _value: [ 2, 3, 4 ]
 
-trialCommand: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 1
+trialCommand: python3.9 our_astnn_mylyn.py --nni True --gpu 0 --step 1 --concurrency True
 trialCodeDirectory: .
 trialGpuNumber: 1
 maxTrialNumber: 100

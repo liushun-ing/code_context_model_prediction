@@ -32,6 +32,7 @@ def get_models_by_ratio(project: str, start_ratio: float, end_ratio: float):
         tree = ET.parse(model_file)  # 拿到xml树
         # 获取XML文档的根元素
         code_context_model = tree.getroot()
+        # first_time = code_context_model.get('last_time')
         first_time = code_context_model.get('first_time')
         all_models.append([model_dir, first_time])
     all_models = sorted(all_models, key=lambda x: x[1])
@@ -66,21 +67,19 @@ def get_graph(graphs: list[ET.Element]):
     return gs
 
 
-def load_targets(project_model_name: str, step, mode):
+def load_targets(project_model_name: str, step, mode, start, end):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     G1s = []
     # 读取code context model
-    if mode == 'train':
-        model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
-    else:
-        model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    model_dir_list = get_models_by_ratio(project_model_name, start, end)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
+    # print(model_dir_list)
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        if mode == 'train':
+        if mode == 'origin':
             model_file = join(model_path, f'code_context_model.xml')
-        else:
+        elif mode == 'expand':
             model_file = join(model_path, f'{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
@@ -93,8 +92,8 @@ def load_targets(project_model_name: str, step, mode):
     return G1s
 
 
-def count_stereotype(step, mode):
-    G1s = load_targets('my_mylyn', step, mode)
+def count_stereotype(step, mode, start, end):
+    G1s = load_targets('my_mylyn', step, mode, start, end)
     print('G1s', len(G1s))
     # 用于存储所有图的 label 分布
     all_label_values = []
@@ -113,13 +112,17 @@ def count_stereotype(step, mode):
 
     # 输出每个图的 label 分布数量和比例
     print("Label Distribution across all graphs:")
-    for label, frequency in label_distribution.items():
+    sorted_labels = sorted(label_distribution.items(), key=lambda item: item[1], reverse=True)
+
+    for label, frequency in sorted_labels:
         ratio = frequency / total_nodes
         print(f'{label} {frequency} {ratio:.2%}')
 
 
 if __name__ == '__main__':
-    # mode = 'train'
-    mode = 'test'
+    # mode = 'expand'
+    mode = 'origin'
     step = 1
-    count_stereotype(step=step, mode=mode)
+    start = 0.8
+    end = 0.9
+    count_stereotype(step=step, mode=mode, start=start, end=end)

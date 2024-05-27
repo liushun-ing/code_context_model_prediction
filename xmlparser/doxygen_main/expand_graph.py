@@ -2,6 +2,7 @@
 根据结构关系扩展 code context model 的相关 API
 v_element.prot != 'package' 是为了剔除 static 代码块
 """
+import random
 from typing import Union
 
 from xmlparser.doxmlparser.compound import DoxMemberKind, DoxCompoundKind
@@ -34,6 +35,20 @@ def get_label(element: Union[ClassEntity, MethodEntity, FieldEntity, None]):
         return ''
 
 
+def select_random_percent(arr, percent):
+    # 计算要挑选的元素数量
+    num_to_select = int(len(arr) * percent)
+    # 如果数量小于1，则设置为1
+    num_to_select = max(num_to_select, 1)
+    # 如果要挑选的元素数量大于数组长度，调整为数组长度
+    num_to_select = min(num_to_select, len(arr))
+    # 随机选择元素
+    selected_indices = random.sample(range(len(arr)), num_to_select)
+    # 获取选中的元素
+    selected_elements = [arr[i] for i in selected_indices]
+    return selected_elements
+
+
 def expand_field(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     """
     扩展字段：被声明和被调用，只关心节点
@@ -55,7 +70,8 @@ def expand_field(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     # 被调用
     fie = repo_metrics.get_field_by_id(vertex.ref_id)
     if fie is not None:
-        for ref_by_id in fie.referenced_by:
+        selected_referenced = select_random_percent(fie.referenced_by, 0.5)
+        for ref_by_id in selected_referenced:
             v_element = repo_metrics.get_element_by_id(ref_by_id)
             if v_element is not None:
                 v_id = graph.get_vertex_id_by_ref_id(ref_by_id)
@@ -131,12 +147,14 @@ def expand_class(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     cla = repo_metrics.get_class_by_id(vertex.ref_id)
     if cla is not None:
         # 声明的字段
-        for c_f in cla.fields:
+        selected_fields = select_random_percent(cla.fields, 0.2)
+        for c_f in selected_fields:
             v_id = graph.get_vertex_id_by_ref_id(c_f.ref_id)
             if v_id == -1:
                 graph.add_vertex(c_f.ref_id, c_f.kind, c_f.qualified_name)
         # 找声明的方法
-        for c_m in cla.methods:
+        selected_methods = select_random_percent(cla.methods, 0.5)
+        for c_m in selected_methods:
             v_id = graph.get_vertex_id_by_ref_id(c_m.ref_id)
             if v_id == -1:
                 if c_m.prot != 'package':

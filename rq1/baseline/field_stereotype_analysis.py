@@ -70,7 +70,7 @@ def load_targets(project_model_name: str, step):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     G1s = []
     # 读取code context model
-    model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    model_dir_list = get_models_by_ratio(project_model_name, 0.9, 1)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     count = 0
     for model_dir in model_dir_list:
@@ -112,19 +112,21 @@ def read_result(step: int):
 
 def find_connected_nodes_with_labels(digraph, node_id):
     reachable_from_node, reachable_to_node = [], []
+    from_edges, to_edges = [], []
     # 找到所有从 node_id 可达的节点
     for edge in digraph.edges():
         if edge[0] == node_id:
             reachable_from_node.append(edge[1])
+            from_edges.append(digraph.get_edge_data(edge[0], edge[1])['label'])
     # 找到所有可以到达 node_id 的节点
     for edge in digraph.edges():
         if edge[1] == node_id:
             reachable_to_node.append(edge[0])
+            to_edges.append(digraph.get_edge_data(edge[0], edge[1])['label'])
     # 获取这些节点的 label 属性
     reachable_from_node_labels = [digraph.nodes[n]['label'] for n in reachable_from_node]
     reachable_to_node_labels = [digraph.nodes[n]['label'] for n in reachable_to_node]
-    print(digraph)
-    print(node_id, reachable_from_node, reachable_to_node, reachable_from_node_labels, reachable_to_node_labels)
+    print(node_id, reachable_from_node, reachable_from_node_labels, from_edges, reachable_to_node, reachable_to_node_labels, to_edges)
 
     return reachable_from_node_labels, reachable_to_node_labels
 
@@ -142,6 +144,7 @@ def field_analyse(step):
         count = count + 1
         for node in curr:
             if node[3] == 'FIELD' and node[4] == 'True' and node[5] == 'False':
+                # print(node)
                 index = result.index(curr)
                 g = G1s[index]
                 node_id = int(node[0])
@@ -152,21 +155,24 @@ def field_analyse(step):
     total_count = len(all_labels[0])
     # 计算频率和占比
     frequencies_and_ratios = {string: (count, count / total_count) for string, count in frequency_counter.items()}
-    for string, (frequency, ratio) in frequencies_and_ratios.items():
+    sorted_labels = sorted(frequencies_and_ratios.items(), key=lambda item: item[1][0], reverse=True)
+    for string, (frequency, ratio) in sorted_labels:
         print(f"{string} {frequency} {ratio:.2%}")
     print('-------------------------------------')
     frequency_counter = Counter(all_labels[1])
     total_count = len(all_labels[1])
     # 计算频率和占比
     frequencies_and_ratios = {string: (count, count / total_count) for string, count in frequency_counter.items()}
-    for string, (frequency, ratio) in frequencies_and_ratios.items():
+    sorted_labels = sorted(frequencies_and_ratios.items(), key=lambda item: item[1][0], reverse=True)
+    for string, (frequency, ratio) in sorted_labels:
         print(f"{string} {frequency} {ratio:.2%}")
     print('-----------------all--------------------')
     frequency_counter = Counter(all_labels[0] + all_labels[1])
     total_count = len(all_labels[0] + all_labels[1])
     # 计算频率和占比
     frequencies_and_ratios = {string: (count, count / total_count) for string, count in frequency_counter.items()}
-    for string, (frequency, ratio) in frequencies_and_ratios.items():
+    sorted_labels = sorted(frequencies_and_ratios.items(), key=lambda item: item[1][0], reverse=True)
+    for string, (frequency, ratio) in sorted_labels:
         print(f"{string} {frequency} {ratio:.2%}")
 
 

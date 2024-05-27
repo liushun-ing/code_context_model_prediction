@@ -96,12 +96,12 @@ def load_targets(project_model_name: str, step):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     G1s = []
     # 读取code context model
-    model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    model_dir_list = get_models_by_ratio(project_model_name, 0.9, 1)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -168,8 +168,8 @@ def calculate_result_full(labels, output, true_number):
 def print_result(result, k):
     if k == 0:
         s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
         for minConf in s:
-            print(f'minConf: {minConf}:')
             i = s.index(minConf)
             p, r, f = 0.0, 0.0, 0.0
             for res in result:
@@ -179,10 +179,7 @@ def print_result(result, k):
             p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            print(f'----------result of top {k}-------\n'
-                  f'Precision: {p}, '
-                  f'Recall: {r}, '
-                  f'F1: {f}')
+            print( f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
     else:
         p, r, f = 0.0, 0.0, 0.0
         for res in result:
@@ -220,12 +217,11 @@ def graph_match(step, patterns, batch_index):
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
-    # for G1 in G1s[batch_index * 100: (batch_index + 1) * 100]:
-    f = open(f'origin_result/match_result_{step}.txt', 'w')
+    # f = open(f'origin_result/match_result_{step}.txt', 'w')
+    f = open(f'origin_result/new_match_result_{step}.txt', 'w')
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
-        # if G1s.index(G1) in [116, 166, 316, 344, 437, 524]:
-        #     continue
+    # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()
@@ -326,7 +322,7 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
     graph_index = 0
     with open('./graph.data', 'w') as f:
         # 读取code context model
-        model_dir_list = get_models_by_ratio(project_model_name, 0, 0.84)
+        model_dir_list = get_models_by_ratio(project_model_name, 0, 0.8)
         print(len(model_dir_list))
         for model_dir in model_dir_list:
             # print('---------------', model_dir)
@@ -373,8 +369,8 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
-    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
+    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.02
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可

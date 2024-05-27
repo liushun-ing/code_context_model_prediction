@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from os.path import join
 
 from pathlib import Path
@@ -11,9 +13,9 @@ import nni
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
-parser.add_argument("--step", type=int, required=False, default=2)
-parser.add_argument("--gpu", type=str, required=False, default='0')
-parser.add_argument("--concurrency", type=bool, required=False, default=True)
+parser.add_argument("--step", type=int, required=False, default=3)
+parser.add_argument("--gpu", type=str, required=False, default='7')
+parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
 construct = False
@@ -24,13 +26,13 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 20.0,
+    'under_sampling_threshold': 30,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
-    'hidden_size': 512,
-    'dropout': 0.1,
-    'attention_heads': 8,
+    'hidden_size': 1024,
+    'dropout': 0.3,
+    'attention_heads': 12,
     'num_heads': 8,
     'num_edge_types': 6,
     'epochs': 80,
@@ -40,6 +42,7 @@ my_params = {
     'weight_decay': 1e-6,
     'approach': 'attention'
 }
+print(my_params)
 
 if not args.nni:
     assert args.gpu != ''
@@ -71,8 +74,6 @@ if construct:
         dest_path=my_params['current_path'],
         embedding_type=my_params['embedding_type'],
     )
-
-concurrency_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 # train and save model
 node_classification.main_func(

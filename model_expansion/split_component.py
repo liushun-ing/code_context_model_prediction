@@ -38,18 +38,18 @@ def main_func(project_model_name: str):
     model_dir_list = os.listdir(project_path)
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
-    # index = model_dir_list.index('4585')
+    # index = model_dir_list.index('5668')
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')
-        # rename_model_file = join(model_path, '_code_context_model.xml')
+        origin_model_file = join(model_path, '_code_context_model.xml')
         # 如果不存在模型，跳过处理
-        if not os.path.exists(model_file):
+        if not os.path.exists(origin_model_file):
             continue
-        # shutil.copy(rename_model_file, model_file)
+        # shutil.copy(origin_model_file, model_file)
         # 下面对code context model进行component拆分
-        tree = ET.parse(model_file)  # 拿到xml树
+        tree = ET.parse(origin_model_file)  # 拿到xml树
         # 获取XML文档的根元素
         root = tree.getroot()
         graphs = root.findall("graph")
@@ -78,11 +78,13 @@ def main_func(project_model_name: str):
                 new_edges.set('total', str(len(subgraph.edges)))
                 id_map = dict()
                 count = 0
-                print(subgraph.nodes)
-                for i in sorted(subgraph.nodes, key=lambda x: int(x)):
+                # print(subgraph.nodes)
+                sorted_nodes = sorted(subgraph.nodes, key=lambda x: int(x))
+                print(sorted_nodes)
+                for i in sorted_nodes:
                     id_map[i] = str(count)
                     count += 1
-                for node in subgraph.nodes:
+                for node in sorted_nodes:
                     node_element = get_node(vertices, node)
                     new_vertex = ET.SubElement(new_vertices, 'vertex')
                     new_vertex.set('id', id_map.get(node_element.get('id')))

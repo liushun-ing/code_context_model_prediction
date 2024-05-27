@@ -33,7 +33,7 @@ def main_func(project_model_name: str, step: int):
     stereotypes = pd.read_csv('./stereotype/all_types.tsv', sep=' ')
     print(stereotypes)
     # 读取code context model
-    model_dir_list = get_models_by_ratio(project_model_name, 0.84, 1)
+    model_dir_list = get_models_by_ratio(project_model_name, 0, 1)
     # model_dir_list = os.listdir(project_path)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     # index = model_dir_list.index('459')
@@ -42,7 +42,7 @@ def main_func(project_model_name: str, step: int):
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         # model_file = join(model_path, 'code_context_model.xml')
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         # model_file = join(model_path, f'{step}_step_seed_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
@@ -118,7 +118,7 @@ def main_func(project_model_name: str, step: int):
                                     print(f'NOTFOUND-class-{vertex.get("label")}-{pack}.{cla}')
                                     vertex.set('stereotype', 'NOTFOUND')
                                     all_stereotypes.add('NOTFOUND')
-        tree.write(join(model_path, f'{step}_step_expanded_model.xml'))
+        tree.write(join(model_path, f'new_{step}_step_expanded_model.xml'))
         # tree.write(join(model_path, f'{step}_step_seed_model.xml'))
         # tree.write(join(model_path, 'code_context_model.xml'))
         print('stereotype {} code context model over~~~~~~~~~~~~'.format(model_file))
@@ -128,3 +128,5 @@ def main_func(project_model_name: str, step: int):
 if __name__ == '__main__':
     # merge_stereotypes()
     main_func('my_mylyn', step=1)
+    # main_func('my_mylyn', step=2)
+    # main_func('my_mylyn', step=3)

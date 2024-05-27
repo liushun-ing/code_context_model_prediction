@@ -60,7 +60,7 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     """
     # 验证集和测试集固定采样比，训练集之后在此基础上进行网格搜索
     if mode == 'valid' or mode == 'test':
-        threshold = 30.0
+        threshold = 20.0
     if threshold == 0:  # 阈值为0不用采样
         return [(nodes, edges)]
     neg_count = (nodes['label'] == 0).sum()
@@ -189,7 +189,7 @@ def collate(batch):
     return batched_graph, features, labels, edge_types, seeds, kinds
 
 
-def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=5.0,
+def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=15,
                          self_loop=True, load_lazy=True) -> torch.utils.data.dataloader.DataLoader:
     """
     根据模式加载数据集,可以选择懒加载
