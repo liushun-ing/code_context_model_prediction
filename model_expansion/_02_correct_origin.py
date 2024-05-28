@@ -58,7 +58,7 @@ def main_func(project_model_name: str, step):
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         rename_model_file = join(model_path, '_code_context_model.xml')
         all_nodes, all_edges = load_origin_model(rename_model_file)
         # 如果不存在模型，跳过处理

@@ -21,10 +21,11 @@ def main_func():
         for model_dir in model_dir_list:
             print('---------------', model_dir)
             model_path = join(project_path, model_dir)
-            ast_path = join(model_path, 'all_2_glove_embedding.pkl')
+            file_path = join(model_path, 'new_3_step_expanded_model.xml')
             # 如果不存在ast，跳过处理
-            if os.path.exists(ast_path):
-                os.remove(ast_path)
+            if os.path.exists(file_path):
+                print('---------------', file_path)
+                os.remove(file_path)
                 # os.rename(ast_path, join(model_path, 'mylyn_1_astnn_embedding.pkl'))
 
 

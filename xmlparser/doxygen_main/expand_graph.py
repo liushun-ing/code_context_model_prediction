@@ -68,16 +68,16 @@ def expand_field(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
             if v_class.prot != 'package':
                 graph.add_vertex(v_class.ref_id, v_class.kind, get_label(v_class))
     # 被调用
-    fie = repo_metrics.get_field_by_id(vertex.ref_id)
-    if fie is not None:
-        selected_referenced = select_random_percent(fie.referenced_by, 0.5)
-        for ref_by_id in selected_referenced:
-            v_element = repo_metrics.get_element_by_id(ref_by_id)
-            if v_element is not None:
-                v_id = graph.get_vertex_id_by_ref_id(ref_by_id)
-                if v_id == -1:  # 如果节点不存在，则加入,并更新节点id
-                    if v_element.prot != 'package':
-                        graph.add_vertex(ref_by_id, v_element.kind, get_label(v_element))
+    # fie = repo_metrics.get_field_by_id(vertex.ref_id)
+    # if fie is not None:
+    #     selected_referenced = select_random_percent(fie.referenced_by, 0.5)
+    #     for ref_by_id in selected_referenced:
+    #         v_element = repo_metrics.get_element_by_id(ref_by_id)
+    #         if v_element is not None:
+    #             v_id = graph.get_vertex_id_by_ref_id(ref_by_id)
+    #             if v_id == -1:  # 如果节点不存在，则加入,并更新节点id
+    #                 if v_element.prot != 'package':
+    #                     graph.add_vertex(ref_by_id, v_element.kind, get_label(v_element))
 
 
 def expand_method(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
@@ -102,18 +102,13 @@ def expand_method(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     met = repo_metrics.get_method_by_id(vertex.ref_id)
     if met is not None:
         # 主动调用
-        # 对于 field 的调用，只取 50%
         selected_reference = []
-        all_fields = []
         for ref_id in met.references:
             v_element = repo_metrics.get_element_by_id(ref_id)
             if v_element is not None:
+                # 不要 field
                 if not v_element.kind == 'variable':
                     selected_reference.append(ref_id)
-                else:
-                    all_fields.append(ref_id)
-        selected_field = select_random_percent(all_fields, 0.5)
-        selected_reference = selected_reference + selected_field
         for ref_id in selected_reference:
             v_element = repo_metrics.get_element_by_id(ref_id)
             if v_element is not None:
@@ -159,14 +154,14 @@ def expand_class(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     cla = repo_metrics.get_class_by_id(vertex.ref_id)
     if cla is not None:
         # 声明的字段
-        selected_fields = select_random_percent(cla.fields, 0.2)
-        for c_f in selected_fields:
+        # selected_fields = select_random_percent(cla.fields, 0.2)
+        for c_f in cla.fields:
             v_id = graph.get_vertex_id_by_ref_id(c_f.ref_id)
             if v_id == -1:
                 graph.add_vertex(c_f.ref_id, c_f.kind, c_f.qualified_name)
         # 找声明的方法
-        selected_methods = select_random_percent(cla.methods, 0.5)
-        for c_m in selected_methods:
+        # selected_methods = select_random_percent(cla.methods, 0.5)
+        for c_m in cla.methods:
             v_id = graph.get_vertex_id_by_ref_id(c_m.ref_id)
             if v_id == -1:
                 if c_m.prot != 'package':
