@@ -212,7 +212,7 @@ def save_result_stereotype(confidence, nodes, f):
             f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
 
 
-def graph_match(step, patterns, batch_index):
+def graph_match(step, patterns):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
@@ -369,10 +369,10 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
-    batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
+    # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.02
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
     # graph_build_and_gspan(min_sup=min_sup)
-    graph_match(step=step, patterns=f'./origin_patterns/sup-{min_sup}', batch_index=batch_index)
+    graph_match(step=step, patterns=f'./origin_patterns/sup-{min_sup}')

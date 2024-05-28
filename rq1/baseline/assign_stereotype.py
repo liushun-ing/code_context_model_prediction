@@ -127,6 +127,6 @@ def main_func(project_model_name: str, step: int):
 
 if __name__ == '__main__':
     # merge_stereotypes()
-    main_func('my_mylyn', step=1)
+    # main_func('my_mylyn', step=1)
     # main_func('my_mylyn', step=2)
-    # main_func('my_mylyn', step=3)
+    main_func('my_mylyn', step=3)

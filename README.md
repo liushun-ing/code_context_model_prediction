@@ -192,6 +192,26 @@ Code Context Model Edge Type Statistics
 
 ## Research Questions
 
+### Experimental Dataset Preparation
 
+> **Expand code context model**
+
+Run the `_01_expand_model.py` file under the `model_expansion/` directory to generate the expanded datasets. This script will read each code context model obtained from the previous data processing steps and expand them (1-step, 2-step, and 3-step). It will output three XML files (`1_step_expanded_model.xml`, `2_step_expanded_model.xml`, and `3_step_expanded_model.xml`).
+
+> **Embed code elements**
+
+ASTNN: Run the `astnn_entry.py` file under the `astnn_embedding/` directory. This will generate the corresponding node encoding `pkl` files in each code context model's directory.
+
+CodeBERT: Run the `embedding.py` file under the `codebert_embedding/` directory.
 
 ### RQ1: Compare to baseline
+
+> **Baseline**
+
+Run the `assign_stereotype.py` file under the `rq1/baseline/` directory to assign stereotypes. Then, run the `origin_pattern_match.py` file to perform subgraph matching and obtain the results.
+
+> **Our approach**
+
+Run the `our_astnn_mylyn.py` file under the `rq1/our/` directory to construct and train the GNN model. This script will also test the training results on the test set.
+
+Both scripts will output their results to the console.

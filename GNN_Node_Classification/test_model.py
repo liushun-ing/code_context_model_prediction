@@ -151,6 +151,7 @@ def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=N
         else:
             target = print_result(result, threshold)
             if use_nni:
+                print(target[2])
                 nni.report_final_result(target[2])
             line = f'precision: {target[0]}, recall: {target[1]}, f1_score: {target[2]}, AUPRC: {target[3]}\n'
             fi.write(line)

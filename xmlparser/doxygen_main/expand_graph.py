@@ -102,7 +102,19 @@ def expand_method(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     met = repo_metrics.get_method_by_id(vertex.ref_id)
     if met is not None:
         # 主动调用
+        # 对于 field 的调用，只取 50%
+        selected_reference = []
+        all_fields = []
         for ref_id in met.references:
+            v_element = repo_metrics.get_element_by_id(ref_id)
+            if v_element is not None:
+                if not v_element.kind == 'variable':
+                    selected_reference.append(ref_id)
+                else:
+                    all_fields.append(ref_id)
+        selected_field = select_random_percent(all_fields, 0.5)
+        selected_reference = selected_reference + selected_field
+        for ref_id in selected_reference:
             v_element = repo_metrics.get_element_by_id(ref_id)
             if v_element is not None:
                 v_id = graph.get_vertex_id_by_ref_id(ref_id)

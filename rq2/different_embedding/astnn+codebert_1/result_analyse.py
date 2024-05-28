@@ -173,7 +173,7 @@ def calculate_result(true_nodes, false_nodes):
 
 
 if __name__ == '__main__':
-    step = 3
+    step = 1
     result = read_result(step)
     print(len(result))
     false_nodes = false_node(result)

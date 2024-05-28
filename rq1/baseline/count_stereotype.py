@@ -4,6 +4,7 @@ from os.path import join
 import networkx as nx
 import xml.etree.ElementTree as ET
 import numpy as np
+from networkx import DiGraph
 
 root_path = join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'params_validation',
                  'git_repo_code')
@@ -80,7 +81,7 @@ def load_targets(project_model_name: str, step, mode, start, end):
         if mode == 'origin':
             model_file = join(model_path, f'code_context_model.xml')
         elif mode == 'expand':
-            model_file = join(model_path, f'{step}_step_expanded_model.xml')
+            model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -117,12 +118,51 @@ def count_stereotype(step, mode, start, end):
     for label, frequency in sorted_labels:
         ratio = frequency / total_nodes
         print(f'{label} {frequency} {ratio:.2%}')
+    return G1s
+
+
+def analyse_field(G1s: list[DiGraph]):
+    # 用于存储结果的全局数组
+    results = []
+    # 遍历每个图
+    for graph in G1s:
+        # 遍历每条边
+        for src, dst in graph.edges():
+            # 获取src节点和dst节点的stereotype属性
+            src_stereotype = graph.nodes[src].get('label')
+            dst_stereotype = graph.nodes[dst].get('label')
+            # 获取边的label属性
+            edge_label = graph.edges[src, dst].get('label')
+            # 如果src节点的stereotype是FIELD
+            if src_stereotype == 'FIELD':
+                results.append((edge_label, dst_stereotype))
+            # 如果dst节点的stereotype是FIELD
+            if dst_stereotype == 'FIELD':
+                results.append((edge_label, src_stereotype))
+    # 使用Counter统计频率
+    label_counter = Counter([item[0] for item in results])
+    stereotype_counter = Counter([item[1] for item in results])
+    # 计算总数
+    total_count = len(results)
+    # 计算并打印结果
+    print("kind frequency and percentage:")
+    for label, freq in label_counter.items():
+        percentage = (freq / total_count) * 100
+        print(f"{label} {freq} {percentage:.2f}%")
+    print("\nStereotype frequency and percentage:")
+    sorted_labels = sorted(stereotype_counter.items(), key=lambda item: item[1], reverse=True)
+    for stereotype, freq in sorted_labels:
+        percentage = (freq / total_count) * 100
+        print(f"{stereotype} {freq} {percentage:.2f}%")
 
 
 if __name__ == '__main__':
     # mode = 'expand'
     mode = 'origin'
     step = 1
-    start = 0.8
-    end = 0.9
-    count_stereotype(step=step, mode=mode, start=start, end=end)
+    start = 0
+    end = 0.8
+    G1s = count_stereotype(step=step, mode=mode, start=start, end=end)
+    print('-------------------------')
+    analyse_field(G1s)
+

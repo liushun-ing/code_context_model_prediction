@@ -20,6 +20,7 @@ args = parser.parse_args()
 
 construct = False
 load_lazy = True
+train = True
 
 my_params = {
     'description': 'mylyn',
@@ -75,29 +76,30 @@ if construct:
         embedding_type=my_params['embedding_type'],
     )
 
-# train and save model
-node_classification.main_func(
-    save_path=my_params['current_path'],
-    save_name=my_params['result_name'],
-    step=my_params['step'],
-    under_sampling_threshold=my_params['under_sampling_threshold'],
-    model_type=my_params['model_type'],
-    num_layers=my_params['num_layers'],
-    in_feats=my_params['in_feats'],
-    hidden_size=my_params['hidden_size'],
-    dropout=my_params['dropout'],
-    attention_heads=my_params['attention_heads'],
-    num_heads=my_params['num_heads'],
-    num_edge_types=my_params['num_edge_types'],
-    epochs=my_params['epochs'],
-    lr=my_params['lr'],
-    batch_size=my_params['batch_size'],
-    threshold=my_params['threshold'],
-    weight_decay=my_params['weight_decay'],
-    approach=my_params['approach'],
-    load_lazy=load_lazy,
-    use_nni=args.nni
-)
+if train:
+    # train and save model
+    node_classification.main_func(
+        save_path=my_params['current_path'],
+        save_name=my_params['result_name'],
+        step=my_params['step'],
+        under_sampling_threshold=my_params['under_sampling_threshold'],
+        model_type=my_params['model_type'],
+        num_layers=my_params['num_layers'],
+        in_feats=my_params['in_feats'],
+        hidden_size=my_params['hidden_size'],
+        dropout=my_params['dropout'],
+        attention_heads=my_params['attention_heads'],
+        num_heads=my_params['num_heads'],
+        num_edge_types=my_params['num_edge_types'],
+        epochs=my_params['epochs'],
+        lr=my_params['lr'],
+        batch_size=my_params['batch_size'],
+        threshold=my_params['threshold'],
+        weight_decay=my_params['weight_decay'],
+        approach=my_params['approach'],
+        load_lazy=load_lazy,
+        use_nni=args.nni
+    )
 
 # show train result
 # view.main_func(

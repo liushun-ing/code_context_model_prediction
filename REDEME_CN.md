@@ -195,4 +195,28 @@ params_validation
 
 ## RQ
 
+#### 实验数据集准备
+
+> 扩展code context model
+
+运行`model_expansion/` 下的 `_01_expand_model.py` 文件，得到扩展数据集，该文件将会读取每个前面数据处理部分得到的每个 code context model 进行扩展（1-step, 2-step 和 3-step），并输出三个 xml 文件（`1_step_enpanded_model.xml`, `2_step_expanded_model.xml` 和 `3_step_expanded_model.xml` ）
+
+> 节点编码
+
+ASTNN：运行`astnn_embedding/` 下的 `astnn_entry.py` 文件，将会为在每个 code context model 的目录下，生成相应的节点编码`pkl`文件。
+
+CodeBERT：运行`codebert_embedding/` 下的 `embedding.py` 文件。
+
+#### RQ1
+
 RQ1结果复现：相关的代码文件（在Mylyn数据集上，与SOTA比较），运行方法，输入文件夹，论文结果输出
+
+> baseline
+
+运行 `rq1/baseline/` 下的 `assign_stereotype.py`  文件分配原型，运行 `origin_pattern_match.py` 文件进行子图匹配，得到结果。
+
+> our approach
+
+运行`rq1/our/` 下的 `our_astnn_mylyn.py` 文件，进行 GNN 图构建和训练，并在测试集上测试训练结果。
+
+两个的运行结果均输出在控制台。
