@@ -17,7 +17,7 @@ def main_func(project_model_name: str):
     # 读取code context model
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     # index = model_dir_list.index('5668')
-    for model_dir in model_dir_list:
+    for model_dir in model_dir_list[0:10]:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
         model_file = join(model_path, 'code_context_model.xml')

@@ -15,9 +15,9 @@ def get_graph(vertices: list[ET.Element], edges: list[ET.Element]):
     g = nx.DiGraph()
     # 转化为图结构
     for node in vertices:
-        g.add_node(node.get('id'))
+        g.add_node(node.get('id'), kind=node.get('kind'))
     for link in edges:
-        g.add_edge(link.get('start'), link.get('end'))
+        g.add_edge(link.get('start'), link.get('end'), label=link.get('label'))
     return g
 
 
@@ -64,6 +64,14 @@ def main_func(project_model_name: str):
             vertices = graph.find('vertices').findall('vertex')
             edges = graph.find('edges').findall('edge')
             net_graph = get_graph(vertices, edges)
+            need_to_remove = []
+            for (u, v, c) in net_graph.edges.data('label'):
+                # 去除有关字段的调用关系
+                if c == 'calls' and net_graph.nodes[v]['kind'] == 'variable':
+                    need_to_remove.append((u, v, c))
+            for u, v, c in need_to_remove:
+                print('remove call field edge: ', u, v, c)
+                net_graph.remove_edge(u, v)
             connected_components = list(nx.weakly_connected_components(net_graph))
             for cc in connected_components:
                 subgraph = net_graph.subgraph(cc)
@@ -108,9 +116,9 @@ if __name__ == '__main__':
     # ecf
     # main_func('my_ecf')
     # pde
-    main_func('my_pde')
-    # platform
-    main_func('my_platform')
+    # main_func('my_pde')
+    # # platform
+    # main_func('my_platform')
     # mylyn
     # print(root_path)
     main_func('my_mylyn')

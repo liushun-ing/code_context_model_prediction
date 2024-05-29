@@ -176,14 +176,18 @@ def complete_edge_of_vertex(graph: Graph, metric: RepoMetrics, vertex: Vertex):
                     label=EdgeLabel.CALL
                 )
         for ref_id in met.references:
-            v_id = graph.get_vertex_id_by_ref_id(ref_id)
-            if v_id != -1:
-                # 注意是调用关系
-                graph.add_edge(
-                    start=origin_id,
-                    end=v_id,
-                    label=EdgeLabel.CALL
-                )
+            v_element = metric.get_element_by_id(ref_id)
+            if v_element is not None:
+                # 不要 field
+                if not v_element.kind == 'variable':
+                    v_id = graph.get_vertex_id_by_ref_id(ref_id)
+                    if v_id != -1:
+                        # 注意是调用关系
+                        graph.add_edge(
+                            start=origin_id,
+                            end=v_id,
+                            label=EdgeLabel.CALL
+                        )
         # 方法还需要找实现关系
         for ref_by_id in met.reimplemented_by:
             v_id = graph.get_vertex_id_by_ref_id(ref_by_id)
@@ -211,16 +215,16 @@ def complete_edge_of_vertex(graph: Graph, metric: RepoMetrics, vertex: Vertex):
         if v_id != -1:
             graph.add_edge(start=v_id, end=origin_id, label=EdgeLabel.DECLARE)
         # 如果是字段，需要找声明和调用，声明在类的时候会完成，只需要找被调用即可
-        fie = metric.get_field_by_id(ref_id)
-        for ref_by_id in fie.referenced_by:
-            v_id = graph.get_vertex_id_by_ref_id(ref_by_id)
-            if v_id != -1:
-                # 注意是被调用关系
-                graph.add_edge(
-                    start=v_id,
-                    end=origin_id,
-                    label=EdgeLabel.CALL
-                )
+        # fie = metric.get_field_by_id(ref_id)
+        # for ref_by_id in fie.referenced_by:
+        #     v_id = graph.get_vertex_id_by_ref_id(ref_by_id)
+        #     if v_id != -1:
+        #         # 注意是被调用关系
+        #         graph.add_edge(
+        #             start=v_id,
+        #             end=origin_id,
+        #             label=EdgeLabel.CALL
+        #         )
 
 
 def solve_repo_relation(metric: RepoMetrics, dict_elements: list[dict[str, str]]):
