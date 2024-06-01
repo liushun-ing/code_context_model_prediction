@@ -18,7 +18,7 @@ parser.add_argument("--gpu", type=str, required=False, default='7')
 parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
-construct = True
+construct = False
 load_lazy = True
 train = True
 

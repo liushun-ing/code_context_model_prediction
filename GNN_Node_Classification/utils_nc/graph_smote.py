@@ -217,7 +217,7 @@ def train(epoch):
         # 手动构建邻接矩阵
         adj = torch.zeros((num_nodes, num_nodes), dtype=torch.float32)
         adj[src, dst] = 1
-        adj[dst, src] = 1  # 无向图
+        # adj[dst, src] = 1  # 无向图
         adj = adj.cuda()
         embed = features
 

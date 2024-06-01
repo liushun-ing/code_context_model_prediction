@@ -27,7 +27,7 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 5,
+    'under_sampling_threshold': 10,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
@@ -35,7 +35,7 @@ my_params = {
     'dropout': 0.3,
     'attention_heads': 12,
     'num_heads': 8,
-    'num_edge_types': 6,
+    'num_edge_types': 5,
     'epochs': 80,
     'lr': 0.001,
     'batch_size': 16,

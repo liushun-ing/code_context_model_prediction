@@ -152,7 +152,8 @@ def false_node(data):
 
 
 def specific_analyze(result, threshold):
-    print('\n---------false negative----------')
+    print(f'\n---------threshold: {threshold}----------')
+    print('---------false negative----------')
     kind = [item[3] for item in result if item[4] == "True" and float(item[2]) < threshold]
     print(len(kind))
     # 统计stereotype每个字符串出现的次数

@@ -76,7 +76,7 @@ def load_targets(project_model_name: str, step):
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -93,7 +93,7 @@ def load_targets(project_model_name: str, step):
 
 def read_result(step: int):
     result = []
-    with open(f'./origin_result/match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/new_match_result_{step}.txt', 'r') as f:
         lines = f.readlines()
         curr = []
         for line in lines:

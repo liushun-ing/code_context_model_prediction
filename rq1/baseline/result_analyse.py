@@ -4,7 +4,7 @@ from collections import Counter
 
 def read_result(step: int):
     result = []
-    with open(f'./origin_result/new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -18,7 +18,7 @@ def read_result(step: int):
 def calculate_average_result(step):
     result = []
     curr = []
-    with open(f'./origin_result/new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -72,7 +72,7 @@ def true_positive(data):
     # 提取confidence和stereotype
     third_column = [float(item[2]) for item in filtered_data]
     fourth_column = [item[3] for item in filtered_data]
-    # fourth_column = [item[3] for item in filtered_data if 0.1 <= float(item[2]) < 0.2]
+    # fourth_column = [item[3] for item in filtered_data if 0 <= float(item[2]) < 0.2]
 
     # 计算confidence数据的统计值
     third_column_min = np.min(third_column)

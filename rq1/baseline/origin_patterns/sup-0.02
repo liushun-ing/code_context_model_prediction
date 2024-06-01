@@ -37,227 +37,136 @@ e 0 1 declares
 e 1 2 declares
 #
 t # 6
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-e 0 1 calls
-#
-t # 7
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-v 2 ENTITY
-e 0 1 calls
-e 1 2 declares
-#
-t # 8
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-v 2 ENTITY
-e 0 1 calls
-e 0 2 declares
-e 1 2 declares
-#
-t # 9
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-v 2 ENTITY
-e 0 1 calls
-e 0 2 declares
-#
-t # 10
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-v 2 FIELD
-e 0 1 calls
-e 0 2 calls
-#
-t # 11
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-v 2 SET-COLLABORATOR
-e 0 1 calls
-e 1 2 calls
-#
-t # 12
-v 0 COMMAND-COLLABORATOR
-v 1 FIELD
-v 2 COMMAND-COLLABORATOR
-e 0 1 calls
-e 1 2 calls
-#
-t # 13
 v 0 COLLABORATOR
 v 1 OTHER
 e 0 1 declares
 #
-t # 14
+t # 7
 v 0 COLLABORATOR
 v 1 OTHER
 v 2 COLLABORATOR
 e 0 1 declares
 e 1 2 declares
 #
-t # 15
+t # 8
 v 0 COLLABORATOR
 v 1 OTHER
 v 2 FIELD
 e 0 1 declares
 e 1 2 declares
 #
-t # 16
+t # 9
 v 0 COLLABORATOR
 v 1 OTHER
 v 2 SET
 e 0 1 declares
 e 1 2 declares
 #
-t # 17
+t # 10
 v 0 ABSTRACT
 v 1 OTHER
 e 0 1 declares
 #
-t # 18
+t # 11
 v 0 NON_VOID_COMMAND-COLLABORATOR
 v 1 OTHER
 e 0 1 declares
 #
-t # 19
+t # 12
 v 0 ABSTRACT
 v 1 INTERFACE
 e 0 1 declares
 #
-t # 20
+t # 13
 v 0 BOUNDARY
 v 1 COMMAND-COLLABORATOR
 e 0 1 declares
 #
-t # 21
+t # 14
 v 0 BOUNDARY-COMMANDER
 v 1 NON_VOID_COMMAND-COLLABORATOR
 e 0 1 declares
 #
-t # 22
+t # 15
 v 0 FACTORY-COLLABORATOR
 v 1 OTHER
 e 0 1 declares
 #
-t # 23
+t # 16
 v 0 ENTITY
 v 1 SET-COLLABORATOR
 e 0 1 declares
 #
-t # 24
+t # 17
 v 0 COLLABORATOR
 v 1 ENTITY
 e 0 1 declares
 #
-t # 25
+t # 18
 v 0 COLLABORATOR
 v 1 ENTITY
 v 2 COMMAND-COLLABORATOR
 e 0 1 declares
 e 1 2 declares
 #
-t # 26
+t # 19
 v 0 COLLABORATOR
 v 1 ENTITY
 v 2 FIELD
 e 0 1 declares
 e 1 2 declares
 #
-t # 27
+t # 20
 v 0 COLLABORATOR
 v 1 ENTITY
 v 2 COLLABORATOR
 e 0 1 declares
 e 1 2 declares
 #
-t # 28
-v 0 FIELD
-v 1 SET-COLLABORATOR
-e 0 1 calls
-#
-t # 29
+t # 21
 v 0 COMMAND-COLLABORATOR
 v 1 SET-COLLABORATOR
 e 0 1 calls
 #
-t # 30
+t # 22
 v 0 BOUNDARY-COMMANDER
 v 1 FIELD
 e 0 1 declares
 #
-t # 31
+t # 23
 v 0 BOUNDARY-COMMANDER
 v 1 FIELD
 v 2 FIELD
 e 0 1 declares
 e 0 2 declares
 #
-t # 32
+t # 24
 v 0 BOUNDARY-COMMANDER
 v 1 FIELD
 v 2 SET-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 33
+t # 25
 v 0 BOUNDARY-COMMANDER
 v 1 FIELD
 v 2 SET
 e 0 1 declares
 e 0 2 declares
 #
-t # 34
-v 0 BOUNDARY-COMMANDER
-v 1 FIELD
-v 2 COMMAND-COLLABORATOR
-e 0 1 declares
-e 1 2 calls
-#
-t # 35
-v 0 BOUNDARY-COMMANDER
-v 1 FIELD
-v 2 COMMAND-COLLABORATOR
-v 3 FIELD
-e 0 1 declares
-e 0 3 declares
-e 1 2 calls
-#
-t # 36
-v 0 BOUNDARY-COMMANDER
-v 1 FIELD
-v 2 COLLABORATOR
-e 0 1 declares
-e 1 2 calls
-#
-t # 37
-v 0 BOUNDARY-COMMANDER
-v 1 FIELD
-v 2 SET-COLLABORATOR
-e 0 1 declares
-e 1 2 calls
-#
-t # 38
-v 0 BOUNDARY-COMMANDER
-v 1 FIELD
-v 2 SET-COLLABORATOR
-e 0 1 declares
-e 0 2 declares
-e 1 2 calls
-#
-t # 39
+t # 26
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 e 0 1 declares
 #
-t # 40
+t # 27
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 41
+t # 28
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -266,7 +175,7 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 42
+t # 29
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -275,7 +184,7 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 43
+t # 30
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -284,14 +193,14 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 44
+t # 31
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 COMMAND-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 45
+t # 32
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 COMMAND-COLLABORATOR
@@ -300,14 +209,14 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 46
+t # 33
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 FIELD
 e 0 1 declares
 e 0 2 declares
 #
-t # 47
+t # 34
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 FIELD
@@ -316,7 +225,7 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 48
+t # 35
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 FIELD
@@ -325,89 +234,40 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 49
+t # 36
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 SET-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 50
+t # 37
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 SET
 e 0 1 declares
 e 0 2 declares
 #
-t # 51
-v 0 BOUNDARY-COMMANDER
-v 1 COLLABORATOR
-v 2 FIELD
-e 0 1 declares
-e 1 2 calls
-#
-t # 52
-v 0 BOUNDARY-COMMANDER
-v 1 COLLABORATOR
-v 2 FIELD
-e 0 1 declares
-e 0 2 declares
-e 1 2 calls
-#
-t # 53
+t # 38
 v 0 BOUNDARY-COMMANDER
 v 1 COLLABORATOR
 v 2 NON_VOID_COMMAND-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 54
+t # 39
 v 0 BOUNDARY-COMMANDER
 v 1 COMMAND-COLLABORATOR
 e 0 1 declares
 #
-t # 55
-v 0 BOUNDARY-COMMANDER
-v 1 COMMAND-COLLABORATOR
-v 2 FIELD
-e 0 1 declares
-e 1 2 calls
-#
-t # 56
-v 0 BOUNDARY-COMMANDER
-v 1 COMMAND-COLLABORATOR
-v 2 FIELD
-e 0 1 declares
-e 0 2 declares
-e 1 2 calls
-#
-t # 57
-v 0 BOUNDARY-COMMANDER
-v 1 COMMAND-COLLABORATOR
-v 2 FIELD
-v 3 FIELD
-e 0 1 declares
-e 0 2 declares
-e 0 3 declares
-e 1 2 calls
-#
-t # 58
-v 0 BOUNDARY-COMMANDER
-v 1 COMMAND-COLLABORATOR
-v 2 FIELD
-v 3 FIELD
-e 0 1 declares
-e 0 3 declares
-e 1 2 calls
-#
-t # 59
+t # 40
 v 0 BOUNDARY-COMMANDER
 v 1 COMMAND-COLLABORATOR
 v 2 FIELD
 e 0 1 declares
 e 0 2 declares
 #
-t # 60
+t # 41
 v 0 BOUNDARY-COMMANDER
 v 1 COMMAND-COLLABORATOR
 v 2 FIELD
@@ -416,116 +276,95 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 61
+t # 42
 v 0 BOUNDARY-COMMANDER
 v 1 COMMAND-COLLABORATOR
 v 2 SET-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 62
+t # 43
 v 0 BOUNDARY-COMMANDER
 v 1 COMMAND-COLLABORATOR
 v 2 COMMAND-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 63
+t # 44
 v 0 COLLABORATOR
 v 1 COMMAND-COLLABORATOR
 e 0 1 calls
 #
-t # 64
-v 0 COLLABORATOR
-v 1 COMMAND-COLLABORATOR
-v 2 FIELD
-e 0 1 calls
-e 1 2 calls
-#
-t # 65
+t # 45
 v 0 COLLABORATOR
 v 1 COLLABORATOR
 e 0 1 calls
 #
-t # 66
+t # 46
 v 0 COLLABORATOR
 v 1 COLLABORATOR
 v 2 ENTITY
 e 0 1 calls
 e 1 2 declares
 #
-t # 67
+t # 47
 v 0 COLLABORATOR
 v 1 COLLABORATOR
 v 2 OTHER
 e 0 1 calls
 e 1 2 declares
 #
-t # 68
-v 0 COLLABORATOR
-v 1 COLLABORATOR
-v 2 FIELD
-e 0 1 calls
-e 1 2 calls
-#
-t # 69
+t # 48
 v 0 COLLABORATOR
 v 1 COLLABORATOR
 v 2 COLLABORATOR
 e 0 1 calls
 e 1 2 calls
 #
-t # 70
+t # 49
 v 0 GET
 v 1 OTHER
 e 0 1 declares
 #
-t # 71
+t # 50
 v 0 GET
 v 1 OTHER
 v 2 SET
 e 0 1 declares
 e 1 2 declares
 #
-t # 72
+t # 51
 v 0 BOUNDARY
 v 1 FIELD
 e 0 1 declares
 #
-t # 73
+t # 52
 v 0 BOUNDARY
 v 1 FIELD
 v 2 FIELD
 e 0 1 declares
 e 0 2 declares
 #
-t # 74
-v 0 BOUNDARY
-v 1 FIELD
-v 2 COLLABORATOR
-e 0 1 declares
-e 1 2 calls
-#
-t # 75
+t # 53
 v 0 BOUNDARY
 v 1 COLLABORATOR
 e 0 1 declares
 #
-t # 76
+t # 54
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 FIELD
 e 0 1 declares
 e 0 2 declares
 #
-t # 77
+t # 55
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 78
+t # 56
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -534,7 +373,7 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 79
+t # 57
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -543,7 +382,7 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 80
+t # 58
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -552,7 +391,7 @@ e 0 1 declares
 e 0 2 declares
 e 0 3 declares
 #
-t # 81
+t # 59
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -563,21 +402,21 @@ e 0 2 declares
 e 0 3 declares
 e 0 4 declares
 #
-t # 82
+t # 60
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 FACTORY-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 83
+t # 61
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 FACTORY-COLLABORATOR
 e 0 1 declares
 e 1 2 calls
 #
-t # 84
+t # 62
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 FACTORY-COLLABORATOR
@@ -585,14 +424,14 @@ e 0 1 declares
 e 0 2 declares
 e 1 2 calls
 #
-t # 85
+t # 63
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
 e 0 1 declares
 e 1 2 calls
 #
-t # 86
+t # 64
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -600,7 +439,7 @@ e 0 1 declares
 e 0 2 declares
 e 1 2 calls
 #
-t # 87
+t # 65
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -610,7 +449,7 @@ e 0 2 declares
 e 0 3 declares
 e 1 2 calls
 #
-t # 88
+t # 66
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 COLLABORATOR
@@ -619,306 +458,250 @@ e 0 1 declares
 e 0 3 declares
 e 1 2 calls
 #
-t # 89
+t # 67
 v 0 BOUNDARY
 v 1 COLLABORATOR
 v 2 CONSTRUCTOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 90
-v 0 BOUNDARY
-v 1 COLLABORATOR
-v 2 FIELD
-e 0 1 declares
-e 1 2 calls
-#
-t # 91
+t # 68
 v 0 BOUNDARY
 v 1 INCIDENTAL
 e 0 1 declares
 #
-t # 92
+t # 69
 v 0 BOUNDARY
 v 1 FACTORY-COLLABORATOR
 e 0 1 declares
 #
-t # 93
+t # 70
 v 0 BOUNDARY
 v 1 FACTORY-COLLABORATOR
 v 2 COLLABORATOR
 e 0 1 declares
 e 1 2 calls
 #
-t # 94
+t # 71
 v 0 BOUNDARY
 v 1 FACTORY-COLLABORATOR
 v 2 FIELD
 e 0 1 declares
 e 0 2 declares
 #
-t # 95
+t # 72
 v 0 OTHER
 v 1 SET-COLLABORATOR
 e 0 1 declares
 #
-t # 96
+t # 73
 v 0 COLLABORATOR
 v 1 SET-COLLABORATOR
 e 0 1 calls
 #
-t # 97
+t # 74
 v 0 COLLABORATOR
 v 1 FACTORY-COLLABORATOR
 e 0 1 calls
 #
-t # 98
+t # 75
 v 0 FACTORY
 v 1 OTHER
 e 0 1 declares
 #
-t # 99
+t # 76
 v 0 FIELD
 v 1 INTERFACE
 e 0 1 declares
 #
-t # 100
+t # 77
 v 0 COLLABORATOR
 v 1 NON_VOID_COMMAND-COLLABORATOR
 e 0 1 calls
 #
-t # 101
+t # 78
 v 0 COLLABORATOR
 v 1 COMMANDER
 e 0 1 declares
 #
-t # 102
+t # 79
 v 0 BOUNDARY-COMMANDER
 v 1 SET-COLLABORATOR
 e 0 1 declares
 #
-t # 103
-v 0 BOUNDARY-COMMANDER
-v 1 SET-COLLABORATOR
-v 2 FIELD
-e 0 1 declares
-e 1 2 calls
-#
-t # 104
+t # 80
 v 0 BOUNDARY-COMMANDER
 v 1 SET-COLLABORATOR
 v 2 SET-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 105
+t # 81
 v 0 BOUNDARY-COMMANDER
 v 1 SET
 e 0 1 declares
 #
-t # 106
+t # 82
 v 0 BOUNDARY-COMMANDER
 v 1 SET
 v 2 SET-COLLABORATOR
 e 0 1 declares
 e 0 2 declares
 #
-t # 107
+t # 83
 v 0 BOUNDARY-COMMANDER
 v 1 FACTORY-COLLABORATOR
 e 0 1 declares
 #
-t # 108
+t # 84
 v 0 BOUNDARY-COMMANDER
 v 1 CONSTRUCTOR
 e 0 1 declares
 #
-t # 109
+t # 85
 v 0 COMMAND-COLLABORATOR
 v 1 COMMAND-COLLABORATOR
 e 0 1 calls
 #
-t # 110
-v 0 COMMAND-COLLABORATOR
-v 1 COMMAND-COLLABORATOR
-v 2 FIELD
-e 0 1 calls
-e 1 2 calls
-#
-t # 111
-v 0 FIELD
-v 1 NON_VOID_COMMAND-COLLABORATOR
-e 0 1 calls
-#
-t # 112
+t # 86
 v 0 COMMAND-COLLABORATOR
 v 1 FACTORY-COLLABORATOR
 e 0 1 calls
 #
-t # 113
-v 0 COLLABORATOR
-v 1 FIELD
-e 0 1 calls
-#
-t # 114
+t # 87
 v 0 BOUNDARY
 v 1 CONSTRUCTOR
 e 0 1 declares
 #
-t # 115
+t # 88
 v 0 COMMANDER
 v 1 SET
 e 0 1 declares
 #
-t # 116
-v 0 FACTORY-COLLABORATOR
-v 1 FIELD
-e 0 1 calls
-#
-t # 117
+t # 89
 v 0 COMMAND
 v 1 ENTITY
 e 0 1 declares
 #
-t # 118
+t # 90
 v 0 FIELD
 v 1 OTHER
 e 0 1 declares
 #
-t # 119
+t # 91
 v 0 FIELD
 v 1 OTHER
 v 2 FIELD
 e 0 1 declares
 e 1 2 declares
 #
-t # 120
+t # 92
 v 0 FIELD
 v 1 OTHER
 v 2 GET
 e 0 1 declares
 e 1 2 declares
 #
-t # 121
+t # 93
 v 0 FIELD
 v 1 OTHER
 v 2 SET
 e 0 1 declares
 e 1 2 declares
 #
-t # 122
+t # 94
 v 0 ENTITY
 v 1 SET
 e 0 1 declares
 #
-t # 123
+t # 95
 v 0 ENTITY
 v 1 FACTORY-COLLABORATOR
 e 0 1 declares
 #
-t # 124
+t # 96
 v 0 CONSTRUCTOR
 v 1 OTHER
 e 0 1 declares
 #
-t # 125
-v 0 FIELD
-v 1 SET
-e 0 1 calls
-#
-t # 126
+t # 97
 v 0 COMMAND-COLLABORATOR
 v 1 SET
 e 0 1 calls
 #
-t # 127
+t # 98
 v 0 ENTITY
 v 1 GET
 e 0 1 declares
 #
-t # 128
-v 0 FIELD
-v 1 GET
-e 0 1 calls
-#
-t # 129
+t # 99
 v 0 BOUNDARY
 v 1 SET
 e 0 1 declares
 #
-t # 130
+t # 100
 v 0 COMMAND-COLLABORATOR
 v 1 OTHER
 e 0 1 declares
 #
-t # 131
+t # 101
 v 0 COMMAND-COLLABORATOR
 v 1 OTHER
 v 2 FIELD
 e 0 1 declares
 e 1 2 declares
 #
-t # 132
-v 0 COMMAND
-v 1 FIELD
-e 0 1 calls
-#
-t # 133
+t # 102
 v 0 BOUNDARY-DATA_PROVIDER
 v 1 COLLABORATOR
 e 0 1 declares
 #
-t # 134
+t # 103
 v 0 CONSTRUCTOR
 v 1 ENTITY
 e 0 1 declares
 #
-t # 135
+t # 104
 v 0 OTHER
 v 1 SET
 e 0 1 declares
 #
-t # 136
-v 0 CONSTRUCTOR
-v 1 FIELD
-e 0 1 calls
-#
-t # 137
+t # 105
 v 0 BOUNDARY
 v 1 SET-COLLABORATOR
 e 0 1 declares
 #
-t # 138
+t # 106
 v 0 FACTORY
 v 1 FACTORY-COLLABORATOR
 e 0 1 declares
 #
-t # 139
+t # 107
 v 0 INCIDENTAL
 v 1 OTHER
 e 0 1 declares
 #
-t # 140
+t # 108
 v 0 FIELD
 v 1 LAZY_CLASS
 e 0 1 declares
 #
-t # 141
+t # 109
 v 0 FACTORY-COLLABORATOR
 v 1 FACTORY-COLLABORATOR
 e 0 1 calls
 #
-t # 142
+t # 110
 v 0 COMMANDER
 v 1 FIELD
 e 0 1 declares
 #
-t # 143
+t # 111
 v 0 BOUNDARY-COMMANDER
 v 1 COMMAND
 e 0 1 declares
 #
-t # 144
+t # 112
 v 0 NOTFOUND
 v 1 NOTFOUND
 e 0 1 declares

@@ -23,12 +23,10 @@ edge_vector = {
     "calls": 1,
     "inherits": 2,
     "implements": 3,
-    "uses": 4,
-    "declares_rev": 6,
-    "calls_rev": 7,
-    "inherits_rev": 8,
-    "implements_rev": 9,
-    "uses_rev": 10,
+    "declares_rev": 5,
+    "calls_rev": 6,
+    "inherits_rev": 7,
+    "implements_rev": 8
 }
 dataset_ratio = {
     'train': [0.0, 0.8],
@@ -60,13 +58,14 @@ def adjust_edge(edge: ET.Element, nodes: list[ET.Element]):
     start = int(edge.get('start'))
     end = int(edge.get('end'))
     label = edge.get('label')
-    if label == 'calls':
-        for node in nodes:
-            if int(node.get('id')) == end and node.get('kind') == 'variable':
-                return [start, end, edge_vector['uses']]
-        return [start, end, edge_vector[label]]
-    else:
-        return [start, end, edge_vector[label]]
+    return [start, end, edge_vector[label]]
+    # if label == 'calls':
+    #     for node in nodes:
+    #         if int(node.get('id')) == end and node.get('kind') == 'variable':
+    #             return [start, end, edge_vector['uses']]
+    #     return [start, end, edge_vector[label]]
+    # else:
+    #     return [start, end, edge_vector[label]]
 
 
 def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
@@ -84,7 +83,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -150,7 +149,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
             for edge in edge_list:
                 start, end, edge_label = adjust_edge(edge, vertex_list)
                 edges_tsv.append([start, end, edge_label])
-                # edges_tsv.append([end, start, edge_label + 6]) # 加入反向边
+                # edges_tsv.append([end, start, edge_label + 5]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
@@ -185,7 +184,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -239,7 +238,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             for edge in edge_list:
                 start, end, edge_label = adjust_edge(edge, vertex_list)
                 edges_tsv.append([start, end, edge_label])
-                # edges_tsv.append([end, start, edge_label + 6]) # 加入反向边
+                # edges_tsv.append([end, start, edge_label + 5]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
             dest = join(dest_path, f'model_dataset_{str(step)}', dataset,

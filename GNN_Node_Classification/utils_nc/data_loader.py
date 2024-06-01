@@ -60,7 +60,7 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     """
     # 验证集和测试集固定采样比，训练集之后在此基础上进行网格搜索
     if mode == 'valid' or mode == 'test':
-        threshold = 20.0
+        threshold = 30.0
     if threshold == 0:  # 阈值为0不用采样
         return [(nodes, edges)]
     neg_count = (nodes['label'] == 0).sum()
@@ -146,7 +146,7 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
         g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
         # 添加自环边
         if self_loop:
-            g = dgl.add_self_loop(g, edge_feat_names=['relation'], fill_data=5)
+            g = dgl.add_self_loop(g, edge_feat_names=['relation'], fill_data=4)
         graphs.append(g)
     # print(g, g.nodes(), g.edges())
     return graphs

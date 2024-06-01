@@ -157,11 +157,11 @@ def analyse_field(G1s: list[DiGraph]):
 
 
 if __name__ == '__main__':
-    # mode = 'expand'
-    mode = 'origin'
+    mode = 'expand'
+    # mode = 'origin'
     step = 1
-    start = 0
-    end = 0.8
+    start = 0.9
+    end = 1
     G1s = count_stereotype(step=step, mode=mode, start=start, end=end)
     print('-------------------------')
     analyse_field(G1s)
