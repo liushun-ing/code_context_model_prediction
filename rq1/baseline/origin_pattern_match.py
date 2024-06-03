@@ -213,8 +213,8 @@ def graph_match(step, patterns):
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
     # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
-    #     if G1s.index(G1) in [291, 368]:
-    #         continue
+        if G1s.index(G1) in [368]:
+            continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()

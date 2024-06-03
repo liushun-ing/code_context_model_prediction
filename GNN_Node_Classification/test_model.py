@@ -73,7 +73,7 @@ def save_specific_result(labels, output, threshold, kinds, s_file):
         label = labels[i].item()
         out = output[i].item()
         kind = kinds[i].item()
-        kind_mapping = ['variable', 'function', 'class', 'interface']
+        kind_mapping = ['variable', 'function', 'class', 'interface', 'generate']
         s_file.write(f"{i} {label} {out} {kind_mapping[int(kind)]} {label == 1}\n")
 
 

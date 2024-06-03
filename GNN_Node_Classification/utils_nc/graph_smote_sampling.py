@@ -2,10 +2,36 @@ import copy
 import random
 
 import dgl
+import math
 import numpy as np
 import torch
 from dgl import DGLGraph
+from torch.nn.parameter import Parameter
+from torch.nn.modules.module import Module
 from scipy.spatial.distance import pdist, squareform
+import torch.nn.functional as F
+
+
+class Decoder(Module):
+    """
+    根据特征生成邻接矩阵，对应论文中使用权重点积来生成边信息
+    adopt a vanilla design, weighted inner production
+    """
+
+    def __init__(self, nembed, dropout=0.1):
+        super(Decoder, self).__init__()
+        self.dropout = dropout
+        self.de_weight = Parameter(torch.FloatTensor(nembed, nembed))  # 权重矩阵
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.de_weight.size(1))
+        self.de_weight.data.uniform_(-stdv, stdv)
+
+    def forward(self, node_embed):
+        combine = F.linear(node_embed, self.de_weight)
+        adj_out = torch.sigmoid(torch.mm(combine, combine.transpose(-1, -2)))
+        return adj_out
 
 
 def smote_sample(embed: torch.Tensor, labels: torch.Tensor, idx_train: torch.Tensor, adj: torch.Tensor,
@@ -79,102 +105,129 @@ def smote_sample(embed: torch.Tensor, labels: torch.Tensor, idx_train: torch.Ten
         return embed, labels, idx_train
 
 
-def graph_smote_sampling(graph: DGLGraph):
-    features = graph.ndata['embedding']  # 节点特征矩阵
-    labels = graph.ndata['label']  # 节点标签
-    idx_train = torch.arange(graph.number_of_nodes())
-    # 提取边信息
-    src, dst = graph.edges()
-    num_nodes = graph.number_of_nodes()
-    # 手动构建邻接矩阵
-    adj = torch.zeros((num_nodes, num_nodes), dtype=torch.float32)
-    adj[src, dst] = 1
-    ori_num = labels.shape[0]
-    # adj[dst, src] = 1  # 无向图
+def adj_mse_loss(adj_rec, adj_tgt):
+    """
+    计算所有非合成节点的边预测损失，均方误差（MSE）损失
 
-    embed, labels_new, idx_train_new, adj_up = smote_sample(features, labels, idx_train, adj)
-    # generated_G = decoder(embed)
-
-    generated_G = torch.sigmoid(torch.mm(embed, embed.transpose(-1, -2)))
-
-    adj_new = copy.deepcopy(generated_G)
-    threshold = 0.5
-    adj_new[adj_new < threshold] = 0.0
-    adj_new[adj_new >= threshold] = 1.0
-    adj_new = torch.mul(adj_up, adj_new)
-    adj_new[:ori_num, :][:, :ori_num] = adj.detach().to_dense()
-    # 得到了新的信息，现在需要变回图去，新加入的边暂时都用 declares，label 赋值为 1
-    # g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
-    # g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
-    # g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64) Kind 填 4
-    # g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32) seed 填 1
-    # g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64) relation 填 1
-    # dgl.graph(data=(src, dst), num_nodes=len(nodes))
-    # 存储值为1的元素的行和列索引
-    rows = []
-    cols = []
-    # 遍历矩阵并排除左上角的m*m子矩阵
-    for i in range(adj_new.size(0)):
-        for j in range(adj_new.size(1)):
-            if not (i < ori_num and j < ori_num):
-                if adj_new[i, j] == 1:
-                    rows.append(i)
-                    cols.append(j)
-    # 转换为tensor
-    rows_tensor = torch.tensor(rows)
-    cols_tensor = torch.tensor(cols)
-    new_src = torch.cat((src, rows_tensor)).tolist()
-    new_dst = torch.cat((dst, cols_tensor)).tolist()
-    new_graph = dgl.graph(data = (new_src, new_dst), num_nodes=labels_new.shape[0])
-    new_graph.ndata['embedding'] = embed
-    new_graph.ndata['label'] = labels_new
-    new_num = labels_new.shape[0] - ori_num
-    new_graph.ndata['kind'] = torch.cat((graph.ndata['kind'], torch.full((new_num,), 4, dtype=graph.ndata['kind'].dtype)))
-    new_graph.ndata['seed'] = torch.cat((graph.ndata['seed'], torch.full((new_num,), 1, dtype=graph.ndata['seed'].dtype)))
-    new_edge = len(new_src) - src.shape[0]
-    new_graph.edata['relation'] = torch.cat((graph.edata['relation'], torch.full((new_edge,), 1, dtype=graph.edata['relation'].dtype)))
-    return new_graph
+    :param adj_rec: 使用 edge generator 预测之后的邻接矩阵
+    :param adj_tgt: 原始的邻接矩阵
+    """
+    edge_num = adj_tgt.nonzero().shape[0]
+    total_num = adj_tgt.shape[0] ** 2
+    # 负权重用于惩罚未观察到的边。边的数量除以不存在的边的数量。
+    if total_num == edge_num:
+        neg_weight = 1
+    else:
+        neg_weight = edge_num / (total_num - edge_num)
+    weight_matrix = adj_rec.new(adj_tgt.shape).fill_(1.0)
+    weight_matrix[adj_tgt == 0] = neg_weight
+    loss = torch.sum(weight_matrix * (adj_rec - adj_tgt) ** 2)
+    return loss
 
 
+def graph_smote_sampling(graph: DGLGraph, decoder, device):
+    # 使用上下文管理器设置设备
+    with torch.cuda.device(device):
+        features = graph.ndata['embedding']  # 节点特征矩阵
+        labels = graph.ndata['label']  # 节点标签
+        idx_train = torch.arange(graph.number_of_nodes()).cuda()
+        # 提取边信息
+        src, dst = graph.edges()
+        num_nodes = graph.number_of_nodes()
+        # 手动构建邻接矩阵
+        adj = torch.zeros((num_nodes, num_nodes), dtype=torch.float32).cuda()
+        adj[src, dst] = 1
+        ori_num = labels.shape[0]
+        # adj[dst, src] = 1  # 无向图
 
-# 边的起点和终点列表
-src = [0, 0, 1, 2, 3, 4]
-dst = [1, 2, 3, 3, 4, 5]
+        embed, labels_new, idx_train_new, adj_up = smote_sample(features, labels, idx_train, adj)
+        # 不使用带权重的点积
+        generated_G = decoder(embed)
 
-# 边的类型列表（0-3）
-edge_types = [0, 1, 2, 3, 0, 1]
+        # 不使用带权重的点积
+        # generated_G = torch.sigmoid(torch.mm(embed, embed.transpose(-1, -2)))
 
-# 创建一个DGL图
-g = dgl.graph((src, dst))
+        loss_smote = adj_mse_loss(generated_G[:ori_num, :][:, :ori_num], adj.detach().to_dense())
 
-# 添加节点特征，假设每个节点有3维特征
-num_nodes = g.num_nodes()
-node_features = torch.randn(num_nodes, 3)
-g.ndata['embedding'] = node_features
+        adj_new = copy.deepcopy(generated_G.detach())
+        threshold = 0.5
+        adj_new[adj_new < threshold] = 0.0
+        adj_new[adj_new >= threshold] = 1.0
+        adj_new = torch.mul(adj_up, adj_new)
+        adj_new[:ori_num, :][:, :ori_num] = adj.detach().to_dense()
+        # 得到了新的信息，现在需要变回图去，新加入的边暂时都用 declares，label 赋值为 1
+        # g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
+        # g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
+        # g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64) Kind 填 4
+        # g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32) seed 填 1
+        # g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64) relation 填 1
+        # dgl.graph(data=(src, dst), num_nodes=len(nodes))
+        # 存储值为1的元素的行和列索引
+        rows = []
+        cols = []
+        # 遍历矩阵并排除左上角的m*m子矩阵
+        for i in range(adj_new.size(0)):
+            for j in range(adj_new.size(1)):
+                if not (i < ori_num and j < ori_num):
+                    if adj_new[i, j] == 1 or i == j:
+                        rows.append(i)
+                        cols.append(j)
+        # 转换为tensor
+        rows_tensor = torch.tensor(rows).cuda()
+        cols_tensor = torch.tensor(cols).cuda()
+        new_src = torch.cat((src, rows_tensor)).tolist()
+        new_dst = torch.cat((dst, cols_tensor)).tolist()
+        new_graph = dgl.graph(data=(new_src, new_dst), num_nodes=labels_new.shape[0]).to(device)
+        new_graph.ndata['embedding'] = embed
+        new_graph.ndata['label'] = labels_new
+        new_num = labels_new.shape[0] - ori_num
+        new_graph.ndata['kind'] = torch.cat(
+            (graph.ndata['kind'], torch.full((new_num,), 4, dtype=graph.ndata['kind'].dtype).cuda()))
+        new_graph.ndata['seed'] = torch.cat(
+            (graph.ndata['seed'], torch.full((new_num,), 1, dtype=graph.ndata['seed'].dtype).cuda()))
+        new_edge = len(new_src) - src.shape[0]
+        new_graph.edata['relation'] = torch.cat(
+            (graph.edata['relation'], torch.full((new_edge,), 4, dtype=graph.edata['relation'].dtype).cuda()))
+        return new_graph, loss_smote
 
-# 添加节点标签，假设标签为0或1
-node_labels = torch.randint(0, 2, (num_nodes,))
-g.ndata['label'] = node_labels
-node_labels = torch.randint(0, 4, (num_nodes,))
-g.ndata['kind'] = node_labels
-node_labels = torch.randint(0, 2, (num_nodes,))
-g.ndata['seed'] = node_labels
-
-# 添加边类型
-edge_types_tensor = torch.tensor(edge_types)
-g.edata['relation'] = edge_types_tensor
-
-# 打印图的信息
-print(g)
-print("节点特征:\n", g.ndata['embedding'])
-print("节点label:\n", g.ndata['label'])
-print("节点kind:\n", g.ndata['kind'])
-print("节点seed:\n", g.ndata['seed'])
-print("边类型:\n", g.edata['relation'])
-sample_graph = graph_smote_sampling(g)
-print(sample_graph)
-print("节点特征:\n", sample_graph.ndata['embedding'])
-print("节点label:\n", sample_graph.ndata['label'])
-print("节点kind:\n", sample_graph.ndata['kind'])
-print("节点seed:\n", sample_graph.ndata['seed'])
-print("边类型:\n", sample_graph.edata['relation'])
+# # 边的起点和终点列表
+# src = [0, 0, 1, 2, 3, 4]
+# dst = [1, 2, 3, 3, 4, 5]
+#
+# # 边的类型列表（0-3）
+# edge_types = [0, 1, 2, 3, 0, 1]
+#
+# # 创建一个DGL图
+# g = dgl.graph((src, dst))
+#
+# # 添加节点特征，假设每个节点有3维特征
+# num_nodes = g.num_nodes()
+# node_features = torch.randn(num_nodes, 3)
+# g.ndata['embedding'] = node_features
+#
+# # 添加节点标签，假设标签为0或1
+# node_labels = torch.randint(0, 2, (num_nodes,))
+# g.ndata['label'] = node_labels
+# node_labels = torch.randint(0, 4, (num_nodes,))
+# g.ndata['kind'] = node_labels
+# node_labels = torch.randint(0, 2, (num_nodes,))
+# g.ndata['seed'] = node_labels
+#
+# # 添加边类型
+# edge_types_tensor = torch.tensor(edge_types)
+# g.edata['relation'] = edge_types_tensor
+#
+# # 打印图的信息
+# print(g)
+# print("节点特征:\n", g.ndata['embedding'])
+# print("节点label:\n", g.ndata['label'])
+# print("节点kind:\n", g.ndata['kind'])
+# print("节点seed:\n", g.ndata['seed'])
+# print("边类型:\n", g.edata['relation'])
+# sample_graph = graph_smote_sampling(g)
+# print(sample_graph)
+# print("节点特征:\n", sample_graph.ndata['embedding'])
+# print("节点label:\n", sample_graph.ndata['label'])
+# print("节点kind:\n", sample_graph.ndata['kind'])
+# print("节点seed:\n", sample_graph.ndata['seed'])
+# print("边类型:\n", sample_graph.edata['relation'])

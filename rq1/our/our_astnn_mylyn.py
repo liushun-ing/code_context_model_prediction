@@ -8,7 +8,7 @@ import argparse
 
 os.sys.path.append(str(Path(__file__).absolute().parent.parent.parent))
 
-from GNN_Node_Classification import construct_input, node_classification, test_model
+from GNN_Node_Classification import construct_input, node_classification, test_model, smote_node_classification
 import nni
 
 # parameters
@@ -19,7 +19,7 @@ parser.add_argument("--gpu", type=str, required=False, default='8')
 parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
-construct = True
+construct = False
 load_lazy = True
 train = True
 
@@ -28,7 +28,7 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 15,
+    'under_sampling_threshold': 8,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
@@ -79,7 +79,7 @@ if construct:
 
 if train:
     # train and save model
-    node_classification.main_func(
+    smote_node_classification.main_func(
         save_path=my_params['current_path'],
         save_name=my_params['result_name'],
         step=my_params['step'],
