@@ -14,13 +14,11 @@ from torchmetrics.classification import BinaryAUROC
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
 from .utils_nc.concat_prediction_model import ConcatPredictionModel
-from .utils_nc.attention_prediction_model import AttentionPredictionModel
+from .utils_nc.attention_prediction_model import AttentionPredictionModel, Encoder, Classifier
 from .utils_nc.graph_smote_sampling import Decoder, graph_smote_sampling
 
-decoder = Decoder(nembed=1280)
-decoder = decoder.cuda()
 
-def valid(gnn_model, data_loader, device, threshold):
+def valid(encoder, classifier, data_loader, device, threshold):
     """
     使用验证集验证模型
 
@@ -31,7 +29,8 @@ def valid(gnn_model, data_loader, device, threshold):
     :return: none
     """
     with torch.no_grad():
-        gnn_model.eval()
+        encoder.eval()
+        classifier.eval()
         criterion = nn.BCELoss()  # 二元交叉熵
         total_loss = 0.0
         accuracy = 0.0
@@ -40,8 +39,11 @@ def valid(gnn_model, data_loader, device, threshold):
         auroc = 0.0
         auprc = 0.0
         f_1 = 0.0
-        for g, features, labels, edge_types, seeds, kinds in data_loader:
-            output = gnn_model(g, features, edge_types)
+        for g, features, labels, edge_types, kinds in data_loader:
+            # output = encoder(g, features, edge_types)
+            features_new = encoder(g, features, edge_types)
+            output = classifier(g, features_new, edge_types)
+
             # output = output[torch.eq(seeds, 1)]
             # labels = labels[torch.eq(seeds, 1)]
             # 计算 loss
@@ -91,15 +93,14 @@ def valid(gnn_model, data_loader, device, threshold):
         return [total_loss, accuracy, precision, recall, f_1, auroc]
 
 
-def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay, use_nni, under_sampling_threshold):
+def train(save_path, save_name, step, encoder, decoder, classifier, data_loader, epochs, lr, device, threshold, self_loop,
+          load_lazy, weight_decay, smote_weight, use_nni, under_sampling_threshold):
     """
     训练函数
 
     :param save_path: 保存模型和结果的路径
     :param save_name: 保存结果文件的名字
     :param step: 步长
-    :param gnn_model: gnn预测
     :param data_loader: 图数据加载器
     :param epochs: 训练轮数
     :param lr: 学习率
@@ -110,15 +111,17 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     :param weight_decay: adam 权重衰减系数
     :return: none
     """
-    gnn_model.train()
+    encoder.train()
     decoder.train()
-    optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=weight_decay)
-    optimizer_decoder = optim.Adam(decoder.parameters(), lr=0.001, weight_decay=5e-4)
+    classifier.train()
+    optimizer_encoder = optim.Adam(encoder.parameters(), lr=lr, weight_decay=weight_decay)
+    optimizer_classifier = optim.Adam(classifier.parameters(), lr=lr, weight_decay=weight_decay)
+    optimizer_decoder = optim.Adam(decoder.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
     valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
                                              load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
-    valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
+    valid(encoder=encoder, classifier=classifier, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
     max_epoch = [0, 0, 0, 0]  # epoch precision recall f1
     best_count = 0
@@ -127,36 +130,45 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
         total_classification_loss = 0.0
         total_decoder_loss = 0.0
         train_accuracy = 0.0
-        for g, features, labels, edge_types, seeds, kinds in data_loader:
-            optimizer.zero_grad()
+        for g, features, labels, edge_types, kinds in data_loader:
+            optimizer_encoder.zero_grad()
             optimizer_decoder.zero_grad()
-            g, loss_smote = graph_smote_sampling(g, decoder, device)
-            features = g.ndata['embedding']
-            labels = g.ndata['label']
-            edge_types = g.edata['relation']
-            seeds = g.ndata['seed']
-            kinds = g.ndata['kind'] if 'kind' in g.ndata.keys() else g.ndata['label']
-            output = gnn_model(g, features, edge_types)
-            # 计算 accuracy
-            accuracy_metrics = BinaryAccuracy(threshold=threshold).to(device)
-            # 将 seed 为1的节点丢弃
-            # output = output[torch.eq(seeds, 0)]
-            # labels = labels[torch.eq(seeds, 0)]
-            acc = accuracy_metrics(output, labels).item()
-            train_accuracy += acc
-            loss = criterion(output, labels)
+            optimizer_classifier.zero_grad()
+
+            idx_train = torch.arange(g.number_of_nodes()).cuda()
+            # 图学习
+            embed = encoder(g, features, edge_types)
+
+            # graph smote 生成节点
+            g_new, loss_smote = graph_smote_sampling(g, embed, decoder, device)
+            features_new = g_new.ndata['embedding']  # 节点特征矩阵
+            labels_new = g_new.ndata['label']  # 节点标签
+            edge_types_new = g_new.edata['relation']
+
+            # 分类，可以尝试在进行一次图卷积
+            output = classifier(g_new, features_new, edge_types_new)
+            # output = gnn_model(g, features, edge_types)
+
+            loss = criterion(output, labels_new)
+            loss_smote = loss_smote * smote_weight
             total_classification_loss += loss.item()
             total_decoder_loss += loss_smote.item()
-            loss = loss + loss_smote * 0.0001
+            loss = loss + loss_smote
             loss.backward()
-            optimizer.step()
+            optimizer_encoder.step()
             optimizer_decoder.step()
+            optimizer_classifier.step()
+
+            # 计算 accuracy
+            accuracy_metrics = BinaryAccuracy(threshold=threshold).to(device)
+            acc = accuracy_metrics(output[idx_train], labels_new[idx_train]).item()
+            train_accuracy += acc
         print(f'--train: '
               f'Epoch {epoch}, '
-              f'Loss_classification: {Decimal(total_classification_loss / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
-              f'Loss_smote: {Decimal(total_decoder_loss / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")},'
-              f'Acc: {Decimal(train_accuracy / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}')
-        res = valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
+              f'Loss_classification: {Decimal(total_classification_loss / len(data_loader)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}, '
+              f'Loss_smote: {Decimal(total_decoder_loss / len(data_loader)).quantize(Decimal("0.00001"), rounding="ROUND_HALF_UP")},'
+              f'Acc: {Decimal(train_accuracy / len(data_loader)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}')
+        res = valid(encoder=encoder, classifier=classifier, data_loader=valid_data_loader, device=device, threshold=threshold)
         res.insert(0, epoch)
         res.insert(1, total_classification_loss / len(data_loader))
         res.insert(2, train_accuracy / len(data_loader))
@@ -169,7 +181,8 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
             max_epoch = [epoch, res[5], res[6], res[7]]
             best_count = 0
             # 保存最好的模型
-            util.save_model(gnn_model, save_path, step, f'{save_name}_best')
+            util.save_model(encoder, save_path, step, f'{save_name}_best_encoder')
+            util.save_model(classifier, save_path, step, f'{save_name}_best_classifier')
         else:
             best_count += 1
             if best_count >= patience:
@@ -179,14 +192,14 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     util.save_result(result, save_path, step, save_name)
 
 
-def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay, use_nni):
+def start_train(save_path, save_name, step, under_sampling_threshold, encoder, decoder, classifier, device, epochs, lr, batch_size,
+                threshold, self_loop, load_lazy, weight_decay, smote_weight, use_nni):
     print('----load train dataset----')
     data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
                                        load_lazy)
     # print('----start train----')
-    train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
-          weight_decay, use_nni, under_sampling_threshold)
+    train(save_path, save_name, step, encoder, decoder, classifier, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
+          weight_decay, smote_weight, use_nni, under_sampling_threshold)
 
 
 def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
@@ -199,20 +212,31 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
     # 创建模型
     if approach == 'concat':
         model = ConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types)
+        encoder = Encoder(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                          num_edge_types, attention_heads)
+        classifier = Classifier(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                            num_edge_types, attention_heads)
     elif approach == 'attention':
-        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+        encoder = Encoder(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                                         num_edge_types, attention_heads)
+        classifier = Classifier(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
                                          num_edge_types, attention_heads)
     else:
-        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+        encoder = Encoder(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
                                          num_edge_types, attention_heads)
-    model = model.to(device)
-    return device, model
+        classifier = Classifier(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                                         num_edge_types, attention_heads)
+    encoder = encoder.to(device)
+    classifier = classifier.to(device)
+    decoder = Decoder(nembed=hidden_size * num_layers)
+    decoder = decoder.to(device)
+    return device, encoder, decoder, classifier
 
 
 def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold=15, model_type="GCN",
               num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=8, num_heads=8,
               num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
-              weight_decay=1e-6, approach='attention', use_nni=False):
+              weight_decay=1e-6, smote_weight=1e-6, approach='attention', use_nni=False):
     """
     node classification
 
@@ -244,7 +268,8 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
         self_loop = True
     else:
         self_loop = True
-    device, model = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
-                         attention_heads, approach)
-    start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
-                self_loop, load_lazy, weight_decay, use_nni)
+    device, encoder, decoder, classifier = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types,
+                                  use_gpu,
+                                  attention_heads, approach)
+    start_train(save_path, save_name, step, under_sampling_threshold, encoder, decoder, classifier, device, epochs, lr, batch_size,
+                threshold, self_loop, load_lazy, weight_decay, smote_weight, use_nni)

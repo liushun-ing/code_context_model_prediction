@@ -151,6 +151,38 @@ def false_node(data):
     return third_column
 
 
+def specific_analyze(result, threshold):
+    print(f'\n---------threshold: {threshold}----------')
+    print('---------false negative----------')
+    kind = [item[3] for item in result if item[4] == "True" and float(item[2]) < threshold]
+    print(len(kind))
+    # 统计stereotype每个字符串出现的次数
+    fourth_column_counts = Counter(kind)
+    total_fourth_count = len(kind)
+    fourth_column_proportions = {key: count / total_fourth_count for key, count in fourth_column_counts.items()}
+    for key, count in fourth_column_counts.items():
+        print(f"{key} {count} {fourth_column_proportions[key]:.2%}")
+    print('---------false positive----------')
+    kind = [item[3] for item in result if item[4] == "False" and float(item[2]) >= threshold]
+    print(len(kind))
+    # 统计stereotype每个字符串出现的次数
+    fourth_column_counts = Counter(kind)
+    total_fourth_count = len(kind)
+    fourth_column_proportions = {key: count / total_fourth_count for key, count in fourth_column_counts.items()}
+    for key, count in fourth_column_counts.items():
+        print(f"{key} {count} {fourth_column_proportions[key]:.2%}")
+    print('---------true positive----------')
+    kind = [item[3] for item in result if item[4] == "True" and float(item[2]) >= threshold]
+    print(len(kind))
+    # 统计stereotype每个字符串出现的次数
+    fourth_column_counts = Counter(kind)
+    total_fourth_count = len(kind)
+    fourth_column_proportions = {key: count / total_fourth_count for key, count in fourth_column_counts.items()}
+    for key, count in fourth_column_counts.items():
+        print(f"{key} {count} {fourth_column_proportions[key]:.2%}")
+
+
+
 def calculate_result(true_nodes, false_nodes):
     # 阈值范围
     thresholds = np.arange(0.1, 1.1, 0.1)
@@ -173,10 +205,12 @@ def calculate_result(true_nodes, false_nodes):
 
 
 if __name__ == '__main__':
-    step = 2
+    step = 1
+    threshold = 0.5
     result = read_result(step)
     print(len(result))
     false_nodes = false_node(result)
     true_nodes = true_node(result)
+    specific_analyze(result, threshold)
     print(f"\nAll nodes: {len(false_nodes) + len(true_nodes)}")
     calculate_result(true_nodes, false_nodes)

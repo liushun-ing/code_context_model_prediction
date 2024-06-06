@@ -8,19 +8,20 @@ import argparse
 
 os.sys.path.append(str(Path(__file__).absolute().parent.parent.parent.parent))
 
-from GNN_Node_Classification import construct_input, node_classification, test_model
+from GNN_Node_Classification import construct_input, node_classification, test_model, smote_node_classification, \
+    smote_test_model
 import nni
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
 parser.add_argument("--step", type=int, required=False, default=1)
-parser.add_argument("--gpu", type=str, required=False, default='7')
+parser.add_argument("--gpu", type=str, required=False, default='4')
 parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
 construct = False
 load_lazy = True
-train = True
+train = False
 
 my_params = {
     'description': 'mylyn',
@@ -31,7 +32,7 @@ my_params = {
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
-    'hidden_size': 1024,
+    'hidden_size': 768,
     'dropout': 0.3,
     'attention_heads': 12,
     'num_heads': 8,
@@ -41,6 +42,7 @@ my_params = {
     'batch_size': 16,
     'threshold': 0.4,
     'weight_decay': 1e-6,
+    'smote_weight': 1e-3,
     'approach': 'attention'
 }
 print(my_params)
@@ -78,7 +80,7 @@ if construct:
 
 if train:
     # train and save model
-    node_classification.main_func(
+    smote_node_classification.main_func(
         save_path=my_params['current_path'],
         save_name=my_params['result_name'],
         step=my_params['step'],
@@ -96,6 +98,7 @@ if train:
         batch_size=my_params['batch_size'],
         threshold=my_params['threshold'],
         weight_decay=my_params['weight_decay'],
+        smote_weight=my_params['smote_weight'],
         approach=my_params['approach'],
         load_lazy=load_lazy,
         use_nni=args.nni
@@ -109,7 +112,7 @@ if train:
 # )
 
 # test model
-test_model.main_func(
+smote_test_model.main_func(
     model_path=my_params['current_path'],
     load_name=my_params['result_name'],
     step=my_params['step'],

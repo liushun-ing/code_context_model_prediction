@@ -154,13 +154,13 @@ def expand_class(graph: Graph, repo_metrics: RepoMetrics, vertex: Vertex):
     cla = repo_metrics.get_class_by_id(vertex.ref_id)
     if cla is not None:
         # 声明的字段
-        selected_fields = select_random_percent(cla.fields, 0.5)
+        selected_fields = select_random_percent(cla.fields, 0.25)
         for c_f in selected_fields:
             v_id = graph.get_vertex_id_by_ref_id(c_f.ref_id)
             if v_id == -1:
                 graph.add_vertex(c_f.ref_id, c_f.kind, c_f.qualified_name)
         # 找声明的方法
-        selected_methods = select_random_percent(cla.methods, 0.5)
+        selected_methods = select_random_percent(cla.methods, 0.25)
         for c_m in selected_methods:
             v_id = graph.get_vertex_id_by_ref_id(c_m.ref_id)
             if v_id == -1:

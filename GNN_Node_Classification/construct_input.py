@@ -83,7 +83,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -159,7 +159,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
             os.makedirs(dest)
             # if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
             if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
-                if true_node > 1:
+                if true_node > step:
                     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
@@ -184,7 +184,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -249,7 +249,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             # 如果没有节点，或者没有边，或者节点数小于step 都需要过滤掉,也就是stimulation
             # if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
             if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
-                if true_node > 1:
+                if true_node > step:
                     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(

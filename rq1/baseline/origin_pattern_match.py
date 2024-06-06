@@ -78,16 +78,21 @@ def get_graph(graphs: list[ET.Element], step: int):
         true_node = 0
         # true_edge = 0
         # 转化为图结构
+        remove_nodes = []
         for node in vertex_list:
-            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
-                       seed=node.get('seed'))
-            if int(node.get('origin')) == 1:
-                true_node += 1
+            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
+            if node.get('stereotype') == 'NOTFOUND':
+                remove_nodes.append(int(node.get('id')))
+            else:
+                if int(node.get('origin')) == 1:
+                    true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
             # if int(link.get('origin')) == 1:
             #     true_edge += 1
-        if true_node > 1:
+        if true_node > step:
+            for node_id in remove_nodes:
+                g.remove_node(node_id)  # 会自动删除边
             gs.append(g)
     return gs
 
@@ -176,14 +181,23 @@ def print_result(result, k):
                 p += res[i][0]
                 r += res[i][1]
                 f += res[i][2]
-            print( f"{minConf:>10.1f} {p / len(result):>10.3f} {r / len(result):>10.3f} {f / len(result):>10.3f}")
+            p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
     else:
         p, r, f = 0.0, 0.0, 0.0
         for res in result:
             p += res[0]
             r += res[1]
             f += res[2]
-        print( f"{p / len(result):>10.3f} {r / len(result):>10.3f} {f / len(result):>10.3f}")
+        p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        print(f'----------result of top {k}-------\n'
+              f'Precision: {p}, '
+              f'Recall: {r}, '
+              f'F1: {f}')
 
 
 def save_result_stereotype(confidence, nodes, f):
@@ -209,12 +223,12 @@ def graph_match(step, patterns):
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    f = open(f'origin_result/new_match_result_{step}_1.txt', 'w')
+    f = open(f'origin_result/no_new_match_result_{step}.txt', 'w')
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
-    # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
-        if G1s.index(G1) in [368]:
-            continue
+        # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
+        #     if G1s.index(G1) in [291, 368]:
+        #         continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()
@@ -301,8 +315,9 @@ def graph_match(step, patterns):
             true_number = 0
             for n in list(G1.nodes):
                 true_number += int(G1.nodes.get(n)['origin'])
-            result_full.append(calculate_result_full(labels, output, true_number))
-            save_result_stereotype(confidence, G1.nodes, f)
+            if true_number > 0:
+                result_full.append(calculate_result_full(labels, output, true_number))
+                save_result_stereotype(confidence, G1.nodes, f)
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)
@@ -310,10 +325,10 @@ def graph_match(step, patterns):
     print_result(result_full, 0)
 
 
-def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
+def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
     project_path = join(root_path, project_model_name, 'repo_first_3')
     graph_index = 0
-    with open('./graph.data', 'w') as f:
+    with open('./no_graph.data', 'w') as f:
         # 读取code context model
         model_dir_list = get_models_by_ratio(project_model_name, 0, 0.8)
         print(len(model_dir_list))
@@ -337,7 +352,9 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
                 vs = []
                 for vertex in vertex_list:
                     stereotype, _id = vertex.get('stereotype'), int(vertex.get('id'))
-                    vs.append((_id, stereotype))
+                    # 去除 notfound
+                    if not stereotype == 'NOTFOUND':
+                        vs.append((_id, stereotype))
                 for v in sorted(vs, key=lambda x: x[0]):
                     vertex_text = f'v {v[0] + curr_index} {v[1]}\n'
                     f.write(vertex_text)
@@ -345,8 +362,10 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
                 edge_list = edges.findall('edge')
                 for edge in edge_list:
                     start, end, label = int(edge.get('start')), int(edge.get('end')), edge.get('label')
-                    edge_text = f'e {start + curr_index} {end + curr_index} {label}\n'
-                    f.write(edge_text)
+                    keys = [x[0] for x in vs]
+                    if start in keys and end in keys:
+                        edge_text = f'e {start + curr_index} {end + curr_index} {label}\n'
+                        f.write(edge_text)
                 curr_index += len(vertex_list)
             graph_index += 1
         f.write('t # -1')
@@ -355,17 +374,22 @@ def graph_build_and_gspan(min_sup, project_model_name='my_mylyn'):
 
     min_support = math.ceil(min_sup * graph_index)  # 0.02 * num_of_graphs
     print('min_support: ', min_support)
-    args_str = f'-s {min_support} ./graph.data'
+    # args_str = f'-h'
+    if node_num == 0:
+        args_str = f'-s {min_support} -d True ./no_graph.data'
+    else:
+        args_str = f'-s {min_support} -l {node_num} -u {node_num} -d True ./no_graph.data'
     FLAGS, _ = parser.parse_known_args(args=args_str.split())
     main(FLAGS)
 
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.015
+    node_num = 2
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
-    # graph_build_and_gspan(min_sup=min_sup)
-    graph_match(step=step, patterns=f'./origin_patterns/sup-{min_sup}')
+    graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
+    # graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')

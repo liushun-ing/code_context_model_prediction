@@ -13,12 +13,12 @@ import nni
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
-parser.add_argument("--step", type=int, required=False, default=1)
-parser.add_argument("--gpu", type=str, required=False, default='9')
+parser.add_argument("--step", type=int, required=False, default=3)
+parser.add_argument("--gpu", type=str, required=False, default='2')
 parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
-construct = False
+construct = True
 load_lazy = True
 train = True
 
@@ -27,7 +27,7 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 10,
+    'under_sampling_threshold': 30,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,

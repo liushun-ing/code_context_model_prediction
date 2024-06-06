@@ -20,7 +20,7 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
         print(len(model_dir_list))
         for model_dir in model_dir_list:
             model_path = join(project_path, model_dir)
-            model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
+            model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
             # 如果不存在模型，跳过处理
             if not os.path.exists(model_file):
                 continue
@@ -50,6 +50,6 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
     print(f'all: {total.shape}, mean: {np.mean(total)}, TQ: {Q3}')
 
 
-estimate_positive_and_negative_samples(['my_mylyn'], step=1)
+estimate_positive_and_negative_samples(['my_mylyn'], step=2)
 # estimate_positive_and_negative_samples(['my_mylyn'], step=2)
 # estimate_positive_and_negative_samples(['my_mylyn'], step=3)

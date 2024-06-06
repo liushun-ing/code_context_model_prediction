@@ -15,7 +15,7 @@ from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
 
 from .utils_nc.concat_prediction_model import ConcatPredictionModel
-from .utils_nc.attention_prediction_model import AttentionPredictionModel
+from .utils_nc.attention_prediction_model import AttentionPredictionModel, Classifier, Encoder
 
 
 def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int, threshold):
@@ -102,7 +102,7 @@ def print_result(result, threshold, fi):
     return target
 
 
-def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=None):
+def test(encoder, classifier, data_loader, device, top_k, threshold, use_nni, fi, s_file=None):
     """
     使用测试集测试最终的模型
 
@@ -114,13 +114,15 @@ def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=N
     :param fi: file to save result
     :return: none
     """
-    with torch.no_grad():
-        gnn_model.eval()
+    with (torch.no_grad()):
+        encoder.eval()
+        classifier.eval()
         criterion = nn.BCELoss()  # 二元交叉熵
         total_loss = 0.0
         result = []
         for g, features, labels, edge_types, kinds in data_loader:
-            output = gnn_model(g, features, edge_types)
+            features_new = encoder(g, features, edge_types)
+            output = classifier(g, features_new, edge_types)
             # output = output[torch.eq(seeds, 0)]
             # labels = labels[torch.eq(seeds, 0)]
             # 计算 loss
@@ -168,15 +170,25 @@ def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_s
     # 创建模型
     if approach == 'concat':
         model = ConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types)
+        encoder = Encoder(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                          attention_heads)
+        classifier = Classifier(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                                attention_heads)
     elif approach == 'attention':
-        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
-                                         attention_heads)
+        encoder = Encoder(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                          attention_heads)
+        classifier = Classifier(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                                attention_heads)
     else:
-        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
-                                         attention_heads)
-    model = util.load_model(model, model_path, step, load_name)
-    model.to(device)
-    return model, device
+        encoder = Encoder(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                          attention_heads)
+        classifier = Classifier(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
+                                attention_heads)
+    encoder = util.load_encoder(encoder, model_path, step, load_name)
+    classifier = util.load_classifier(classifier, model_path, step, load_name)
+    encoder.to(device)
+    classifier.to(device)
+    return encoder, classifier, device
 
 
 def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_feats=1280, hidden_size=1024,
@@ -202,7 +214,7 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
     :param under_sampling_threshold: under sampling threshold
     :return: None
     """
-    model, device = init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size,
+    encoder, classifier, device = init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size,
                          num_heads, num_edge_types, use_gpu, attention_heads, approach)
     print('----load test dataset----')
     if model_type.startswith('RGCN'):
@@ -220,5 +232,5 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
             print(f'---top-k:{k}---')
             f.write(f'---top-k:{k}---\n')
             with open(f'specific_result_{step}.txt', 'w') as s_file:
-                test(model, data_loader, device, k, threshold, use_nni, f, s_file)
+                test(encoder, classifier, data_loader, device, k, threshold, use_nni, f, s_file)
         f.close()

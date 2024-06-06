@@ -156,6 +156,72 @@ class AttentionPredictionModel(nn.Module):
             n = self.number_layers - i
             self.mlp.append(torch.nn.Linear(hidden_size * n, hidden_size * (n - 1)))
         self.mlp.append(torch.nn.Linear(hidden_size, 1))
+        self.gnn_classification_layer = MultiHeadAttentionLayer(model_type, hidden_size * number_layers, dropout,
+                                                                attention_heads, num_heads, num_edge_types)
+
+    def forward(self, g, x, edge_types):
+        features_new = self.encoder(g, x, edge_types)
+        return self.classifier(g, features_new, edge_types)
+        # self.output = []
+        # x = F.relu(self.merge(x))
+        # for i in range(self.number_layers):
+        #     x = self.gnn_attention_layers[i](g, x, edge_types).view(-1, self.hidden_size)
+        #     if not i == self.number_layers - 1:
+        #         self.output.append(x.clone())
+        # self.output.append(x)
+        # x = torch.cat(self.output, dim=1)
+        # for i in range(self.number_layers - 1):
+        #     x = torch.relu(self.mlp[i](x))
+        # x = self.mlp[self.number_layers - 1](x).squeeze(1)
+        # return torch.sigmoid(x)
+
+    def encoder(self, g, x, edge_types):
+        self.output = []
+        x = F.relu(self.merge(x))
+        for i in range(self.number_layers):
+            x = self.gnn_attention_layers[i](g, x, edge_types).view(-1, self.hidden_size)
+            if not i == self.number_layers - 1:
+                self.output.append(x.clone())
+        self.output.append(x)
+        return torch.cat(self.output, dim=1)
+
+    def classifier(self, g, embed, edge_types):
+        x = embed
+        # 可选 gnn 层
+        # x = self.gnn_classification_layer(g, x, edge_types).view(-1, self.hidden_size * self.number_layers)
+        for i in range(self.number_layers - 1):
+            x = torch.relu(self.mlp[i](x))
+        x = self.mlp[self.number_layers - 1](x).squeeze(1)
+        return torch.sigmoid(x)
+
+class Encoder(nn.Module):
+    """
+    Attention prediction model
+    """
+
+    def __init__(self, model_type, number_layers, in_feats, hidden_size, dropout=0.1, attention_heads=10, num_heads=8,
+                 num_edge_types=6):
+        """
+        :param model_type: model type [GCN, GAT, GraphSAGE, RGCN, GGNN]
+        :param number_layers: graph network neural layers
+        :param in_feats: number of input
+        :param hidden_size: hidden size
+        :param dropout: dropout rate, defaults to 0.1
+        :param attention_heads: number of graph attention heads, defaults to 10
+        :param num_heads: number of gat attention heads, defaults to 8
+        :param num_edge_types: number of edge, defaults to 6
+        """
+        super(Encoder, self).__init__()
+        print("attention Encoder model")
+        self.number_layers = number_layers
+        self.hidden_size = hidden_size
+        # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
+        self.merge = torch.nn.Linear(in_feats, hidden_size)
+        self.gnn_attention_layers = nn.ModuleList()
+        self.output = []
+        for i in range(self.number_layers):
+            self.gnn_attention_layers.append(
+                MultiHeadAttentionLayer(model_type, hidden_size, dropout, attention_heads, num_heads, num_edge_types))
 
     def forward(self, g, x, edge_types):
         self.output = []
@@ -165,7 +231,44 @@ class AttentionPredictionModel(nn.Module):
             if not i == self.number_layers - 1:
                 self.output.append(x.clone())
         self.output.append(x)
-        x = torch.cat(self.output, dim=1)
+        return torch.cat(self.output, dim=1)
+
+
+class Classifier(nn.Module):
+    """
+    Attention Classifier model
+    """
+
+    def __init__(self, model_type, number_layers, in_feats, hidden_size, dropout=0.1, attention_heads=10, num_heads=8,
+                 num_edge_types=6):
+        """
+        :param model_type: model type [GCN, GAT, GraphSAGE, RGCN, GGNN]
+        :param number_layers: graph network neural layers
+        :param in_feats: number of input
+        :param hidden_size: hidden size
+        :param dropout: dropout rate, defaults to 0.1
+        :param attention_heads: number of graph attention heads, defaults to 10
+        :param num_heads: number of gat attention heads, defaults to 8
+        :param num_edge_types: number of edge, defaults to 6
+        """
+        super(Classifier, self).__init__()
+        print("attention Classifier model")
+        self.number_layers = number_layers
+        self.hidden_size = hidden_size
+        self.output = []
+        self.mlp = nn.ModuleList()
+        for i in range(self.number_layers - 1):
+            n = self.number_layers - i
+            self.mlp.append(torch.nn.Linear(hidden_size * n, hidden_size * (n - 1)))
+        self.mlp.append(torch.nn.Linear(hidden_size, 1))
+        # self.gnn_classification_layer = MultiHeadAttentionLayer(model_type, hidden_size * number_layers, dropout,
+        #                                                         attention_heads, num_heads, num_edge_types)
+
+
+    def forward(self, g, embed, edge_types):
+        x = embed
+        # 可选 gnn 层
+        # x = self.gnn_classification_layer(g, x, edge_types).view(-1, self.hidden_size * self.number_layers)
         for i in range(self.number_layers - 1):
             x = torch.relu(self.mlp[i](x))
         x = self.mlp[self.number_layers - 1](x).squeeze(1)

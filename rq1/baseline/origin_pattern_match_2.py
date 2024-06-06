@@ -382,7 +382,7 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 2
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.015

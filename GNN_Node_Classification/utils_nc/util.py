@@ -70,6 +70,27 @@ def load_model(model, root_path, step: STEP, load_name):
     return model
 
 
+def load_encoder(model, root_path, step: STEP, load_name):
+    model_path = join(root_path, 'model_' + str(step))
+    model_path = join(model_path, f'{load_name}_best_encoder.pth')
+    if os.path.exists(model_path):
+        model.load_state_dict(torch.load(model_path))
+        print(f'Model loaded from {model_path}')
+    else:
+        print('no model loaded')
+    return model
+
+def load_classifier(model, root_path, step: STEP, load_name):
+    model_path = join(root_path, 'model_' + str(step))
+    model_path = join(model_path, f'{load_name}_best_classifier.pth')
+    if os.path.exists(model_path):
+        model.load_state_dict(torch.load(model_path))
+        print(f'Model loaded from {model_path}')
+    else:
+        print('no model loaded')
+    return model
+
+
 def threshold_tensor(input_tensor, threshold=0.5):
     """
     将小数张量进行阈值处理，大于阈值的元素变成 1，小于等于阈值的元素变成 0。

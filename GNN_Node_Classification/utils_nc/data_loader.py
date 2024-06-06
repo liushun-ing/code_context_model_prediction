@@ -78,7 +78,7 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     need_sample_num = pos_count * threshold
     # 循环不重复采样，生成多个图，防止信息过分丢失
     for _ in range(count):
-        final_nodes = nodes[(nodes['label'] == 1) | (nodes['seed'] == 1)]
+        final_nodes = nodes[(nodes['label'] == 1)]
         sample_count = need_sample_num
         while len(final_nodes) < (pos_count + need_sample_num):
             # print(len(final_nodes), ' ', pos_count + need_sample_num, ' ', sample_count)
@@ -141,7 +141,7 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
         kind_mapping = {'variable': 0, 'function': 1, 'class': 2, 'interface': 3}
         nodes['kind_encoded'] = nodes['kind'].map(kind_mapping)
         g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64)
-        g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32)
+        # g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32)
         # g.edata['relation'] = torch.tensor(edges['relation'].tolist() + edges['relation'].tolist(), dtype=torch.int64)
         g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
         # 添加自环边
@@ -165,9 +165,9 @@ class PreloadedGraphDataset(torch.utils.data.Dataset):
         features = gra.ndata['embedding']
         labels = gra.ndata['label']
         edge_types = gra.edata['relation']
-        seeds = gra.ndata['seed']
+        # seeds = gra.ndata['seed']
         kinds = gra.ndata['kind'] if 'kind' in gra.ndata.keys() else gra.ndata['label']
-        return gra, features, labels, edge_types, seeds, kinds
+        return gra, features, labels, edge_types, kinds
 
 
 def collate(batch):
@@ -177,16 +177,16 @@ def collate(batch):
     :param batch: batch图集合
     :return: 合并后的大图，以及特征集合
     """
-    graphs, features, labels, edge_types, seeds, kinds = map(list, zip(*batch))
+    graphs, features, labels, edge_types, kinds = map(list, zip(*batch))
     # 使用 dgl.batch 进行批处理，确保正确处理 DGLGraph 对象,实际就是将多个图合并为一个大图
     batched_graph = dgl.batch(graphs)
     # 将 features 和 edge_labels 转换为张量
     features = torch.cat(features, dim=0)
     labels = torch.cat(labels, dim=0)
-    seeds = torch.cat(seeds, dim=0)
+    # seeds = torch.cat(seeds, dim=0)
     kinds = torch.cat(kinds, dim=0)
     edge_types = torch.cat(edge_types, dim=0)
-    return batched_graph, features, labels, edge_types, seeds, kinds
+    return batched_graph, features, labels, edge_types, kinds
 
 
 def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=15,

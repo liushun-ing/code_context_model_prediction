@@ -38,7 +38,7 @@ def valid(gnn_model, data_loader, device, threshold):
         auroc = 0.0
         auprc = 0.0
         f_1 = 0.0
-        for g, features, labels, edge_types, seeds, kinds in data_loader:
+        for g, features, labels, edge_types, kinds in data_loader:
             output = gnn_model(g, features, edge_types)
             # output = output[torch.eq(seeds, 1)]
             # labels = labels[torch.eq(seeds, 1)]
@@ -122,7 +122,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     for epoch in range(epochs):
         total_loss = 0.0
         train_accuracy = 0.0
-        for g, features, labels, edge_types, seeds, kinds in data_loader:
+        for g, features, labels, edge_types, kinds in data_loader:
             optimizer.zero_grad()
             output = gnn_model(g, features, edge_types)
             # 计算 accuracy

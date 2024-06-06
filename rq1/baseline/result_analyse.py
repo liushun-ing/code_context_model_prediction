@@ -4,21 +4,24 @@ from collections import Counter
 
 def read_result(step: int):
     result = []
-    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
+    count = 0
+    with open(f'./origin_result/no_new_match_result_{step}_1.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
             if line.startswith('---') or line.startswith('node_id'):
+                count += 1
                 continue
             else:
                 result.append(line.split(' '))
+    print(count, 1111111)
     return result
 
 
 def calculate_average_result(step):
     result = []
     curr = []
-    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}_1.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()

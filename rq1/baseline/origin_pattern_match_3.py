@@ -11,6 +11,8 @@ from networkx.algorithms import isomorphism
 from gspan_mining.config import parser
 from gspan_mining.main import main
 
+import multiprocessing
+
 root_path = join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'params_validation',
                  'git_repo_code')
 
@@ -80,8 +82,7 @@ def get_graph(graphs: list[ET.Element], step: int):
         # 转化为图结构
         remove_nodes = []
         for node in vertex_list:
-            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
-                       seed=node.get('seed'))
+            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
             if node.get('stereotype') == 'NOTFOUND':
                 remove_nodes.append(int(node.get('id')))
             else:
@@ -218,18 +219,18 @@ def save_result_stereotype(confidence, nodes, f):
             f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
 
 
-def graph_match(step, patterns):
+def graph_match(step, patterns, batch_index):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    f = open(f'origin_result/no_new_match_result_{step}_1.txt', 'w')
+    f = open(f'origin_result/no_new_match_result_{step}_batch_{batch_index}.txt', 'w')
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
-    for G1 in G1s:
-        # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
-        if G1s.index(G1) in [290]:
-            continue
+    # for G1 in G1s:
+    for G1 in G1s[batch_index * 51: (batch_index + 1) * 51]:
+        # if G1s.index(G1) in [291, 368]:
+        #     continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         total_match = 0
         confidence = dict()
@@ -249,61 +250,6 @@ def graph_match(step, patterns):
         for i in confidence:
             confidence[i] = confidence.get(i) / total_match
         confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)  # [(3, 1.0), (17, 0.5), (14, 0.5)]
-        # print(f'{G1} confidence {confidence}')
-        # k = 1
-        # if k > 0:
-        #     length = len(confidence)
-        #     topk = min(len(G1.nodes), k)
-        #     labels = []
-        #     if (length >= topk):
-        #         top_confidence = confidence[:topk]
-        #         for top_c in top_confidence:
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     else:
-        #         top_confidence = confidence[:]
-        #         for top_c in top_confidence:
-        #             # print(G1.nodes.get(node_id))
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     true_number = 0
-        #     for n in list(G1.nodes):
-        #         true_number += int(G1.nodes.get(n)['origin'])
-        #     result_1.append(calculate_result(labels, true_number))
-        # k = 3
-        # if k > 0:
-        #     length = len(confidence)
-        #     topk = min(len(G1.nodes), k)
-        #     labels = []
-        #     if (length >= topk):
-        #         top_confidence = confidence[:topk]
-        #         for top_c in top_confidence:
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     else:
-        #         top_confidence = confidence[:]
-        #         for top_c in top_confidence:
-        #             # print(G1.nodes.get(node_id))
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     true_number = 0
-        #     for n in list(G1.nodes):
-        #         true_number += int(G1.nodes.get(n)['origin'])
-        #     result_3.append(calculate_result(labels, true_number))
-        # k = 5
-        # if k > 0:
-        #     length = len(confidence)
-        #     topk = min(len(G1.nodes), k)
-        #     labels = []
-        #     if (length >= topk):
-        #         top_confidence = confidence[:topk]
-        #         for top_c in top_confidence:
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     else:
-        #         top_confidence = confidence[:]
-        #         for top_c in top_confidence:
-        #             # print(G1.nodes.get(node_id))
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     true_number = 0
-        #     for n in list(G1.nodes):
-        #         true_number += int(G1.nodes.get(n)['origin'])
-        #     result_5.append(calculate_result(labels, true_number))
         k = 0
         if k == 0:
             output, labels = [], []
@@ -322,7 +268,7 @@ def graph_match(step, patterns):
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)
-    # pd.to_pickle(result_full, f'./origin_result/result_full_{step}_{batch_index}.pkl')
+    pd.to_pickle(result_full, f'./origin_result/no_result_full_{step}_batch_{batch_index}.pkl')
     print_result(result_full, 0)
 
 
@@ -375,7 +321,11 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
     min_support = math.ceil(min_sup * graph_index)  # 0.02 * num_of_graphs
     print('min_support: ', min_support)
-    args_str = f'-s {min_support} -l {node_num} -u {node_num} ./no_graph.data'
+    # args_str = f'-h'
+    if node_num == 0:
+        args_str = f'-s {min_support} -d True ./no_graph.data'
+    else:
+        args_str = f'-s {min_support} -l {node_num} -u {node_num} -d True ./no_graph.data'
     FLAGS, _ = parser.parse_known_args(args=args_str.split())
     main(FLAGS)
 
@@ -385,8 +335,11 @@ if __name__ == '__main__':
     step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
-    min_sup = 0.015
-    node_num = 2
+    min_sup = 0.01
+    node_num = 0
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
     # graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
-    graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')
+    for batch_index in range(16):
+        single_process = multiprocessing.Process(target=graph_match, args=(step, f'./origin_patterns/no-sup-{min_sup}', batch_index))
+        # 使用进程对象启动进程执行指定任务
+        single_process.start()

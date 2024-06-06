@@ -22,14 +22,18 @@ class Decoder(Module):
         super(Decoder, self).__init__()
         self.dropout = dropout
         self.de_weight = Parameter(torch.FloatTensor(nembed, nembed))  # 权重矩阵
+        # self.de_weight1 = Parameter(torch.FloatTensor(nembed, nembed))  # 权重矩阵
         self.reset_parameters()
 
     def reset_parameters(self):
         stdv = 1. / math.sqrt(self.de_weight.size(1))
         self.de_weight.data.uniform_(-stdv, stdv)
+        # self.de_weight1.data.uniform_(-stdv, stdv)
 
     def forward(self, node_embed):
         combine = F.linear(node_embed, self.de_weight)
+        # combine = F.relu(combine)
+        # combine = F.linear(combine, self.de_weight1)
         adj_out = torch.sigmoid(torch.mm(combine, combine.transpose(-1, -2)))
         return adj_out
 
@@ -87,22 +91,18 @@ def smote_sample(embed: torch.Tensor, labels: torch.Tensor, idx_train: torch.Ten
         embed = torch.cat((embed, new_embed), 0)
         labels = torch.cat((labels, new_labels), 0)
         idx_train = torch.cat((idx_train, idx_train_append), 0)
-        # 如果有邻接矩阵，更新邻接矩阵
-        if adj is not None:
-            if adj_new is None:
-                adj_new = adj.new(torch.clamp_(adj[chosen, :] + adj[idx_neighbor, :], min=0.0, max=1.0))
-            else:
-                temp = adj.new(torch.clamp_(adj[chosen, :] + adj[idx_neighbor, :], min=0.0, max=1.0))
-                adj_new = torch.cat((adj_new, temp), 0)
-    if adj is not None:
-        add_num = adj_new.shape[0]
-        new_adj = adj.new(torch.Size((adj.shape[0] + add_num, adj.shape[0] + add_num))).fill_(0.0)
-        new_adj[:adj.shape[0], :adj.shape[0]] = adj[:, :]
-        new_adj[adj.shape[0]:, :adj.shape[0]] = adj_new[:, :]
-        new_adj[:adj.shape[0], adj.shape[0]:] = torch.transpose(adj_new, 0, 1)[:, :]
-        return embed, labels, idx_train, new_adj.detach()
-    else:
-        return embed, labels, idx_train
+        # 更新邻接矩阵
+        if adj_new is None:
+            adj_new = adj.new(torch.clamp_(adj[chosen, :] + adj[idx_neighbor, :], min=0.0, max=1.0))
+        else:
+            temp = adj.new(torch.clamp_(adj[chosen, :] + adj[idx_neighbor, :], min=0.0, max=1.0))
+            adj_new = torch.cat((adj_new, temp), 0)
+    add_num = adj_new.shape[0]
+    new_adj = adj.new(torch.Size((adj.shape[0] + add_num, adj.shape[0] + add_num))).fill_(0.0)
+    new_adj[:adj.shape[0], :adj.shape[0]] = adj[:, :]
+    new_adj[adj.shape[0]:, :adj.shape[0]] = adj_new[:, :]
+    new_adj[:adj.shape[0], adj.shape[0]:] = torch.transpose(adj_new, 0, 1)[:, :]
+    return embed, labels, idx_train, new_adj.detach()
 
 
 def adj_mse_loss(adj_rec, adj_tgt):
@@ -125,10 +125,9 @@ def adj_mse_loss(adj_rec, adj_tgt):
     return loss
 
 
-def graph_smote_sampling(graph: DGLGraph, decoder, device):
+def graph_smote_sampling(graph: DGLGraph, features, decoder, device):
     # 使用上下文管理器设置设备
     with torch.cuda.device(device):
-        features = graph.ndata['embedding']  # 节点特征矩阵
         labels = graph.ndata['label']  # 节点标签
         idx_train = torch.arange(graph.number_of_nodes()).cuda()
         # 提取边信息
@@ -138,30 +137,22 @@ def graph_smote_sampling(graph: DGLGraph, decoder, device):
         adj = torch.zeros((num_nodes, num_nodes), dtype=torch.float32).cuda()
         adj[src, dst] = 1
         ori_num = labels.shape[0]
-        # adj[dst, src] = 1  # 无向图
 
-        embed, labels_new, idx_train_new, adj_up = smote_sample(features, labels, idx_train, adj)
-        # 不使用带权重的点积
+        embed, labels_new, idx_train_new, adj_up = smote_sample(features, labels, idx_train, adj.detach())
+        # 使用带权重的点积
         generated_G = decoder(embed)
-
         # 不使用带权重的点积
         # generated_G = torch.sigmoid(torch.mm(embed, embed.transpose(-1, -2)))
 
-        loss_smote = adj_mse_loss(generated_G[:ori_num, :][:, :ori_num], adj.detach().to_dense())
+        loss_smote = adj_mse_loss(generated_G[:ori_num, :][:, :ori_num], adj.detach())
 
         adj_new = copy.deepcopy(generated_G.detach())
         threshold = 0.5
         adj_new[adj_new < threshold] = 0.0
         adj_new[adj_new >= threshold] = 1.0
         adj_new = torch.mul(adj_up, adj_new)
-        adj_new[:ori_num, :][:, :ori_num] = adj.detach().to_dense()
+        adj_new[:ori_num, :][:, :ori_num] = adj.detach()
         # 得到了新的信息，现在需要变回图去，新加入的边暂时都用 declares，label 赋值为 1
-        # g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
-        # g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
-        # g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64) Kind 填 4
-        # g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32) seed 填 1
-        # g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64) relation 填 1
-        # dgl.graph(data=(src, dst), num_nodes=len(nodes))
         # 存储值为1的元素的行和列索引
         rows = []
         cols = []
@@ -183,8 +174,6 @@ def graph_smote_sampling(graph: DGLGraph, decoder, device):
         new_num = labels_new.shape[0] - ori_num
         new_graph.ndata['kind'] = torch.cat(
             (graph.ndata['kind'], torch.full((new_num,), 4, dtype=graph.ndata['kind'].dtype).cuda()))
-        new_graph.ndata['seed'] = torch.cat(
-            (graph.ndata['seed'], torch.full((new_num,), 1, dtype=graph.ndata['seed'].dtype).cuda()))
         new_edge = len(new_src) - src.shape[0]
         new_graph.edata['relation'] = torch.cat(
             (graph.edata['relation'], torch.full((new_edge,), 4, dtype=graph.edata['relation'].dtype).cuda()))

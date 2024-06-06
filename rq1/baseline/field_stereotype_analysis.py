@@ -52,16 +52,21 @@ def get_graph(graphs: list[ET.Element], step: int):
         true_node = 0
         # true_edge = 0
         # 转化为图结构
+        remove_nodes = []
         for node in vertex_list:
-            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
-                       seed=node.get('seed'))
-            if int(node.get('origin')) == 1:
-                true_node += 1
+            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
+            if node.get('stereotype') == 'NOTFOUND':
+                remove_nodes.append(int(node.get('id')))
+            else:
+                if int(node.get('origin')) == 1:
+                    true_node += 1
         for link in edge_list:
             g.add_edge(int(link.get('start')), int(link.get('end')), label=link.get('label'))
             # if int(link.get('origin')) == 1:
             #     true_edge += 1
-        if true_node > 1:
+        if true_node > step:
+            for node_id in remove_nodes:
+                g.remove_node(node_id)  # 会自动删除边
             gs.append(g)
     return gs
 
@@ -93,7 +98,7 @@ def load_targets(project_model_name: str, step):
 
 def read_result(step: int):
     result = []
-    with open(f'./origin_result/new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}_1.txt', 'r') as f:
         lines = f.readlines()
         curr = []
         for line in lines:
