@@ -13,12 +13,12 @@ import nni
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
-parser.add_argument("--step", type=int, required=False, default=2)
+parser.add_argument("--step", type=int, required=False, default=1)
 parser.add_argument("--gpu", type=str, required=False, default='3')
 parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
-construct = True
+construct = False
 load_lazy = True
 train = True
 

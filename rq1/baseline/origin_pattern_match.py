@@ -183,7 +183,8 @@ def print_result(result, k):
                 f += res[i][2]
             p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            # f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
     else:
         p, r, f = 0.0, 0.0, 0.0
@@ -193,7 +194,8 @@ def print_result(result, k):
             f += res[2]
         p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-        f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        # f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         print(f'----------result of top {k}-------\n'
               f'Precision: {p}, '
               f'Recall: {r}, '
@@ -385,11 +387,11 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
-    min_sup = 0.015
+    min_sup = 0.02
     node_num = 2
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
-    graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
-    # graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')
+    # graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
+    graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')

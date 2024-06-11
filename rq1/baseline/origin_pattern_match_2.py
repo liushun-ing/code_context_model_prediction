@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from decimal import Decimal
 from os.path import join
 import math
@@ -184,7 +185,8 @@ def print_result(result, k):
                 f += res[i][2]
             p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            # f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+            f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
             print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
     else:
         p, r, f = 0.0, 0.0, 0.0
@@ -194,7 +196,8 @@ def print_result(result, k):
             f += res[2]
         p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-        f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        # f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+        f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         print(f'----------result of top {k}-------\n'
               f'Precision: {p}, '
               f'Recall: {r}, '
@@ -224,16 +227,22 @@ def graph_match(step, patterns):
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    f = open(f'origin_result/no_new_match_result_{step}_1.txt', 'w')
+    f = open(f'origin_result/no_new_match_result_{step}_144.txt', 'w')
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
         # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
-        if G1s.index(G1) in [290]:
-            continue
+        # if G1s.index(G1) in [290]:
+        #     continue
         print(f'handling: {G1s.index(G1)}-{G1}')
+        begin_time = time.time()
         total_match = 0
         confidence = dict()
+        flag = False
         for G2 in G2s:
+            curr_time = time.time()
+            if curr_time - begin_time > 60 * 10:
+                flag = True
+                break
             GM = isomorphism.DiGraphMatcher(G1, G2, node_match=node_match, edge_match=edge_match)
             if GM.subgraph_is_isomorphic():
                 for sub_iter in GM.subgraph_isomorphisms_iter():
@@ -246,6 +255,9 @@ def graph_match(step, patterns):
                             confidence[node] = 1
                     # sub_G1: nx.DiGraph = G1.subgraph(nodes)
                     # print(sub_G1.nodes.data(), sub_G1.edges.data())
+        if flag:
+            print(f'continue {G1s.index(G1)}')
+            continue
         for i in confidence:
             confidence[i] = confidence.get(i) / total_match
         confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)  # [(3, 1.0), (17, 0.5), (14, 0.5)]
@@ -375,18 +387,22 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
     min_support = math.ceil(min_sup * graph_index)  # 0.02 * num_of_graphs
     print('min_support: ', min_support)
-    args_str = f'-s {min_support} -l {node_num} -u {node_num} ./no_graph.data'
+    # args_str = f'-h'
+    if node_num == 0:
+        args_str = f'-s {min_support} -d True ./no_graph.data'
+    else:
+        args_str = f'-s {min_support} -l {node_num} -u {node_num} -d True ./no_graph.data'
     FLAGS, _ = parser.parse_known_args(args=args_str.split())
     main(FLAGS)
 
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 2
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.015
-    node_num = 2
+    node_num = 0
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
     # graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
     graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')

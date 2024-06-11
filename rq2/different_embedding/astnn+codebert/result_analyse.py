@@ -206,7 +206,7 @@ def calculate_result(true_nodes, false_nodes):
 
 if __name__ == '__main__':
     step = 1
-    threshold = 0.5
+    threshold = 0.4
     result = read_result(step)
     print(len(result))
     false_nodes = false_node(result)

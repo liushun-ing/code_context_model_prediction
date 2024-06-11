@@ -2,10 +2,11 @@ import numpy as np
 from collections import Counter
 
 
-def read_result(step: int):
+def read_result(step: int, batch_index):
     result = []
     count = 0
-    with open(f'./origin_result/no_new_match_result_{step}_1.txt', 'r') as f:
+    # with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -21,7 +22,7 @@ def read_result(step: int):
 def calculate_average_result(step):
     result = []
     curr = []
-    with open(f'./origin_result/no_new_match_result_{step}_1.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -64,7 +65,9 @@ def calculate_average_result(step):
             p += res[i][0]
             r += res[i][1]
             f += res[i][2]
-        print(f"{minConf:>10.1f} {p / len(result):>10.3f} {r / len(result):>10.3f} {f / len(result):>10.3f}")
+        p /= len(result)
+        r /= len(result)
+        print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {2 * p * r / (p + r):>10.3f}")
 
 
 def true_positive(data):
@@ -75,7 +78,7 @@ def true_positive(data):
     # 提取confidence和stereotype
     third_column = [float(item[2]) for item in filtered_data]
     fourth_column = [item[3] for item in filtered_data]
-    # fourth_column = [item[3] for item in filtered_data if 0 <= float(item[2]) < 0.2]
+    # fourth_column = [item[3] for item in filtered_data if 0 <= float(item[2]) < 0.1]
 
     # 计算confidence数据的统计值
     third_column_min = np.min(third_column)
@@ -207,7 +210,10 @@ def calculate_result(FPs, TPs, FN):
 
 if __name__ == '__main__':
     step = 1
-    result = read_result(step)
+    result = read_result(step, 0)
+    # result = []
+    # for i in range(27):
+    #     result += read_result(step, i)
     print(len(result))
     FPs = false_positive(result)
     TPs = true_positive(result)

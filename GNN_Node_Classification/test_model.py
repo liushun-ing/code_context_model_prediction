@@ -18,22 +18,25 @@ from .utils_nc.concat_prediction_model import ConcatPredictionModel
 from .utils_nc.attention_prediction_model import AttentionPredictionModel
 
 
-def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int, threshold):
+def calculate_result(labels: torch.Tensor, output: torch.Tensor, final_k: int):
     true_number = torch.sum(torch.eq(labels, 1)).item()
     top_k = output[torch.topk(output, k=final_k).indices]
-    labels = labels[torch.topk(output, final_k).indices]
-    labels = labels[torch.ge(top_k, threshold)]  # top_k 中只选择预测为真的
-    true_positive = torch.sum(torch.eq(labels, 1)).item()
-    precision = 0 if labels.shape[0] == 0 else true_positive / labels.shape[0]
-    recall = 0 if true_number == 0 else true_positive / true_number
-    if precision + recall == 0:
-        f1 = 0
-    else:
-        f1 = 2 * precision * recall / (precision + recall)
-    return [precision, recall, f1]
+    top_labels = labels[torch.topk(output, final_k).indices]
+    res = []
+    for threshold in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        new_labels = top_labels[torch.ge(top_k, threshold)]  # top_k 中只选择预测为真的
+        true_positive = torch.sum(torch.eq(new_labels, 1)).item()
+        precision = 0 if new_labels.shape[0] == 0 else true_positive / new_labels.shape[0]
+        recall = 0 if true_number == 0 else true_positive / true_number
+        if precision + recall == 0:
+            f1 = 0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
+        res.append([precision, recall, f1, 0])
+    return res
 
 
-def calculate_result_full(labels, output, threshold, device):
+def calculate_result_full(labels, output, device):
     res = []
     for threshold in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         if labels.shape[0] == 0:
@@ -93,7 +96,11 @@ def print_result(result, threshold, fi):
             a += res[i][3]
         p = Decimal(p / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
         r = Decimal(r / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
-        f = Decimal(f / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
+        # f = Decimal(f / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
+        if p + r > 0:
+            f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
+        else:
+            f = Decimal(f / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
         a = Decimal(a / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
         print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f} {a:>10.3f}")
         fi.write(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f} {a:>10.3f}\n")
@@ -127,35 +134,18 @@ def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=N
             loss = criterion(output, labels)
             total_loss += loss.item()
             if top_k != 0:
-                final_k = min(len(labels), top_k)
-                result.append(calculate_result(labels, output, final_k, threshold))
+                final_k = min(labels.shape[0], top_k)
+                result.append(calculate_result(labels, output, final_k))
             else:
                 # output = select_result(output)
                 # print(labels, output)
-                result.append(calculate_result_full(labels, output, threshold, device))
+                result.append(calculate_result_full(labels, output, device))
                 if s_file is not None:
                     save_specific_result(labels, output, threshold, kinds, s_file)
-        if top_k != 0:
-            p, r, f = 0.0, 0.0, 0.0
-            for res in result:
-                p += res[0]
-                r += res[1]
-                f += res[2]
-            length = len(result)
-            p /= length
-            r /= length
-            f /= length
-            p = Decimal(p).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            r = Decimal(r).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            f = Decimal(f).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            line = f'precision: {p}, recall: {r}, f1_score: {f}\n'
-            fi.write(line)
-            print(f'{line}')
-        else:
-            target = print_result(result, threshold, fi)
-            if use_nni:
-                print(target[2])
-                nni.report_final_result(float(target[2]))
+        target = print_result(result, threshold, fi)
+        if use_nni:
+            print(target[2])
+            nni.report_final_result(float(target[2]))
 
 
 def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size, num_heads, num_edge_types,
@@ -209,14 +199,13 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
         self_loop = True
     else:
         self_loop = True
-    data_loader = load_prediction_data(model_path, 'test', batch_size=32, step=step, self_loop=self_loop,
+    data_loader = load_prediction_data(model_path, 'test', batch_size=1, step=step, self_loop=self_loop,
                                        load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     threshold = 0.4
     with open(join(model_path, 'result4.txt'), 'a') as f:
         f.write(f'model: {model_type} + step: {step}\n')
         for k in [0]:
-            # for k in [1, 3, 5, 0]:
             print(f'---top-k:{k}---')
             f.write(f'---top-k:{k}---\n')
             with open(f'specific_result_{step}.txt', 'w') as s_file:

@@ -8,8 +8,7 @@ import argparse
 
 os.sys.path.append(str(Path(__file__).absolute().parent.parent.parent))
 
-from GNN_Node_Classification import construct_input, node_classification, test_model, smote_node_classification, \
-    smote_test_model
+from GNN_Node_Classification import construct_input, node_classification, test_model
 import nni
 
 # parameters
@@ -29,11 +28,11 @@ my_params = {
     'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
-    'under_sampling_threshold': 15,
+    'under_sampling_threshold': 10,
     'model_type': 'GCN',
     'num_layers': 3,
     'in_feats': 1280,
-    'hidden_size': 768,
+    'hidden_size': 1024,
     'dropout': 0.3,
     'attention_heads': 12,
     'num_heads': 8,
@@ -43,7 +42,6 @@ my_params = {
     'batch_size': 16,
     'threshold': 0.4,
     'weight_decay': 1e-6,
-    'smote_weight': 1e-3,
     'approach': 'attention' # attention or concat
 }
 print(my_params)
@@ -81,7 +79,7 @@ if construct:
 
 if train:
     # train and save model
-    smote_node_classification.main_func(
+    node_classification.main_func(
         save_path=my_params['current_path'],
         save_name=my_params['result_name'],
         step=my_params['step'],
@@ -99,7 +97,6 @@ if train:
         batch_size=my_params['batch_size'],
         threshold=my_params['threshold'],
         weight_decay=my_params['weight_decay'],
-        smote_weight=my_params['smote_weight'],
         approach=my_params['approach'],
         load_lazy=load_lazy,
         use_nni=args.nni
@@ -113,7 +110,7 @@ if train:
 # )
 
 # test model
-smote_test_model.main_func(
+test_model.main_func(
     model_path=my_params['current_path'],
     load_name=my_params['result_name'],
     step=my_params['step'],

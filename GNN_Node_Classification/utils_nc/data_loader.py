@@ -10,6 +10,7 @@ import torch
 from dgl import DGLGraph
 from pandas import DataFrame
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 
 LOAD_MODE = Literal['train', 'valid', 'test']
 
@@ -48,21 +49,88 @@ def get_graph_files(dataset_path, mode: LOAD_MODE, step: int):
     return graph_files
 
 
+def compute_similarity(embeddings):
+    num_nodes = embeddings.shape[0]
+    similarity_matrix = torch.zeros((num_nodes, num_nodes))
+    for i in range(num_nodes):
+        for j in range(i + 1, num_nodes):
+            similarity = F.cosine_similarity(embeddings[i].unsqueeze(0), embeddings[j].unsqueeze(0))
+            similarity_matrix[i, j] = similarity
+            similarity_matrix[j, i] = similarity
+    return similarity_matrix
+
+
+def similarity_sample(graph: DGLGraph):
+    kinds = torch.unique(graph.ndata['kind'])
+    # 去除负样本那种和正样本相似度超过平均值的 elements
+    for kind in kinds:
+        if kind != 0 and kind != 1:
+            continue
+        kind_nodes = (graph.ndata['kind'] == kind).nonzero(as_tuple=True)[0]
+        label_1_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 1).nonzero(as_tuple=True)[0]]
+        label_0_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 0).nonzero(as_tuple=True)[0]]
+
+        avg_label_1_similarity = 0
+
+        if label_1_nodes.numel() > 1:
+            label_1_embeddings = graph.ndata['embedding'][label_1_nodes]
+            label_1_similarities = compute_similarity(label_1_embeddings)
+            avg_label_1_similarity = label_1_similarities[label_1_similarities != 0].mean().item()
+
+        label_0_to_label_1_similarities = []
+        for node_0 in label_0_nodes:
+            curr_node = []
+            for node_1 in label_1_nodes:
+                similarity = F.cosine_similarity(graph.ndata['embedding'][node_0].unsqueeze(0),
+                                                 graph.ndata['embedding'][node_1].unsqueeze(0), dim=1)
+                curr_node.append(similarity.item())
+            # (curr_node > avg_label_1_similarity).count()
+            if len(curr_node) > 0:
+                label_0_to_label_1_similarities.append(sum(curr_node) / len(curr_node))
+
+        if label_0_to_label_1_similarities and label_1_nodes.numel() > 1:
+            new_s = label_0_to_label_1_similarities.copy()
+            new_s.sort()
+            # mid_similarity = new_s[int((len(new_s) / 4) * 3)]
+            # average_similarity = sum(label_0_to_label_1_similarities) / len(label_0_to_label_1_similarities)
+            # 因为正样本之间的相似度比较高，所以去除那些负样本与正样本相似度比较低的节点，小于正样本平均值的就去掉
+            t = torch.tensor(label_0_to_label_1_similarities)
+            need_to_remove = label_0_nodes[t < avg_label_1_similarity]
+            graph.remove_nodes(need_to_remove.tolist())
+    true_nodes = (graph.ndata['label'] == 1).nonzero(as_tuple=True)[0].tolist()
+    while True:
+        curr_len = len(true_nodes)
+        src, dst = graph.edges()
+        for i in range(len(src)):
+            if src[i].item() in true_nodes and dst[i].item() not in true_nodes:
+                true_nodes.append(dst[i].item())
+            if dst[i].item() in true_nodes and src[i].item() not in true_nodes:
+                true_nodes.append(src[i].item())
+        if len(true_nodes) == curr_len:
+            break
+    all_nodes = graph.nodes()
+    need_to_remove = []
+    for node in all_nodes:
+        if node not in true_nodes:
+            need_to_remove.append(node)
+    graph.remove_nodes(need_to_remove)
+    return graph
+
+
 def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: float):
     """
     分层随机欠采样（保证图的连通性），根据阈值随机欠采样，如果超过阈值，则随机采样生成多对结果，count = neg / pos / threshold
 
-    :param nodes: 节点数据 columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']
+    :param nodes: 节点数据 columns=['node_id', 'code_embedding', 'label', 'kind']
     :param edges: 边数据 columns=['start_node_id', 'end_node_id', 'relation']
     :param threshold: 欠采样阈值 负样本/正样本
     :param mode: 样本选择，train, valid, test
     :return: 随机欠采样后的节点数据和边数据,可能有多对
     """
-    # 验证集和测试集固定采样比，训练集之后在此基础上进行网格搜索
+    # print('threshold = ', threshold)
+    # 验证集和测试集固定采样比,也就是峰值，训练集之后在此基础上进行网格搜索
     if mode == 'valid' or mode == 'test':
         threshold = 30.0
-    if threshold == 0:  # 阈值为0不用采样
-        return [(nodes, edges)]
     neg_count = (nodes['label'] == 0).sum()
     pos_count = (nodes['label'] == 1).sum()
     if pos_count == 0:
@@ -70,7 +138,7 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     # 如果没有达到阈值，不需要采样
     if neg_count / pos_count <= threshold:
         return [(nodes, edges)]
-    # 最多采样 5 次
+    # 最多采样 1 次
     count = min(math.floor(neg_count / pos_count / threshold), 1)
     final_graphs = []
     # print(neg_count, pos_count)
@@ -114,6 +182,34 @@ def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: 
     return final_graphs
 
 
+def random_under_sampling(graph, mode, under_sampling_threshold):
+    # 提取第一个维度的数据并转成 DataFrame 的列
+    data = {
+        'node_id': [graph.nodes()[i].item() for i in range(graph.nodes().shape[0])],
+        'embedding': [graph.ndata['embedding'][i].tolist() for i in range(graph.ndata['embedding'].shape[0])],
+        'label': [graph.ndata['label'][i].item() for i in range(graph.ndata['label'].shape[0])],
+        'kind': [graph.ndata['kind'][i].item() for i in range(graph.ndata['kind'].shape[0])]
+    }
+    # 创建 DataFrame
+    nodes = pd.DataFrame(data)
+    (src, dst) = graph.edges()
+    data = {
+        'start_node_id': [src[i].item() for i in range(src.shape[0])],
+        'end_node_id': [dst[i].item() for i in range(dst.shape[0])],
+        'relation': [graph.edata['relation'][i].item() for i in range(graph.edata['relation'].shape[0])]
+    }
+    # 创建 DataFrame
+    edges = pd.DataFrame(data)
+    sample_nodes, sample_edges = my_under_sampling(nodes, edges, mode, under_sampling_threshold)[0]
+    src, dst = sample_edges['start_node_id'].tolist(), sample_edges['end_node_id'].tolist()
+    g = dgl.graph(data=(src, dst), num_nodes=len(sample_nodes))
+    g.ndata['embedding'] = torch.Tensor(sample_nodes['embedding'].tolist())
+    g.ndata['label'] = torch.tensor(sample_nodes['label'].tolist(), dtype=torch.float32)
+    g.ndata['kind'] = torch.tensor(sample_nodes['kind'].tolist(), dtype=torch.int64)
+    g.edata['relation'] = torch.tensor(sample_edges['relation'].tolist(), dtype=torch.int64)
+    return g
+
+
 def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_threshold: float, self_loop=True):
     """
     加载图，从nodes.tsv,edges.tsv文件加载节点特征和边信息
@@ -126,28 +222,28 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
     :return: 图
     """
     # print('handling {0}'.format(node_file))
-    _nodes = pd.read_csv(node_file)  # columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']
-    _edges = pd.read_csv(edge_file)  # columns=['start_node_id', 'end_node_id', 'relation', 'label']
-    sample_result = my_under_sampling(_nodes, _edges, mode, threshold=under_sampling_threshold)
-    # print(f'sample count: {len(sample_result)}')
+    nodes = pd.read_csv(node_file)  # columns=['node_id', 'code_embedding', 'label', 'kind']
+    edges = pd.read_csv(edge_file)  # columns=['start_node_id', 'end_node_id', 'relation']
     graphs = []
-    for nodes, edges in sample_result:
-        # print('nodes:\n{0} \n edges:\n{1}'.format(nodes, edges))
-        src, dst = edges['start_node_id'].tolist(), edges['end_node_id'].tolist()
-        g = dgl.graph(data=(src, dst), num_nodes=len(nodes))
-        # g = dgl.graph(data=(src + dst, dst + src), num_nodes=len(nodes))  # double edge
-        g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
-        g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
-        kind_mapping = {'variable': 0, 'function': 1, 'class': 2, 'interface': 3}
-        nodes['kind_encoded'] = nodes['kind'].map(kind_mapping)
-        g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64)
-        # g.ndata['seed'] = torch.tensor(nodes['seed'].tolist(), dtype=torch.float32)
-        # g.edata['relation'] = torch.tensor(edges['relation'].tolist() + edges['relation'].tolist(), dtype=torch.int64)
-        g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
-        # 添加自环边
-        if self_loop:
-            g = dgl.add_self_loop(g, edge_feat_names=['relation'], fill_data=4)
-        graphs.append(g)
+    src, dst = edges['start_node_id'].tolist(), edges['end_node_id'].tolist()
+    g = dgl.graph(data=(src, dst), num_nodes=len(nodes))
+    g.ndata['embedding'] = torch.Tensor(nodes['code_embedding'].apply(lambda x: ast.literal_eval(x)).tolist())
+    g.ndata['label'] = torch.tensor(nodes['label'].tolist(), dtype=torch.float32)
+    kind_mapping = {'variable': 0, 'function': 1, 'class': 2, 'interface': 3}
+    nodes['kind_encoded'] = nodes['kind'].map(kind_mapping)
+    g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64)
+    g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
+    # 是否 similarity 过滤
+    # if under_sampling_threshold == 0:
+    g = similarity_sample(g)
+    # 是否 undersample
+    if under_sampling_threshold > 0:
+        g = random_under_sampling(g, mode, under_sampling_threshold)
+    # 添加自环边
+    if self_loop:
+        g = dgl.add_self_loop(g, edge_feat_names=['relation'], fill_data=4)
+    # 是否使用 similarity 过滤
+    graphs.append(g)
     # print(g, g.nodes(), g.edges())
     return graphs
 

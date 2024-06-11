@@ -77,7 +77,10 @@ def valid(gnn_model, data_loader, device, threshold):
         recall = recall / len(data_loader)
         auroc = auroc / len(data_loader)
         # auprc = auprc / len(data_loader)
-        f_1 = f_1 / len(data_loader)
+        if precision + recall > 0:
+            f_1 = 2 * precision * recall / (precision + recall)
+        else:
+            f_1 = f_1 / len(data_loader)
         print(f'--valid: '
               # f'Loss: {total_loss}, '
               # f'Accuracy: {accuracy}, '
@@ -112,7 +115,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
-    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=32, step=step, self_loop=self_loop,
+    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop,
                                              load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
