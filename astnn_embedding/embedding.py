@@ -152,13 +152,13 @@ def main_func(step, description, r=0.8, use_gpu=True, hidden_dim=100, code_dim=1
         ratio = r
     elif description == 'onlymylyn':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
-        ratio = 1
+        ratio = 0.8
     elif description == 'nopde':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
-        ratio = 1
+        ratio = 0.8
     elif description == 'noplatform':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
-        ratio = 1
+        ratio = 0.8
     elif description == 'mylyn':
         project_model_list = ['my_mylyn']
         ratio = r

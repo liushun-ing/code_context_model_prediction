@@ -58,7 +58,7 @@ def main_func(project_model_name: str, step):
     for model_dir in model_dir_list:
         print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
         rename_model_file = join(model_path, '_code_context_model.xml')
         all_nodes, all_edges = load_origin_model(rename_model_file)
         # 如果不存在模型，跳过处理
@@ -90,9 +90,13 @@ if __name__ == '__main__':
     # ecf
     # main_func('my_ecf')
     # pde
-    # main_func('my_pde')
+    main_func('my_pde', 1)
+    main_func('my_pde', 2)
+    main_func('my_pde', 3)
     # platform
-    # main_func('my_platform')
+    main_func('my_platform', 1)
+    main_func('my_platform', 2)
+    main_func('my_platform', 3)
     # # mylyn
     # print(root_path)
     main_func('my_mylyn', 1)

@@ -78,7 +78,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
         embedding_file_2 = f'{description}_{step}_glove_embedding.pkl'
     elif embedding_type == 'astnn+codebert+stereotype':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
-        embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
+        embedding_file_2 = f'{step}_codebert_embedding.pkl'
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     for model_dir in model_dir_list:
         print('---------------', model_dir)
@@ -173,7 +173,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
     elif embedding_type == 'glove':
         embedding_file = f'{description}_{step}_glove_embedding.pkl'
     elif embedding_type == 'codebert':
-        embedding_file = f'{description}_{step}_codebert_embedding.pkl'
+        embedding_file = f'{step}_codebert_embedding.pkl'
     elif embedding_type == 'astnn+codebert' or embedding_type == 'astnn+glove' or embedding_type == 'astnn+codebert+stereotype':
         save_composed_model(project_path, model_dir_list, step, dest_path, dataset, project_model_name, embedding_type,
                             description)

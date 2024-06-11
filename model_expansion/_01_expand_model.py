@@ -35,24 +35,24 @@ def main_func(project_model_name: str):
         # 读code context model
         model_graphs = model_loader.load_code_context_model(model_file)
         expand_graph.expand_model(model_graphs, all_repo_metrics, 1)
-        model_loader.save_expanded_model(model_graphs, join(model_path, 'new1_1_step_expanded_model.xml'))
+        model_loader.save_expanded_model(model_graphs, join(model_path, 'new_1_step_expanded_model.xml'))
         # # 2 step扩展 需要重置
         model_graphs = model_loader.load_code_context_model(model_file)
         expand_graph.expand_model(model_graphs, all_repo_metrics, 2)
-        model_loader.save_expanded_model(model_graphs, join(model_path, 'new1_2_step_expanded_model.xml'))
+        model_loader.save_expanded_model(model_graphs, join(model_path, 'new_2_step_expanded_model.xml'))
         # # 3 step扩展
         model_graphs = model_loader.load_code_context_model(model_file)
         expand_graph.expand_model(model_graphs, all_repo_metrics, 3)
-        model_loader.save_expanded_model(model_graphs, join(model_path, 'new1_3_step_expanded_model.xml'))
+        model_loader.save_expanded_model(model_graphs, join(model_path, 'new_3_step_expanded_model.xml'))
 
 
 if __name__ == '__main__':
     # ecf
     # main_func('my_ecf')
     # pde
-    # main_func('my_pde')
+    main_func('my_pde')
     # platform
-    # main_func('my_platform')
+    main_func('my_platform')
     # # mylyn
     # print(root_path)
     main_func('my_mylyn')

@@ -3,7 +3,7 @@ from decimal import Decimal
 import pandas as pd
 
 all_result = []
-step = 1
+step = 3
 batch = [0, 27, 14, 10]
 for batch_index in range(batch[step]):
     batch_result = pd.read_pickle(f'./origin_result/no_result_full_{step}_batch_{batch_index}.pkl')

@@ -108,7 +108,7 @@ def load_targets(project_model_name: str, step):
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
-        model_file = join(model_path, f'new_{step}_step_expanded_model.xml')
+        model_file = join(model_path, f'new1_{step}_step_expanded_model.xml')
         # 如果不存在模型，跳过处理
         if not os.path.exists(model_file):
             continue
@@ -227,7 +227,7 @@ def graph_match(step, patterns):
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    f = open(f'origin_result/no_new_match_result_{step}.txt', 'w')
+    f = open(f'origin_result/no_new1_match_result_{step}.txt', 'w')
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
         # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
@@ -240,7 +240,7 @@ def graph_match(step, patterns):
         flag = False
         for G2 in G2s:
             curr_time = time.time()
-            if curr_time - begin_time > 60 * 60:
+            if curr_time - begin_time > 60 * 10:
                 flag = True
                 break
             GM = isomorphism.DiGraphMatcher(G1, G2, node_match=node_match, edge_match=edge_match)
@@ -398,7 +398,7 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.01

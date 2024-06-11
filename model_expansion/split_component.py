@@ -116,9 +116,9 @@ if __name__ == '__main__':
     # ecf
     # main_func('my_ecf')
     # pde
-    # main_func('my_pde')
+    main_func('my_pde')
     # # platform
-    # main_func('my_platform')
+    main_func('my_platform')
     # mylyn
     # print(root_path)
     main_func('my_mylyn')
