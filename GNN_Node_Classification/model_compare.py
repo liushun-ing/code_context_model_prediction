@@ -3,7 +3,12 @@
 """
 import ast
 import os
+from collections import Counter
 from os.path import join
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+
 
 import dgl
 import numpy as np
@@ -33,7 +38,7 @@ def get_graph_list(ratio, step=1, project_model_name='my_mylyn'):
     model_dir_list = get_models_by_ratio(project_model_name, ratio[0], ratio[1])
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     embedding_file_1 = f'mylyn_1_astnn_embedding.pkl'
-    embedding_file_2 = f'mylyn_1_codebert_embedding.pkl'
+    embedding_file_2 = f'1_codebert_embedding.pkl'
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
     graph_list = []
     for model_dir in model_dir_list:
@@ -124,11 +129,11 @@ def extract_upper_triangle(matrix):
     return upper_triangle_elements
 
 
-if os.path.exists('graph_list_train.pkl'):
-    graph_list = pd.read_pickle('graph_list_train.pkl')
+if os.path.exists('graph_list_astnn.pkl'):
+    graph_list = pd.read_pickle('graph_list_astnn.pkl')
 else:
-    graph_list = get_graph_list(ratio=[0.0, 0.8])
-    pd.to_pickle(graph_list, 'graph_list_train.pkl')
+    graph_list = get_graph_list(ratio=[0.0, 1])
+    pd.to_pickle(graph_list, 'graph_list_astnn.pkl')
 
 print(len(graph_list))
 
@@ -240,6 +245,161 @@ def analysis():
 
     print(flag.count(True), flag.count(False))
 
+def kmeans_cluster():
+    variable_result = []
+    function_result = []
+    false_variable_result = []
+    false_function_result = []
+    for g in graph_list:
+        print(f"{g.num_nodes()} nodes")
+        # 获取所有不同的 kind 值
+        kinds = torch.unique(g.ndata['kind'])
+
+        # 遍历每个 kind 并计算相似性
+        for kind in kinds:
+            kind_nodes = (g.ndata['kind'] == kind).nonzero(as_tuple=True)[0]
+            label_1_nodes = kind_nodes[(g.ndata['label'][kind_nodes] == 1).nonzero(as_tuple=True)[0]]
+            label_0_nodes = kind_nodes[(g.ndata['label'][kind_nodes] == 0).nonzero(as_tuple=True)[0]]
+            # 蒋所有节点合并后，进行聚类
+            if label_1_nodes.numel() > 0 and label_0_nodes.numel() > 0:
+                label_1_embeddings = g.ndata['embedding'][label_1_nodes]
+                label_0_embeddings = g.ndata['embedding'][label_0_nodes]
+                all_embeddings = torch.cat((label_1_embeddings, label_0_embeddings), dim=0).tolist()
+                num_clusters = 2
+                kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+                kmeans.fit(all_embeddings)
+                labels = kmeans.labels_
+                size_1 = label_1_embeddings.shape[0]
+                size_0 = label_0_embeddings.shape[0]
+                # print(labels)
+                # 计算正样本的最多聚类标签
+                cluster_labels = np.array(labels[0: size_1])
+                # 计算众数
+                counter = Counter(cluster_labels)
+                mode_data = counter.most_common(1)[0]
+                # 获取众数和出现频率
+                mode = mode_data[0]
+                count = mode_data[1]
+                if kind == 0:
+                    variable_result.append(count / size_1)
+                    common_neg = np.count_nonzero(labels[size_1:] == mode)
+                    false_variable_result.append(common_neg / size_0)
+                    print(f'variable: total positive label {mode}-{count}/{size_1} total negative {common_neg}/{size_0}')
+                elif kind == 1:
+                    function_result.append(count / size_1)
+                    common_neg = np.count_nonzero(labels[size_1:] == mode)
+                    false_function_result.append(common_neg / size_0)
+                    print(f'function: total positive label {mode}-{count}/{size_1} total negative {common_neg}/{size_0}')
+                # centroids = kmeans.cluster_centers_
+                # print(centroids)
+                # pca = PCA(n_components=2)
+                # data_2d = pca.fit_transform(all_embeddings)
+                # centroids_2d = pca.transform(centroids)
+                # plt.figure(figsize=(10, 7))
+                # plt.scatter(data_2d[:, 0], data_2d[:, 1], c=labels, cmap='viridis', marker='o', alpha=0.5)
+                # plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], c='red', marker='x', s=100)
+                # plt.title('K-means Clustering (2D PCA projection)')
+                # plt.xlabel('PCA Component 1')
+                # plt.ylabel('PCA Component 2')
+                # plt.show()
+
+    # 定义起始区间、结束区间和间隔
+    start = 0
+    end = 1
+    interval = 0.1
+    # 计算区间边界
+    bins = np.arange(start, end + interval, interval)
+    # 计算每个区间的统计量
+    hist, bin_edges = np.histogram(variable_result, bins=bins)
+    print('true variable')
+    print(len(variable_result))
+    # 打印每个区间的统计量
+    for i in range(len(hist)):
+        print(f"Bin {i + 1}: {hist[i]} values in range [{bin_edges[i]:.2f}, {bin_edges[i + 1]:.2f})")
+
+    # 计算每个区间的统计量
+    hist, bin_edges = np.histogram(function_result, bins=bins)
+    print('true method')
+    print(len(function_result))
+    # 打印每个区间的统计量
+    for i in range(len(hist)):
+        print(f"Bin {i + 1}: {hist[i]} values in range [{bin_edges[i]:.2f}, {bin_edges[i + 1]:.2f})")
+
+    hist, bin_edges = np.histogram(false_variable_result, bins=bins)
+    print('false variable')
+    print(len(false_variable_result))
+    # 打印每个区间的统计量
+    for i in range(len(hist)):
+        print(f"Bin {i + 1}: {hist[i]} values in range [{bin_edges[i]:.2f}, {bin_edges[i + 1]:.2f})")
+
+    hist, bin_edges = np.histogram(false_function_result, bins=bins)
+    print('false method')
+    print(len(false_function_result))
+    # 打印每个区间的统计量
+    for i in range(len(hist)):
+        print(f"Bin {i + 1}: {hist[i]} values in range [{bin_edges[i]:.2f}, {bin_edges[i + 1]:.2f})")
+
+def cluster_sample(graph: DGLGraph):
+    # 获取所有不同的 kind 值
+    kinds = torch.unique(graph.ndata['kind'])
+    # 遍历每个 kind 并保留正样本聚类最多的类别的聚类节点
+    for kind in kinds:
+        if kind != 0 and kind != 1:
+            continue
+        kind_nodes = (graph.ndata['kind'] == kind).nonzero(as_tuple=True)[0]
+        label_1_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 1).nonzero(as_tuple=True)[0]]
+        label_0_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 0).nonzero(as_tuple=True)[0]]
+
+        # 蒋所有节点合并后，进行聚类
+        if label_1_nodes.numel() > 0 and label_0_nodes.numel() > 0:
+            print(f"kind: {kind}")
+            label_1_embeddings = graph.ndata['embedding'][label_1_nodes]
+            label_0_embeddings = graph.ndata['embedding'][label_0_nodes]
+            all_embeddings = torch.cat((label_1_embeddings, label_0_embeddings), dim=0).tolist()
+            num_clusters = 2
+            kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+            kmeans.fit(all_embeddings)
+            labels = kmeans.labels_
+            size_1 = label_1_embeddings.shape[0]
+            size_0 = label_0_embeddings.shape[0]
+            # print(labels)
+            # 计算正样本的最多聚类标签
+            cluster_labels = np.array(labels[0: size_1])
+            # 计算众数
+            counter = Counter(cluster_labels)
+            mode_data = counter.most_common(1)[0]
+            # 获取众数和出现频率
+            mode = mode_data[0]
+            count = mode_data[1]
+            label_1 = labels[0: size_1]
+            label_0 = labels[size_1:]
+            need_to_remove_0 = label_0_nodes[label_0 != mode]
+            if need_to_remove_0.shape[0] != 0:
+                print(f'removed false {need_to_remove_0.shape[0]}')
+                graph.remove_nodes(need_to_remove_0.tolist())
+            need_to_remove_1 = label_1_nodes[label_1 != mode]
+            if need_to_remove_1.shape[0] != 0:
+                print(f'removed true {need_to_remove_1.shape[0]}')
+                graph.remove_nodes(need_to_remove_1.tolist())
+    true_nodes = (graph.ndata['label'] == 1).nonzero(as_tuple=True)[0].tolist()
+    while True:
+        curr_len = len(true_nodes)
+        src, dst = graph.edges()
+        for i in range(len(src)):
+            if src[i].item() in true_nodes and dst[i].item() not in true_nodes:
+                true_nodes.append(dst[i].item())
+            if dst[i].item() in true_nodes and src[i].item() not in true_nodes:
+                true_nodes.append(src[i].item())
+        if len(true_nodes) == curr_len:
+            break
+    all_nodes = graph.nodes()
+    need_to_remove = []
+    for node in all_nodes:
+        if node not in true_nodes:
+            need_to_remove.append(node)
+    graph.remove_nodes(need_to_remove)
+    return graph
+
 
 def similarity_sample(graph: DGLGraph):
     kinds = torch.unique(graph.ndata['kind'])
@@ -298,12 +458,13 @@ def similarity_sample(graph: DGLGraph):
     return graph
 
 
+# kmeans_cluster()
 # analysis()
 #
 # node_number = []
 # for g in graph_list:
 #     origin_node = g.number_of_nodes()
-#     sample_node = similarity_sample(g).number_of_nodes()
+#     sample_node = cluster_sample(g).number_of_nodes()
 #     node_number.append([origin_node, sample_node])
 # print(node_number)
 # s = 0
@@ -313,20 +474,28 @@ def similarity_sample(graph: DGLGraph):
 
 res = []
 count = 0
+type_list = [0, 0, 0, 0]
 for graph in graph_list:
     before = graph.number_of_nodes()
-    graph = similarity_sample(graph)
+    graph = cluster_sample(graph)
     if graph.number_of_nodes() != before:
         count += 1
     true_node = (graph.ndata['label'] == 1).nonzero(as_tuple=True)[0].shape[0]
     false_node = (graph.ndata['label'] == 0).nonzero(as_tuple=True)[0].shape[0]
     res.append(false_node * 1.0 / true_node if true_node > 0 else false_node * 1.0)
+    kinds = torch.unique(graph.ndata['kind'])
+    for kind in kinds:
+        type_list[kind] += (graph.ndata['kind'] == kind).nonzero(as_tuple=True)[0].shape[0]
 
 print(f"count: {count}")
 res = np.array(res)
 sort_counts_list = np.sort(res)
 Q3 = np.percentile(sort_counts_list, 75, method='midpoint')
 print(f'total: {res.shape}, min: {np.min(res)}, max: {np.max(res)}, mean: {np.mean(res)}, TQ: {Q3}')
+
+print(type_list)
+
+
 
 # for graph in graph_list[0:2]:
 #     # 提取第一个维度的数据并转成 DataFrame 的列

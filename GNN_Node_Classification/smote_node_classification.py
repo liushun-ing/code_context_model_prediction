@@ -13,7 +13,7 @@ from torchmetrics.classification import BinaryAUROC
 
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
-from .utils_nc.concat_prediction_model import ConcatPredictionModel
+from .utils_nc.wo_attention_prediction_model import ConcatPredictionModel
 from .utils_nc.attention_prediction_model import AttentionPredictionModel, Encoder, Classifier
 from .utils_nc.graph_smote_sampling import Decoder, graph_smote_sampling
 

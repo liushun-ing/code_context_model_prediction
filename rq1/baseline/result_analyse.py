@@ -6,7 +6,7 @@ def read_result(step: int, batch_index):
     result = []
     count = 0
     # with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
-    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}_seed.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -15,14 +15,14 @@ def read_result(step: int, batch_index):
                 continue
             else:
                 result.append(line.split(' '))
-    print(count, 1111111)
+    print('total: ', count - 1)
     return result
 
 
 def calculate_average_result(step):
     result = []
     curr = []
-    with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}_seed.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -38,6 +38,9 @@ def calculate_average_result(step):
                         r = tp_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0
                         f = (2 * p * r / (p + r)) if (p + r) > 0 else 0
                         curr_result.append([p, r, f])
+                    # all_pos = len([item for item in curr if item[4] == "True"])
+                    # if all_pos == 2:
+                    #     result.append(curr_result)
                     result.append(curr_result)
                 else:
                     continue
@@ -55,19 +58,26 @@ def calculate_average_result(step):
             r = tp_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0
             f = (2 * p * r / (p + r)) if (p + r) > 0 else 0
             curr_result.append([p, r, f])
+        # all_pos = len([item for item in curr if item[4] == "True"])
+        # if all_pos == 2:
+        #     result.append(curr_result)
         result.append(curr_result)
     s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
     for minConf in s:
         i = s.index(minConf)
         p, r, f = 0.0, 0.0, 0.0
+        nothing = 0
         for res in result:
+            if res[i][0] == 0:
+                nothing += 1
+                continue
             p += res[i][0]
             r += res[i][1]
             f += res[i][2]
         p /= len(result)
         r /= len(result)
-        print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {2 * p * r / (p + r):>10.3f}")
+        print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {2 * p * r / (p + r):>10.3f} nothing:{nothing}")
 
 
 def true_positive(data):
@@ -78,7 +88,7 @@ def true_positive(data):
     # 提取confidence和stereotype
     third_column = [float(item[2]) for item in filtered_data]
     fourth_column = [item[3] for item in filtered_data]
-    # fourth_column = [item[3] for item in filtered_data if 0 <= float(item[2]) < 0.1]
+    # fourth_column = [item[3] for item in filtered_data if 0 <= float(item[2]) <= 0.01]
 
     # 计算confidence数据的统计值
     third_column_min = np.min(third_column)
@@ -88,7 +98,7 @@ def true_positive(data):
     third_column_variance = np.var(third_column)
 
     # confidence数据分段统计
-    bins = np.arange(0.0, 1.1, 0.1)
+    bins = np.arange(0.0, 1.01, 0.01)
     hist, bin_edges = np.histogram(third_column, bins=bins)
     total_count = len(third_column)
     proportions = hist / total_count
@@ -108,7 +118,7 @@ def true_positive(data):
 
     print("\nconfidence数据的分段统计 (0 到 1 间隔 0.1):")
     for i in range(len(hist)):
-        print(f"{bin_edges[i]:.1f}-{bin_edges[i + 1]:.1f} {hist[i]} {proportions[i]:.2%}")
+        print(f"{bin_edges[i]:.2f}-{bin_edges[i + 1]:.2f} {hist[i]} {proportions[i]:.2%}")
 
     print("\nstereotype数据的统计:")
     sorted_labels = sorted(fourth_column_counts.items(), key=lambda item: item[1], reverse=True)
@@ -218,5 +228,5 @@ if __name__ == '__main__':
     FPs = false_positive(result)
     TPs = true_positive(result)
     FN = false_negative(result)
-    calculate_result(FPs, TPs, FN)
+    # calculate_result(FPs, TPs, FN)
     calculate_average_result(step)

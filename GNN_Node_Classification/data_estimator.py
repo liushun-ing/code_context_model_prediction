@@ -50,6 +50,6 @@ def estimate_positive_and_negative_samples(project_model_list: list[str], step: 
     print(f'all: {total.shape}, mean: {np.mean(total)}, TQ: {Q3}')
 
 
-estimate_positive_and_negative_samples(['my_mylyn'], step=2)
+estimate_positive_and_negative_samples(['my_mylyn'], step=1)
 # estimate_positive_and_negative_samples(['my_mylyn'], step=2)
 # estimate_positive_and_negative_samples(['my_mylyn'], step=3)

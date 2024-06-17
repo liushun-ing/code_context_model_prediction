@@ -3,7 +3,7 @@ from decimal import Decimal
 import pandas as pd
 
 all_result = []
-step = 3
+step = 1
 batch = [0, 27, 14, 10]
 for batch_index in range(batch[step]):
     batch_result = pd.read_pickle(f'./origin_result/no_result_full_{step}_batch_{batch_index}.pkl')
@@ -16,15 +16,20 @@ print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
 for minConf in s:
     i = s.index(minConf)
     p, r, f = 0.0, 0.0, 0.0
+    nothing = 0
     for res in all_result:
+        if res[i][0] == 0 and res[i][1] == 0:
+            # print('结果为 0，啥也没有')
+            nothing += 1
+            continue
         p += res[i][0]
         r += res[i][1]
         f += res[i][2]
-    p = Decimal(p / len(all_result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-    r = Decimal(r / len(all_result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+    p = Decimal(p / (len(all_result) - nothing)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
+    r = Decimal(r / (len(all_result) - nothing)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
     # f = Decimal(f / len(all_result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
     f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-    print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
+    print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f} nothing: {nothing}")
 
 result = []
 for batch_index in range(batch[step]):

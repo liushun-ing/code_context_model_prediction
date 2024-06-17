@@ -4,6 +4,10 @@ import os
 from os.path import join
 from typing import Literal
 
+import numpy as np
+from sklearn.cluster import KMeans
+from collections import Counter
+
 import dgl
 import pandas as pd
 import torch
@@ -15,13 +19,13 @@ import torch.nn.functional as F
 LOAD_MODE = Literal['train', 'valid', 'test']
 
 
-def get_graph_files(dataset_path, mode: LOAD_MODE, step: int):
+def get_graph_files(dataset_path, mode: LOAD_MODE, embedding_type: str, step: int):
     """
     获取图数据保存文件
 
     :return: [(nodes.tsv, edges.tsv), ...]
     """
-    graph_path = join(dataset_path, f'model_dataset_{str(step)}')
+    graph_path = join(dataset_path, f'{embedding_type}_model_dataset_{str(step)}')
     graph_files = []
     if mode == 'train':
         if os.path.exists(join(graph_path, 'train')):
@@ -115,6 +119,66 @@ def similarity_sample(graph: DGLGraph):
             need_to_remove.append(node)
     graph.remove_nodes(need_to_remove)
     return graph
+
+
+def cluster_sample(graph: DGLGraph):
+    # 获取所有不同的 kind 值
+    kinds = torch.unique(graph.ndata['kind'])
+    # 遍历每个 kind 并保留正样本聚类最多的类别的聚类节点
+    for kind in kinds:
+        if kind != 0 and kind != 1:
+            continue
+        kind_nodes = (graph.ndata['kind'] == kind).nonzero(as_tuple=True)[0]
+        label_1_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 1).nonzero(as_tuple=True)[0]]
+        label_0_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 0).nonzero(as_tuple=True)[0]]
+
+        # 蒋所有节点合并后，进行聚类
+        if label_1_nodes.numel() > 0 and label_0_nodes.numel() > 0:
+            label_1_embeddings = graph.ndata['embedding'][label_1_nodes]
+            label_0_embeddings = graph.ndata['embedding'][label_0_nodes]
+            all_embeddings = torch.cat((label_1_embeddings, label_0_embeddings), dim=0).tolist()
+            num_clusters = 2
+            kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+            kmeans.fit(all_embeddings)
+            labels = kmeans.labels_
+            size_1 = label_1_embeddings.shape[0]
+            size_0 = label_0_embeddings.shape[0]
+            # print(labels)
+            # 计算正样本的最多聚类标签
+            cluster_labels = np.array(labels[0: size_1])
+            # 计算众数
+            counter = Counter(cluster_labels)
+            mode_data = counter.most_common(1)[0]
+            # 获取众数和出现频率
+            mode = mode_data[0]
+            count = mode_data[1]
+            label_1 = labels[0: size_1]
+            label_0 = labels[size_1:]
+            need_to_remove_0 = label_0_nodes[label_0 != mode]
+            if need_to_remove_0.shape[0] != 0:
+                graph.remove_nodes(need_to_remove_0.tolist())
+            need_to_remove_1 = label_1_nodes[label_1 != mode]
+            if need_to_remove_1.shape[0] != 0:
+                graph.remove_nodes(need_to_remove_1.tolist())
+    true_nodes = (graph.ndata['label'] == 1).nonzero(as_tuple=True)[0].tolist()
+    while True:
+        curr_len = len(true_nodes)
+        src, dst = graph.edges()
+        for i in range(len(src)):
+            if src[i].item() in true_nodes and dst[i].item() not in true_nodes:
+                true_nodes.append(dst[i].item())
+            if dst[i].item() in true_nodes and src[i].item() not in true_nodes:
+                true_nodes.append(src[i].item())
+        if len(true_nodes) == curr_len:
+            break
+    all_nodes = graph.nodes()
+    need_to_remove = []
+    for node in all_nodes:
+        if node not in true_nodes:
+            need_to_remove.append(node)
+    graph.remove_nodes(need_to_remove)
+    return graph
+
 
 
 def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: float):
@@ -235,7 +299,8 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
     g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
     # 是否 similarity 过滤
     # if under_sampling_threshold == 0:
-    g = similarity_sample(g)
+    # g = similarity_sample(g)
+    g = cluster_sample(g)
     # 是否 undersample
     if under_sampling_threshold > 0:
         g = random_under_sampling(g, mode, under_sampling_threshold)
@@ -285,13 +350,14 @@ def collate(batch):
     return batched_graph, features, labels, edge_types, kinds
 
 
-def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: int, under_sampling_threshold=15,
+def load_prediction_data(dataset_path, mode: LOAD_MODE, embedding_type: str, batch_size: int, step: int, under_sampling_threshold=15,
                          self_loop=True, load_lazy=True) -> torch.utils.data.dataloader.DataLoader:
     """
     根据模式加载数据集,可以选择懒加载
 
     :param dataset_path: 数据集保存路径
     :param step: 步长
+    :param embedding_type: type of embedding
     :param mode: Literal['train', 'valid', 'test']
     :param batch_size: batch大小
     :param under_sampling_threshold: 欠采样阈值，最终负/正样本比例
@@ -299,7 +365,7 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
     :param load_lazy: 是否加载之前的数据
     :return: 相应数据集的DataLoader
     """
-    old_data_path = join(dataset_path, f'model_dataset_{str(step)}', f'{mode}',
+    old_data_path = join(dataset_path, f'{embedding_type}_model_dataset_{str(step)}', f'{mode}',
                          f'old_data_{mode}_{under_sampling_threshold}.pkl')
     if load_lazy and os.path.exists(old_data_path):
         print('lazyload...')
@@ -307,7 +373,7 @@ def load_prediction_data(dataset_path, mode: LOAD_MODE, batch_size: int, step: i
     else:
         # 从文件加载多个图数据
         graphs = []
-        for node_file, edge_file in get_graph_files(dataset_path, mode, step):
+        for node_file, edge_file in get_graph_files(dataset_path, mode, embedding_type, step):
             graphs = graphs + load_graph_data(node_file, edge_file, mode, under_sampling_threshold, self_loop)
         # 创建数据集和 DataLoader
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -72,7 +72,7 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                         description):
     if embedding_type == 'astnn+codebert':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
-        embedding_file_2 = f'{description}_{step}_codebert_embedding.pkl'
+        embedding_file_2 = f'{step}_codebert_embedding.pkl'
     elif embedding_type == 'astnn+glove':
         embedding_file_1 = f'{description}_{step}_astnn_embedding.pkl'
         embedding_file_2 = f'{description}_{step}_glove_embedding.pkl'
@@ -98,19 +98,6 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
         # seed_num_list = list()
         if len(graphs) == 0:
             continue
-        # for graph in graphs:
-        #     count = 0
-        #     vertices = graph.find('vertices')
-        #     vertex_list = vertices.findall('vertex')
-        #     for vertex in vertex_list:
-        #         if vertex.get('seed') == '1':
-        #             count += 1
-        #     seed_num_list.append(count)
-        # one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
-        # remain_seed_list = list()
-        # for i in range(len(one_seed_index) - 1):
-        #     remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
-        # remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
         for graph in graphs:
             # 创建保存nodes和edges的数据结构
             nodes_tsv = list()
@@ -127,10 +114,8 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                 # print(node_id)
                 embedding_1 = embedding_list_1[embedding_list_1['id'] == node_id]['embedding'].iloc[0]
                 embedding_2 = embedding_list_2[embedding_list_2['id'] == node_id]['embedding'].iloc[0]
-                # embedding_seed = SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
                 # 进行组合
                 embedding = embedding_1.tolist() + embedding_2.tolist()
-                # embedding = embedding_1.tolist() + embedding_2.tolist() + embedding_seed
                 if embedding_type == 'astnn+codebert':
                     embedding = embedding
                 elif embedding_type == 'astnn+codebert+stereotype':
@@ -138,10 +123,8 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
                     embedding_stereotype = STEREOTYPE_EMBEDDING(
                         torch.tensor(step_1.index(stereotype))).squeeze().tolist()
                     embedding = embedding + embedding_stereotype
-                # nodes_tsv.append(
-                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
                 nodes_tsv.append(
-                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
+                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind')])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')
@@ -149,18 +132,16 @@ def save_composed_model(project_path, model_dir_list, step, dest_path, dataset, 
             for edge in edge_list:
                 start, end, edge_label = adjust_edge(edge, vertex_list)
                 edges_tsv.append([start, end, edge_label])
-                # edges_tsv.append([end, start, edge_label + 5]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
-            dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
+            dest = join(dest_path, f'{embedding_type}_model_dataset_{str(step)}', dataset,
                         f'{project_model_name}_{model_dir}_{str(base)}')
             if os.path.exists(dest):
                 shutil.rmtree(dest)
             os.makedirs(dest)
-            # if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
             if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
                 if true_node > step:
-                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
+                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
                         join(dest, 'edges.tsv'), index=False)
@@ -198,19 +179,6 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
         # seed_num_list = list()
         if len(graphs) == 0:
             continue
-        # for graph in graphs:
-        #     count = 0
-        #     vertices = graph.find('vertices')
-        #     vertex_list = vertices.findall('vertex')
-        #     for vertex in vertex_list:
-        #         if vertex.get('seed') == '1':
-        #             count += 1
-        #     seed_num_list.append(count)
-        # one_seed_index = [i for i, x in enumerate(seed_num_list) if x == 1]
-        # remain_seed_list = list()
-        # for i in range(len(one_seed_index) - 1):
-        #     remain_seed_list.append(math.floor((one_seed_index[i] + one_seed_index[i + 1]) / 2))
-        # remain_seed_list.append(math.ceil((one_seed_index[-1] + seed_num_list[-1]) / 2))
         for graph in graphs:
             # 创建保存nodes和edges的数据结构
             nodes_tsv = list()
@@ -227,10 +195,7 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
                 # 去找 embedding 并添加  这儿不知道为什么会多一层列表
                 embedding = embedding_list[embedding_list['id'] == node_id]['embedding'].iloc[0].tolist()
                 nodes_tsv.append(
-                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('origin'))])
-                # embedding = embedding + SEED_EMBEDDING(torch.tensor(int(vertex.get('seed')))).squeeze().tolist()
-                # nodes_tsv.append(
-                #     [_id, embedding, int(vertex.get('origin')), vertex.get('kind'), int(vertex.get('seed'))])
+                    [_id, embedding, int(vertex.get('origin')), vertex.get('kind')])
                 if int(vertex.get('origin')) == 1:
                     true_node += 1
             edges = graph.find('edges')
@@ -238,10 +203,9 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             for edge in edge_list:
                 start, end, edge_label = adjust_edge(edge, vertex_list)
                 edges_tsv.append([start, end, edge_label])
-                # edges_tsv.append([end, start, edge_label + 5]) # 加入反向边
                 if int(edge.get('origin')) == 1:
                     true_edge += 1
-            dest = join(dest_path, f'model_dataset_{str(step)}', dataset,
+            dest = join(dest_path, f'{embedding_type}_model_dataset_{str(step)}', dataset,
                         f'{project_model_name}_{model_dir}_{str(base)}')
             if os.path.exists(dest):
                 shutil.rmtree(dest)
@@ -250,21 +214,10 @@ def save_model(project_path, model_dir_list, step, dest_path, dataset, project_m
             # if graphs.index(graph) in remain_seed_list and len(nodes_tsv) > 0 and len(edges_tsv) > 0:
             if len(nodes_tsv) > 0 and len(edges_tsv) > 0:
                 if true_node > step:
-                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
+                    pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind']).to_csv(
                         join(dest, 'nodes.tsv'), index=False)
                     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
                         join(dest, 'edges.tsv'), index=False)
-                # if dataset != 'train':
-                #     if true_node > step:
-                #         pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
-                #             join(dest, 'nodes.tsv'), index=False)
-                #         pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
-                #             join(dest, 'edges.tsv'), index=False)
-                # else:
-                #     pd.DataFrame(nodes_tsv, columns=['node_id', 'code_embedding', 'label', 'kind', 'seed']).to_csv(
-                #         join(dest, 'nodes.tsv'), index=False)
-                #     pd.DataFrame(edges_tsv, columns=['start_node_id', 'end_node_id', 'relation']).to_csv(
-                #         join(dest, 'edges.tsv'), index=False)
             base += 1
 
 
@@ -281,8 +234,8 @@ def main_func(description: str, step: int, dest_path: str, embedding_type: str):
     :param dest_path: 数据集保存的路径
     :return:
     """
-    if os.path.exists(join(dest_path, f'model_dataset_{str(step)}')):
-        shutil.rmtree(join(dest_path, f'model_dataset_{str(step)}'))
+    if os.path.exists(join(dest_path, f'{embedding_type}_model_dataset_{str(step)}')):
+        shutil.rmtree(join(dest_path, f'{embedding_type}_model_dataset_{str(step)}'))
     if description == 'all':
         project_model_list = ['my_pde', 'my_platform', 'my_mylyn']
         for project_model_name in project_model_list:

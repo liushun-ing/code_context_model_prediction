@@ -20,7 +20,7 @@ parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
 construct = False
-load_lazy = True
+load_lazy = False
 train = True
 
 my_params = {
@@ -44,7 +44,6 @@ my_params = {
     'weight_decay': 1e-6,
     'approach': 'attention' # attention or concat
 }
-print(my_params)
 
 if not args.nni:
     assert args.gpu != ''
@@ -67,7 +66,8 @@ else:
         "result_name"] = (f"{my_params['description']}_{my_params['model_type']}"
                           f"_{my_params['embedding_type']}_{my_params['under_sampling_threshold']}_model")
 
-# print(my_params)
+print(my_params)
+
 # construct input: train, valid, test dataset of four project
 if construct:
     construct_input.main_func(

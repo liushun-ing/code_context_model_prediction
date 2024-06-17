@@ -14,7 +14,8 @@ from torchmetrics.classification import BinaryAUROC
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
 
-from .utils_nc.concat_prediction_model import ConcatPredictionModel
+from .utils_nc.wo_attention_prediction_model import WoAttentionPredictionModel
+from .utils_nc.wo_concat_prediction_model import WoConcatPredictionModel
 from .utils_nc.attention_prediction_model import AttentionPredictionModel
 
 
@@ -92,7 +93,7 @@ def valid(gnn_model, data_loader, device, threshold):
         return [total_loss, accuracy, precision, recall, f_1, auroc]
 
 
-def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
+def train(save_path, save_name, embedding_type, step, gnn_model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
           weight_decay, use_nni, under_sampling_threshold):
     """
     训练函数
@@ -115,7 +116,7 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     optimizer = optim.Adam(gnn_model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.BCELoss()  # 二元交叉熵
     print('----load valid dataset----')
-    valid_data_loader = load_prediction_data(save_path, 'valid', batch_size=1, step=step, self_loop=self_loop,
+    valid_data_loader = load_prediction_data(save_path, 'valid', embedding_type, batch_size=1, step=step, self_loop=self_loop,
                                              load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
     valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
     result = []
@@ -166,13 +167,13 @@ def train(save_path, save_name, step, gnn_model, data_loader, epochs, lr, device
     util.save_result(result, save_path, step, save_name)
 
 
-def start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
+def start_train(save_path, save_name, embedding_type, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
                 self_loop, load_lazy, weight_decay, use_nni):
     print('----load train dataset----')
-    data_loader = load_prediction_data(save_path, 'train', batch_size, step, under_sampling_threshold, self_loop,
+    data_loader = load_prediction_data(save_path, 'train', embedding_type, batch_size, step, under_sampling_threshold, self_loop,
                                        load_lazy)
     # print('----start train----')
-    train(save_path, save_name, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
+    train(save_path, save_name, embedding_type, step, model, data_loader, epochs, lr, device, threshold, self_loop, load_lazy,
           weight_decay, use_nni, under_sampling_threshold)
 
 
@@ -184,11 +185,15 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
     else:
         device = 'cpu'
     # 创建模型
-    if approach == 'concat':
-        model = ConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types)
+    if approach == 'wo_attention':
+        model = WoAttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                                           num_edge_types)
     elif approach == 'attention':
         model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
                                          num_edge_types, attention_heads)
+    elif approach == 'wo_concat':
+        model = WoConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
+                                        num_edge_types, attention_heads)
     else:
         model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, dropout, num_heads,
                                          num_edge_types, attention_heads)
@@ -196,7 +201,7 @@ def init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_
     return device, model
 
 
-def main_func(save_path: str, save_name: str, step: int, under_sampling_threshold=15, model_type="GCN",
+def main_func(save_path: str, save_name: str, embedding_type: str, step: int, under_sampling_threshold=15, model_type="GCN",
               num_layers=3, in_feats=1280, hidden_size=1024, dropout=0.1, attention_heads=8, num_heads=8,
               num_edge_types=6, epochs=50, lr=0.001, batch_size=16, threshold=0.5, use_gpu=True, load_lazy=True,
               weight_decay=1e-6, approach='attention', use_nni=False):
@@ -205,6 +210,7 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
 
     :param save_path: 保存模型和结果的路径
     :param save_name: 保存的模型的名字
+    :param embedding_type: type of embedding
     :param step: 步长
     :param under_sampling_threshold: 欠采样比例阈值 default: 5.0
     :param model_type: 需要选择的模型： GCN, GAT, RGCN, GraphSAGE, GGNN default:GCN
@@ -232,5 +238,5 @@ def main_func(save_path: str, save_name: str, step: int, under_sampling_threshol
         self_loop = True
     device, model = init(model_type, num_layers, in_feats, hidden_size, dropout, num_heads, num_edge_types, use_gpu,
                          attention_heads, approach)
-    start_train(save_path, save_name, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
+    start_train(save_path, save_name, embedding_type, step, under_sampling_threshold, model, device, epochs, lr, batch_size, threshold,
                 self_loop, load_lazy, weight_decay, use_nni)

@@ -1,3 +1,5 @@
+import copy
+import itertools
 import os
 import sys
 import time
@@ -8,6 +10,7 @@ import networkx as nx
 import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
+from networkx import DiGraph
 from networkx.algorithms import isomorphism
 from gspan_mining.config import parser
 from gspan_mining.main import main
@@ -221,116 +224,150 @@ def save_result_stereotype(confidence, nodes, f):
             f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
 
 
+def get_all_seeds(g: DiGraph):
+    seed_list = []
+    nodes_with_label_1 = [node for node, attr in g.nodes(data=True) if attr.get('origin') == '1']
+    n = len(nodes_with_label_1)
+    all_combinations = []
+    # 遍历从1到n-1的所有组合长度
+    for r in range(1, n):
+        combinations_r = list(itertools.combinations(nodes_with_label_1, r))
+        all_combinations.extend(combinations_r)
+    for combination in all_combinations:
+        non_connected_nodes = []
+        # 遍历图中的所有节点
+        for node in g.nodes():
+            is_connected = False
+            # 检查该节点是否与node_list中的任意节点相连
+            for n in combination:
+                if g.has_edge(node, n) or g.has_edge(n, node):
+                    is_connected = True
+                    break
+            # 如果该节点不与node_list中的任何节点相连，则添加到结果列表中
+            if not is_connected:
+                non_connected_nodes.append(node)
+        new_g = copy.deepcopy(g)
+        new_g.remove_nodes_from(non_connected_nodes)
+        if len([node for node, attr in new_g.nodes(data=True) if attr.get('origin') == '1']) > 1:
+            seed_list.append(new_g)
+    return seed_list
+
+
 def graph_match(step, patterns):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
+    total = 0
     result_1, result_3, result_5, result_full = [], [], [], []
     # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    f = open(f'origin_result/no_new_match_result_{step}_144.txt', 'w')
+    f = open(f'origin_result/no_new_match_result_{step}_seed.txt', 'w')
     f.write("node_id origin_label confidence stereotype label_result predict_result\n")
     for G1 in G1s:
         # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
         # if G1s.index(G1) in [290]:
         #     continue
         print(f'handling: {G1s.index(G1)}-{G1}')
-        begin_time = time.time()
-        total_match = 0
-        confidence = dict()
-        flag = False
-        for G2 in G2s:
-            curr_time = time.time()
-            if curr_time - begin_time > 60 * 10:
-                flag = True
-                break
-            GM = isomorphism.DiGraphMatcher(G1, G2, node_match=node_match, edge_match=edge_match)
-            if GM.subgraph_is_isomorphic():
-                for sub_iter in GM.subgraph_isomorphisms_iter():
-                    total_match += 1
-                    nodes = list(map(int, list(sub_iter.keys())))
-                    for node in nodes:
-                        if confidence.get(node):
-                            confidence[node] = confidence[node] + 1
-                        else:
-                            confidence[node] = 1
-                    # sub_G1: nx.DiGraph = G1.subgraph(nodes)
-                    # print(sub_G1.nodes.data(), sub_G1.edges.data())
-        if flag:
-            print(f'continue {G1s.index(G1)}')
-            continue
-        for i in confidence:
-            confidence[i] = confidence.get(i) / total_match
-        confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)  # [(3, 1.0), (17, 0.5), (14, 0.5)]
-        # print(f'{G1} confidence {confidence}')
-        # k = 1
-        # if k > 0:
-        #     length = len(confidence)
-        #     topk = min(len(G1.nodes), k)
-        #     labels = []
-        #     if (length >= topk):
-        #         top_confidence = confidence[:topk]
-        #         for top_c in top_confidence:
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     else:
-        #         top_confidence = confidence[:]
-        #         for top_c in top_confidence:
-        #             # print(G1.nodes.get(node_id))
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     true_number = 0
-        #     for n in list(G1.nodes):
-        #         true_number += int(G1.nodes.get(n)['origin'])
-        #     result_1.append(calculate_result(labels, true_number))
-        # k = 3
-        # if k > 0:
-        #     length = len(confidence)
-        #     topk = min(len(G1.nodes), k)
-        #     labels = []
-        #     if (length >= topk):
-        #         top_confidence = confidence[:topk]
-        #         for top_c in top_confidence:
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     else:
-        #         top_confidence = confidence[:]
-        #         for top_c in top_confidence:
-        #             # print(G1.nodes.get(node_id))
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     true_number = 0
-        #     for n in list(G1.nodes):
-        #         true_number += int(G1.nodes.get(n)['origin'])
-        #     result_3.append(calculate_result(labels, true_number))
-        # k = 5
-        # if k > 0:
-        #     length = len(confidence)
-        #     topk = min(len(G1.nodes), k)
-        #     labels = []
-        #     if (length >= topk):
-        #         top_confidence = confidence[:topk]
-        #         for top_c in top_confidence:
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     else:
-        #         top_confidence = confidence[:]
-        #         for top_c in top_confidence:
-        #             # print(G1.nodes.get(node_id))
-        #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
-        #     true_number = 0
-        #     for n in list(G1.nodes):
-        #         true_number += int(G1.nodes.get(n)['origin'])
-        #     result_5.append(calculate_result(labels, true_number))
-        k = 0
-        if k == 0:
-            output, labels = [], []
-            # print(confidence)
-            for top_c in confidence:
-                node_id = top_c[0]
-                output.append(top_c[1])
-                # print(G1.nodes.get(node_id))
-                labels.append(int(G1.nodes.get(node_id)['origin']))
-            true_number = 0
-            for n in list(G1.nodes):
-                true_number += int(G1.nodes.get(n)['origin'])
-            if true_number > 0:
-                result_full.append(calculate_result_full(labels, output, true_number))
-                save_result_stereotype(confidence, G1.nodes, f)
+        seeds = get_all_seeds(G1)
+        total += len(seeds)
+        for seed in seeds:
+            print(f'handling seed: {seeds.index(seed)}-{seed}')
+            begin_time = time.time()
+            total_match = 0
+            confidence = dict()
+            flag = False
+            for G2 in G2s:
+                curr_time = time.time()
+                if curr_time - begin_time > 60 * 10:
+                    flag = True
+                    break
+                GM = isomorphism.DiGraphMatcher(seed, G2, node_match=node_match, edge_match=edge_match)
+                if GM.subgraph_is_isomorphic():
+                    for sub_iter in GM.subgraph_isomorphisms_iter():
+                        total_match += 1
+                        nodes = list(map(int, list(sub_iter.keys())))
+                        for node in nodes:
+                            if confidence.get(node):
+                                confidence[node] = confidence[node] + 1
+                            else:
+                                confidence[node] = 1
+                        # sub_G1: nx.DiGraph = G1.subgraph(nodes)
+                        # print(sub_G1.nodes.data(), sub_G1.edges.data())
+            if flag:
+                print(f'continue {seeds.index(seed)}')
+                continue
+            for i in confidence:
+                confidence[i] = confidence.get(i) / total_match
+            confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)  # [(3, 1.0), (17, 0.5), (14, 0.5)]
+            # print(f'{G1} confidence {confidence}')
+            # k = 1
+            # if k > 0:
+            #     length = len(confidence)
+            #     topk = min(len(G1.nodes), k)
+            #     labels = []
+            #     if (length >= topk):
+            #         top_confidence = confidence[:topk]
+            #         for top_c in top_confidence:
+            #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
+            #     else:
+            #         top_confidence = confidence[:]
+            #         for top_c in top_confidence:
+            #             # print(G1.nodes.get(node_id))
+            #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
+            #     true_number = 0
+            #     for n in list(G1.nodes):
+            #         true_number += int(G1.nodes.get(n)['origin'])
+            #     result_1.append(calculate_result(labels, true_number))
+            # k = 3
+            # if k > 0:
+            #     length = len(confidence)
+            #     topk = min(len(G1.nodes), k)
+            #     labels = []
+            #     if (length >= topk):
+            #         top_confidence = confidence[:topk]
+            #         for top_c in top_confidence:
+            #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
+            #     else:
+            #         top_confidence = confidence[:]
+            #         for top_c in top_confidence:
+            #             # print(G1.nodes.get(node_id))
+            #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
+            #     true_number = 0
+            #     for n in list(G1.nodes):
+            #         true_number += int(G1.nodes.get(n)['origin'])
+            #     result_3.append(calculate_result(labels, true_number))
+            # k = 5
+            # if k > 0:
+            #     length = len(confidence)
+            #     topk = min(len(G1.nodes), k)
+            #     labels = []
+            #     if (length >= topk):
+            #         top_confidence = confidence[:topk]
+            #         for top_c in top_confidence:
+            #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
+            #     else:
+            #         top_confidence = confidence[:]
+            #         for top_c in top_confidence:
+            #             # print(G1.nodes.get(node_id))
+            #             labels.append(int(G1.nodes.get(top_c[0])['origin']))
+            #     true_number = 0
+            #     for n in list(G1.nodes):
+            #         true_number += int(G1.nodes.get(n)['origin'])
+            #     result_5.append(calculate_result(labels, true_number))
+            k = 0
+            if k == 0:
+                output, labels = [], []
+                # print(confidence)
+                for top_c in confidence:
+                    node_id = top_c[0]
+                    output.append(top_c[1])
+                    # print(G1.nodes.get(node_id))
+                    labels.append(int(seed.nodes.get(node_id)['origin']))
+                true_number = 0
+                for n in list(seed.nodes):
+                    true_number += int(seed.nodes.get(n)['origin'])
+                if true_number > 0:
+                    result_full.append(calculate_result_full(labels, output, true_number))
+                    save_result_stereotype(confidence, seed.nodes, f)
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)

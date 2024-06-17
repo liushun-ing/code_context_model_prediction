@@ -14,7 +14,7 @@ from torchmetrics.classification import BinaryAveragePrecision
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
 
-from .utils_nc.concat_prediction_model import ConcatPredictionModel
+from .utils_nc.wo_attention_prediction_model import ConcatPredictionModel
 from .utils_nc.attention_prediction_model import AttentionPredictionModel, Classifier, Encoder
 
 

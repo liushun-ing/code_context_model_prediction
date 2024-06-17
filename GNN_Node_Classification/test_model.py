@@ -1,6 +1,4 @@
-import math
 from decimal import Decimal
-from os.path import join
 
 import numpy as np
 import torch
@@ -14,7 +12,8 @@ from torchmetrics.classification import BinaryAveragePrecision
 from .utils_nc import util
 from .utils_nc.data_loader import load_prediction_data
 
-from .utils_nc.concat_prediction_model import ConcatPredictionModel
+from .utils_nc.wo_attention_prediction_model import WoAttentionPredictionModel
+from .utils_nc.wo_concat_prediction_model import WoConcatPredictionModel
 from .utils_nc.attention_prediction_model import AttentionPredictionModel
 
 
@@ -80,12 +79,10 @@ def save_specific_result(labels, output, threshold, kinds, s_file):
         s_file.write(f"{i} {label} {out} {kind_mapping[int(kind)]} {label == 1}\n")
 
 
-def print_result(result, threshold, fi):
+def print_result(result, threshold):
     target = [0.0, 0.0, 0.0, 0.0]
     s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
     print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10} {'AUPRC':>10}")
-    line = f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10} {'AUPRC':>10}\n"
-    fi.write(line)
     for minConf in s:
         i = s.index(minConf)
         p, r, f, a = 0.0, 0.0, 0.0, 0.0
@@ -103,13 +100,12 @@ def print_result(result, threshold, fi):
             f = Decimal(f / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
         a = Decimal(a / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
         print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f} {a:>10.3f}")
-        fi.write(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f} {a:>10.3f}\n")
         if minConf == threshold:
-            target = [p, r, f, a]
+            target = [float(p), float(r), float(f), float(a)]
     return target
 
 
-def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=None):
+def test(gnn_model, data_loader, device, top_k, threshold, use_nni, s_file=None):
     """
     使用测试集测试最终的模型
 
@@ -118,7 +114,6 @@ def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=N
     :param device: device
     :param top_k: top-k need to prediction 1,3,5, 0-> Full
     :param threshold: classification threshold
-    :param fi: file to save result
     :return: none
     """
     with torch.no_grad():
@@ -140,12 +135,13 @@ def test(gnn_model, data_loader, device, top_k, threshold, use_nni, fi, s_file=N
                 # output = select_result(output)
                 # print(labels, output)
                 result.append(calculate_result_full(labels, output, device))
-                if s_file is not None:
-                    save_specific_result(labels, output, threshold, kinds, s_file)
-        target = print_result(result, threshold, fi)
+                # if s_file is not None:
+                #     save_specific_result(labels, output, threshold, kinds, s_file)
+        target = print_result(result, threshold)
         if use_nni:
             print(target[2])
-            nni.report_final_result(float(target[2]))
+            nni.report_final_result(target[2])
+        return target
 
 
 def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_size, num_heads, num_edge_types,
@@ -156,20 +152,24 @@ def init(model_path, load_name, step, model_type, num_layers, in_feats, hidden_s
     else:
         device = 'cpu'
     # 创建模型
-    if approach == 'concat':
-        model = ConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types)
+    if approach == 'wo_attention':
+        model = WoAttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads,
+                                           num_edge_types)
     elif approach == 'attention':
-        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
-                                         attention_heads)
+        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads,
+                                         num_edge_types, attention_heads)
+    elif approach == 'wo_concat':
+        model = WoConcatPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads,
+                                        num_edge_types, attention_heads)
     else:
-        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads, num_edge_types,
-                                         attention_heads)
+        model = AttentionPredictionModel(model_type, num_layers, in_feats, hidden_size, 0, num_heads,
+                                         num_edge_types, attention_heads)
     model = util.load_model(model, model_path, step, load_name)
     model.to(device)
     return model, device
 
 
-def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_feats=1280, hidden_size=1024,
+def main_func(model_path, load_name, embedding_type, step, model_type="GCN", num_layers=3, in_feats=1280, hidden_size=1024,
               attention_heads=8, num_heads=8, num_edge_types=6, use_gpu=True, load_lazy=True, approach="attention",
               use_nni=False, under_sampling_threshold=15):
     """
@@ -177,6 +177,7 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
 
     :param model_path: path to trained model
     :param load_name: best model's name
+    :param embedding_type: type of embedding
     :param step: step
     :param model_type: train model type: GCN, GAT, GraphSAGE, RGCN, GGNN
     :param num_layers: number of graph convolution layers
@@ -199,15 +200,11 @@ def main_func(model_path, load_name, step, model_type="GCN", num_layers=3, in_fe
         self_loop = True
     else:
         self_loop = True
-    data_loader = load_prediction_data(model_path, 'test', batch_size=1, step=step, self_loop=self_loop,
+    data_loader = load_prediction_data(model_path, 'test', embedding_type, batch_size=1, step=step, self_loop=self_loop,
                                        load_lazy=load_lazy, under_sampling_threshold=under_sampling_threshold)
     # thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     threshold = 0.4
-    with open(join(model_path, 'result4.txt'), 'a') as f:
-        f.write(f'model: {model_type} + step: {step}\n')
-        for k in [0]:
-            print(f'---top-k:{k}---')
-            f.write(f'---top-k:{k}---\n')
-            with open(f'specific_result_{step}.txt', 'w') as s_file:
-                test(model, data_loader, device, k, threshold, use_nni, f, s_file)
-        f.close()
+    for k in [0]:
+        with open(f'specific_result_{step}.txt', 'w') as s_file:
+            target = test(model, data_loader, device, k, threshold, use_nni, s_file)
+    return target

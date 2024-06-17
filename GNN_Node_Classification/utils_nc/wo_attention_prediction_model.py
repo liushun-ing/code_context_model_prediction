@@ -3,7 +3,7 @@ import torch.nn as nn
 from dgl.nn.pytorch import GATConv, GraphConv, SAGEConv, GatedGraphConv, RelGraphConv
 
 
-class ConcatPredictionModel(nn.Module):
+class WoAttentionPredictionModel(nn.Module):
     """
     Concatenate prediction model
     """
@@ -18,7 +18,7 @@ class ConcatPredictionModel(nn.Module):
         :param num_heads: number of attention heads
         :param num_edge_types: number of edge
         """
-        super(ConcatPredictionModel, self).__init__()
+        super(WoAttentionPredictionModel, self).__init__()
         print("concat prediction model")
         self.model_type = model_type
         self.number_layers = number_layers
