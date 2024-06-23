@@ -6,7 +6,7 @@ def read_result(step: int, batch_index):
     result = []
     count = 0
     # with open(f'./origin_result/no_new_match_result_{step}.txt', 'r') as f:
-    with open(f'./origin_result/no_new_match_result_{step}_seed.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}_new144.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -20,9 +20,10 @@ def read_result(step: int, batch_index):
 
 
 def calculate_average_result(step):
+    analysis = []
     result = []
     curr = []
-    with open(f'./origin_result/no_new_match_result_{step}_seed.txt', 'r') as f:
+    with open(f'./origin_result/no_new_match_result_{step}_new144.txt', 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -38,9 +39,12 @@ def calculate_average_result(step):
                         r = tp_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0
                         f = (2 * p * r / (p + r)) if (p + r) > 0 else 0
                         curr_result.append([p, r, f])
+                        ground_truth = tp_count + fn_count
                     # all_pos = len([item for item in curr if item[4] == "True"])
                     # if all_pos == 2:
                     #     result.append(curr_result)
+                    g_p = len([item for item in curr if item[4] == "True" and float(item[2]) >= 0.1])
+                    analysis.append([curr_result[0][1], ground_truth, g_p])
                     result.append(curr_result)
                 else:
                     continue
@@ -58,11 +62,15 @@ def calculate_average_result(step):
             r = tp_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0
             f = (2 * p * r / (p + r)) if (p + r) > 0 else 0
             curr_result.append([p, r, f])
+            ground_truth = tp_count + fn_count
         # all_pos = len([item for item in curr if item[4] == "True"])
         # if all_pos == 2:
         #     result.append(curr_result)
         result.append(curr_result)
+        g_p = len([item for item in curr if item[4] == "True" and float(item[2]) >= 0.1])
+        analysis.append([curr_result[0][1], ground_truth, g_p])
     s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    print('分开计算之后求平均值')
     print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
     for minConf in s:
         i = s.index(minConf)
@@ -77,7 +85,8 @@ def calculate_average_result(step):
             f += res[i][2]
         p /= len(result)
         r /= len(result)
-        print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {2 * p * r / (p + r):>10.3f} nothing:{nothing}")
+        print(f"{minConf:>10.1f} {p:>10.4f} {r:>10.4f} {2 * p * r / (p + r):>10.4f}")
+    return analysis
 
 
 def true_positive(data):
@@ -212,14 +221,15 @@ def calculate_result(FPs, TPs, FN):
         results.append((threshold, tp_count, fp_count, fn_count, precision, recall, f1_score))
 
     # 打印结果
-    print(f"\n{'Threshold':>10} {'TP':>5} {'FP':>5} {'FN':>5} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
+    print('\n汇总之后计算')
+    print(f"{'Threshold':>10} {'TP':>5} {'FP':>5} {'FN':>5} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
     for threshold, tp_count, fp_count, fn_count, precision, recall, f1_score in results:
         print(
-            f"{threshold:>10.1f} {tp_count:>5} {fp_count:>5} {fn_count:>5} {precision:>10.3f} {recall:>10.3f} {f1_score:>10.3f}")
+            f"{threshold:>10.1f} {tp_count:>5} {fp_count:>5} {fn_count:>5} {precision:>10.4f} {recall:>10.4f} {f1_score:>10.4f}")
 
 
 if __name__ == '__main__':
-    step = 1
+    step = 3
     result = read_result(step, 0)
     # result = []
     # for i in range(27):
@@ -228,5 +238,23 @@ if __name__ == '__main__':
     FPs = false_positive(result)
     TPs = true_positive(result)
     FN = false_negative(result)
-    # calculate_result(FPs, TPs, FN)
-    calculate_average_result(step)
+    calculate_result(FPs, TPs, FN)
+    analysis = calculate_average_result(step)
+    # print(analysis)
+    # bins = np.arange(0.0, 1.1, 0.1)
+    # hist, bin_edges = np.histogram(analysis, bins=bins)
+    # print("\nrecall 数据的分段统计 (0 到 1 间隔 0.1):")
+    # for i in range(len(hist)):
+    #     print(f"{bin_edges[i]:.1f}-{bin_edges[i + 1]:.1f} {hist[i]}")
+    # zero_list = []
+    # for index, item in enumerate(analysis):
+    #     if item[0] == 0.5 and item[1] == 2:
+    #         zero_list.append((index, item))
+    # print(zero_list)
+    # print(len(zero_list))
+    # print('-----')
+    # for i in zero_list:
+    #     print(i[1][1])
+    # print('--------')
+    # for i in zero_list:
+    #     print(i[1][2])

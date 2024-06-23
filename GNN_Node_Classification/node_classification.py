@@ -85,9 +85,9 @@ def valid(gnn_model, data_loader, device, threshold):
         print(f'--valid: '
               # f'Loss: {total_loss}, '
               # f'Accuracy: {accuracy}, '
-              f'Precision: {Decimal(precision).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
-              f'Recall: {Decimal(recall).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
-              f'F1: {Decimal(f_1).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}')
+              f'Precision: {Decimal(precision).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}, '
+              f'Recall: {Decimal(recall).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}, '
+              f'F1: {Decimal(f_1).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}')
         # f'AUROC: {auroc},'
         # f'AUPRC: {auprc}')
         return [total_loss, accuracy, precision, recall, f_1, auroc]
@@ -142,8 +142,8 @@ def train(save_path, save_name, embedding_type, step, gnn_model, data_loader, ep
             total_loss += loss.item()
         print(f'--train: '
               f'Epoch {epoch}, '
-              f'Loss: {Decimal(total_loss / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}, '
-              f'Acc: {Decimal(train_accuracy / len(data_loader)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")}')
+              f'Loss: {Decimal(total_loss / len(data_loader)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}, '
+              f'Acc: {Decimal(train_accuracy / len(data_loader)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")}')
         res = valid(gnn_model=gnn_model, data_loader=valid_data_loader, device=device, threshold=threshold)
         res.insert(0, epoch)
         res.insert(1, total_loss / len(data_loader))

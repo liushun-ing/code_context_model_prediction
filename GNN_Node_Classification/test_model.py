@@ -91,15 +91,15 @@ def print_result(result, threshold):
             r += res[i][1]
             f += res[i][2]
             a += res[i][3]
-        p = Decimal(p / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
-        r = Decimal(r / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
+        p = Decimal(p / len(result)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")
+        r = Decimal(r / len(result)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")
         # f = Decimal(f / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
         if p + r > 0:
-            f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
+            f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")
         else:
-            f = Decimal(f / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
-        a = Decimal(a / len(result)).quantize(Decimal("0.001"), rounding="ROUND_HALF_UP")
-        print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f} {a:>10.3f}")
+            f = Decimal(f / len(result)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")
+        a = Decimal(a / len(result)).quantize(Decimal("0.0001"), rounding="ROUND_HALF_UP")
+        print(f"{minConf:>10.1f} {p:>10.4f} {r:>10.4f} {f:>10.4f} {a:>10.4f}")
         if minConf == threshold:
             target = [float(p), float(r), float(f), float(a)]
     return target

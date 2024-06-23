@@ -1,4 +1,6 @@
 import ast
+import random
+
 import math
 import os
 from os.path import join
@@ -131,9 +133,9 @@ def cluster_sample(graph: DGLGraph):
         kind_nodes = (graph.ndata['kind'] == kind).nonzero(as_tuple=True)[0]
         label_1_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 1).nonzero(as_tuple=True)[0]]
         label_0_nodes = kind_nodes[(graph.ndata['label'][kind_nodes] == 0).nonzero(as_tuple=True)[0]]
-
         # 蒋所有节点合并后，进行聚类
-        if label_1_nodes.numel() > 0 and label_0_nodes.numel() > 0:
+        if label_1_nodes.numel() + label_0_nodes.numel() > 1:
+            # print(f"kind: {kind}")
             label_1_embeddings = graph.ndata['embedding'][label_1_nodes]
             label_0_embeddings = graph.ndata['embedding'][label_0_nodes]
             all_embeddings = torch.cat((label_1_embeddings, label_0_embeddings), dim=0).tolist()
@@ -143,23 +145,32 @@ def cluster_sample(graph: DGLGraph):
             labels = kmeans.labels_
             size_1 = label_1_embeddings.shape[0]
             size_0 = label_0_embeddings.shape[0]
-            # print(labels)
-            # 计算正样本的最多聚类标签
-            cluster_labels = np.array(labels[0: size_1])
-            # 计算众数
-            counter = Counter(cluster_labels)
-            mode_data = counter.most_common(1)[0]
-            # 获取众数和出现频率
-            mode = mode_data[0]
-            count = mode_data[1]
-            label_1 = labels[0: size_1]
-            label_0 = labels[size_1:]
-            need_to_remove_0 = label_0_nodes[label_0 != mode]
-            if need_to_remove_0.shape[0] != 0:
-                graph.remove_nodes(need_to_remove_0.tolist())
-            need_to_remove_1 = label_1_nodes[label_1 != mode]
-            if need_to_remove_1.shape[0] != 0:
-                graph.remove_nodes(need_to_remove_1.tolist())
+            if size_1 > 0:
+                # 计算正样本的最多聚类标签
+                cluster_labels = np.array(labels[0: size_1])
+                # 计算众数
+                counter = Counter(cluster_labels)
+                mode_data = counter.most_common(1)[0]
+                # 获取众数和出现频率
+                mode = mode_data[0]
+                count = mode_data[1]
+                label_1 = labels[0: size_1]
+                label_0 = labels[size_1:]
+                need_to_remove_0 = label_0_nodes[label_0 != mode]
+                if need_to_remove_0.shape[0] != 0:
+                    # print(f'removed false {need_to_remove_0.shape[0]}')
+                    graph.remove_nodes(need_to_remove_0.tolist())
+                need_to_remove_1 = label_1_nodes[label_1 != mode]
+                if need_to_remove_1.shape[0] != 0:
+                    # print(f'removed true {need_to_remove_1.shape[0]}')
+                    graph.remove_nodes(need_to_remove_1.tolist())
+            else:
+                mode = random.randint(0, 1)
+                label_0 = labels[size_1:]
+                need_to_remove_0 = label_0_nodes[label_0 != mode]
+                if need_to_remove_0.shape[0] != 0:
+                    # print(f'removed false {need_to_remove_0.shape[0]}')
+                    graph.remove_nodes(need_to_remove_0.tolist())
     true_nodes = (graph.ndata['label'] == 1).nonzero(as_tuple=True)[0].tolist()
     while True:
         curr_len = len(true_nodes)
@@ -178,7 +189,6 @@ def cluster_sample(graph: DGLGraph):
             need_to_remove.append(node)
     graph.remove_nodes(need_to_remove)
     return graph
-
 
 
 def my_under_sampling(nodes: DataFrame, edges: DataFrame, mode: str, threshold: float):
@@ -298,9 +308,9 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
     g.ndata['kind'] = torch.tensor(nodes['kind_encoded'].tolist(), dtype=torch.int64)
     g.edata['relation'] = torch.tensor(edges['relation'].tolist(), dtype=torch.int64)
     # 是否 similarity 过滤
-    # if under_sampling_threshold == 0:
-    # g = similarity_sample(g)
-    g = cluster_sample(g)
+    if under_sampling_threshold == 0:
+        # g = similarity_sample(g)
+        g = cluster_sample(g)
     # 是否 undersample
     if under_sampling_threshold > 0:
         g = random_under_sampling(g, mode, under_sampling_threshold)
@@ -350,7 +360,8 @@ def collate(batch):
     return batched_graph, features, labels, edge_types, kinds
 
 
-def load_prediction_data(dataset_path, mode: LOAD_MODE, embedding_type: str, batch_size: int, step: int, under_sampling_threshold=15,
+def load_prediction_data(dataset_path, mode: LOAD_MODE, embedding_type: str, batch_size: int, step: int,
+                         under_sampling_threshold=15,
                          self_loop=True, load_lazy=True) -> torch.utils.data.dataloader.DataLoader:
     """
     根据模式加载数据集,可以选择懒加载

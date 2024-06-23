@@ -3,19 +3,19 @@ experimentName: astnn_codebert_attention_filter
 searchSpace:
 #  batch_size:
 #    _type: choice
-#    _value: [ 8 ]
+#    _value: [ 1, 2, 4, 8, 16, 32, 64, 128 ]
 #  lr:
 #    _type: choice
-#    _value: [ 0.0005 ]
+#    _value: [ 0.005, 0.001, 0.0005, 0.0001 ]
 #  hidden_size: # 图卷积层大小
 #    _type: choice
-#    _value: [ 1024, 512]
+#    _value: [ 1024, 768, 512, 256 ]
   attention_heads: # 图卷积层注意力机制 head
     _type: choice
     _value: [ 2, 4, 8, 12, 16 ]
 #  dropout:
 #    _type: choice
-#    _value: [ 0.4 ]
+#    _value: [ 0,1, 0,2, 0,3, 0.4, 0,5 ]
 #  epochs:
 #    _type: choice
 #    _value: [ 100 ]

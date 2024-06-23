@@ -99,12 +99,9 @@ class MultiHeadAttentionLayer(nn.Module):
                 K_h = F.relu(self.feature_K(g, self.dropout(h)))
                 V_h = F.relu(self.feature_V(g, self.dropout(h)))
             elif self.model_type == 'GAT':
-                q = self.feature_Q(g, self.dropout(h))
-                Q_h = F.relu(q).view(q.shape[0], -1)
-                k = self.feature_Q(g, self.dropout(h))
-                K_h = F.relu(q).view(k.shape[0], -1)
-                v = self.feature_Q(g, self.dropout(h))
-                V_h = F.relu(q).view(v.shape[0], -1)
+                Q_h = F.relu(self.feature_Q(g, self.dropout(h))).mean(dim=1)
+                K_h = F.relu(self.feature_Q(g, self.dropout(h))).mean(dim=1)
+                V_h = F.relu(self.feature_Q(g, self.dropout(h))).mean(dim=1)
             elif self.model_type == 'RGCN' or self.model_type == 'GGNN':
                 Q_h = F.relu(self.feature_Q(g, self.dropout(h), e))
                 K_h = F.relu(self.feature_K(g, self.dropout(h), e))
@@ -141,7 +138,7 @@ class WoConcatPredictionModel(nn.Module):
         :param num_edge_types: number of edge, defaults to 6
         """
         super(WoConcatPredictionModel, self).__init__()
-        print("attention prediction model")
+        print("wo_concat prediction model")
         self.number_layers = number_layers
         self.hidden_size = hidden_size
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边

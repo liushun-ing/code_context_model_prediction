@@ -1,3 +1,5 @@
+import copy
+import itertools
 import os
 import sys
 import time
@@ -8,11 +10,10 @@ import networkx as nx
 import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
+from networkx import DiGraph
 from networkx.algorithms import isomorphism
 from gspan_mining.config import parser
 from gspan_mining.main import main
-
-import multiprocessing
 
 root_path = join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'params_validation',
                  'git_repo_code')
@@ -83,7 +84,8 @@ def get_graph(graphs: list[ET.Element], step: int):
         # 转化为图结构
         remove_nodes = []
         for node in vertex_list:
-            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'))
+            g.add_node(int(node.get('id')), label=node.get('stereotype'), origin=node.get('origin'),
+                       G1=node.get('G1'))
             if node.get('stereotype') == 'NOTFOUND':
                 remove_nodes.append(int(node.get('id')))
             else:
@@ -118,6 +120,12 @@ def load_targets(project_model_name: str, step):
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
         G1s = G1s + get_graph(graphs, step)
+    # for g in G1s:
+    #     true_number = 0
+    #     for n in list(g.nodes):
+    #         true_number += int(g.nodes.get(n)['origin'])
+    #     if true_number == len(list(g.nodes)):
+    #         print('no change ', G1s.index(g))
     return G1s
 
 
@@ -174,45 +182,25 @@ def calculate_result_full(labels, output, true_number):
 
 
 def print_result(result, k):
-    if k == 0:
-        s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-        print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
-        for minConf in s:
-            i = s.index(minConf)
-            p, r, f = 0.0, 0.0, 0.0
-            for res in result:
-                p += res[i][0]
-                r += res[i][1]
-                f += res[i][2]
-            p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            # f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            if p + r > 0:
-                f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            else:
-                f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-            print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
-    else:
+    s = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    print(f"{'Threshold':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
+    for minConf in s:
+        i = s.index(minConf)
         p, r, f = 0.0, 0.0, 0.0
         for res in result:
-            p += res[0]
-            r += res[1]
-            f += res[2]
+            p += res[i][0]
+            r += res[i][1]
+            f += res[i][2]
         p = Decimal(p / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         r = Decimal(r / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         # f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
         if p + r > 0:
             f = Decimal(2 * p * r / (p + r)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-        else:
-            f = Decimal(f / len(result)).quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
-        print(f'----------result of top {k}-------\n'
-              f'Precision: {p}, '
-              f'Recall: {r}, '
-              f'F1: {f}')
+        print(f"{minConf:>10.1f} {p:>10.3f} {r:>10.3f} {f:>10.3f}")
 
 
-def save_result_stereotype(confidence, nodes, f):
-    f.write("----new match---\n")
+def save_result_stereotype(confidence, nodes):
+    print("----new match---")
     confidence = dict(confidence)
     for node_id in nodes:
         origin_label = nodes.get(node_id)['origin']
@@ -221,53 +209,75 @@ def save_result_stereotype(confidence, nodes, f):
             # node_id = c[0]
             # conf = Decimal(conf).quantize(Decimal("0.01"), rounding="ROUND_FLOOR")
             stereotype = nodes.get(node_id)['label']
-            f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
+            print(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}')
         elif origin_label == '1':
             conf = 0.0
             stereotype = nodes.get(node_id)['label']
-            f.write(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}\n')
+            print(f'{node_id} {origin_label} {conf} {stereotype} {origin_label == "1"} {conf > 0}')
 
 
-def graph_match(step, patterns, batch_index):
+def graph_match(step, patterns):
     G1s = load_targets('my_mylyn', step)
     G2s = load_patterns(patterns)
     print('G1s', len(G1s), 'G2s', len(G2s))
     result_1, result_3, result_5, result_full = [], [], [], []
-    # f = open(f'origin_result/match_result_{step}.txt', 'w')
-    f = open(f'origin_result/no_new_match_result_{step}_batch_{batch_index}.txt', 'w')
-    f.write("node_id origin_label confidence stereotype label_result predict_result\n")
-    # for G1 in G1s:
-    for G1 in G1s[batch_index * 30: (batch_index + 1) * 30]: # 遍历所有测试集的图
-        # if G1s.index(G1) in [291, 368]:
+    for G1 in G1s[43:44]:
+
+        print(G1.nodes(data=True))
+        print(G1.edges(data=True))
+        for node in G1.nodes(data=True):
+            if node[1]['label'] == 'FIELD' and G1.has_edge(1, node[0]):
+                print(f'1 号节点 declares 了一个 {node[0]} 号field')
+            if node[1]['label'] == 'SET' and G1.has_edge(1, node[0]):
+                print(f'1 号节点 declares 了一个 {node[0]} 号 SET')
+            if node[1]['label'] == 'FIELD' and G1.has_edge(4, node[0]):
+                print(f'4 号节点 declares 了一个 {node[0]} 号field')
+            if node[1]['label'] == 'SET' and G1.has_edge(4, node[0]):
+                print(f'4 号节点 declares 了一个 {node[0]} 号 SET')
+        # for G1 in G1s[batch_index * 200: (batch_index + 1) * 200]:
+        # if G1s.index(G1) in [290]:
         #     continue
         print(f'handling: {G1s.index(G1)}-{G1}')
         begin_time = time.time()
         total_match = 0
         confidence = dict()
         flag = False
-        for G2 in G2s: # patterns 0.015 = 144个
+        for G2 in G2s:
             curr_time = time.time()
-            if curr_time - begin_time > 60 * 10 * step:
+            if curr_time - begin_time > 60 * 5:
                 flag = True
                 break
             GM = isomorphism.DiGraphMatcher(G1, G2, node_match=node_match, edge_match=edge_match)
             if GM.subgraph_is_isomorphic():
+                t = 0
                 for sub_iter in GM.subgraph_isomorphisms_iter():
-                    total_match += 1
                     nodes = list(map(int, list(sub_iter.keys())))
+                    ground_truth = 0
+                    for node in nodes:
+                        ground_truth += int(G1.nodes.get(node)['origin'])
+                    # 匹配的子图中不属于 ground truth的节点数不能超过当前的预测补偿 step
+                    if len(nodes) - ground_truth > step:
+                        continue
+                    total_match += 1
+                    t += 1
                     for node in nodes:
                         if confidence.get(node):
                             confidence[node] = confidence[node] + 1
                         else:
                             confidence[node] = 1
                     # sub_G1: nx.DiGraph = G1.subgraph(nodes)
-                    # print(sub_G1.nodes.data(), sub_G1.edges.data())
-        if flag:
-            print(f'continue {G1s.index(G1)}')
-            continue
+                    # print(sub_G1.nodes.data(), sub_G1.edges.data()
+                print(G2.nodes(data=True), G2.edges(data=True), t)
+        if flag: # 计算已经匹配出来的
+            print(f'break {G1s.index(G1)}')
+            break # 如果存在超时，直接跳过该 model
+        print('total_match: ', total_match)
+        confidence = dict(sorted(confidence.items(), key=lambda d: d[1], reverse=True))
+        print(confidence)
         for i in confidence:
             confidence[i] = confidence.get(i) / total_match
         confidence = sorted(confidence.items(), key=lambda d: d[1], reverse=True)  # [(3, 1.0), (17, 0.5), (14, 0.5)]
+        print(confidence)
         k = 0
         if k == 0:
             output, labels = [], []
@@ -282,11 +292,11 @@ def graph_match(step, patterns, batch_index):
                 true_number += int(G1.nodes.get(n)['origin'])
             if true_number > 0:
                 result_full.append(calculate_result_full(labels, output, true_number))
-                save_result_stereotype(confidence, G1.nodes, f)
+                save_result_stereotype(confidence, G1.nodes)
     # print_result(result_1, 1)
     # print_result(result_3, 3)
     # print_result(result_5, 5)
-    pd.to_pickle(result_full, f'./origin_result/no_result_full_{step}_batch_{batch_index}.pkl')
+    # pd.to_pickle(result_full, f'./origin_result/result_full_{step}_{batch_index}.pkl')
     print_result(result_full, 0)
 
 
@@ -350,14 +360,11 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
-    min_sup = 0.01
+    min_sup = 0.015
     node_num = 0
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
     # graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
-    for batch_index in range(10):
-        single_process = multiprocessing.Process(target=graph_match, args=(step, f'./origin_patterns/no-sup-{min_sup}', batch_index))
-        # 使用进程对象启动进程执行指定任务
-        single_process.start()
+    graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')

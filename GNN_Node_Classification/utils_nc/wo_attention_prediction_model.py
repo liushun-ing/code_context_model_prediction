@@ -19,7 +19,7 @@ class WoAttentionPredictionModel(nn.Module):
         :param num_edge_types: number of edge
         """
         super(WoAttentionPredictionModel, self).__init__()
-        print("concat prediction model")
+        print("wo_attention prediction model")
         self.model_type = model_type
         self.number_layers = number_layers
         # 不能设置 allow_zero_in_degree,这是需要自行处理，否则没有入度的节点特征将全部变为 0，只能加入自环边
@@ -62,7 +62,7 @@ class WoAttentionPredictionModel(nn.Module):
                     x = self.dropout(x)
         elif self.model_type == 'GAT':
             for i in range(self.number_layers):
-                x = torch.relu(self.gnn_layers[i](g, x)).view(x.shape[0], -1)
+                x = torch.relu(self.gnn_layers[i](g, x)).mean(dim=1)
                 if not i == self.number_layers - 1:
                     self.output.append(x.clone())
                     x = self.dropout(x)
