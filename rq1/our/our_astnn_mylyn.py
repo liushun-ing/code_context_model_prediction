@@ -13,18 +13,18 @@ import nni
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nni", type=bool, required=False, default=False)
-parser.add_argument("--step", type=int, required=False, default=1)
+parser.add_argument("--step", type=int, required=False, default=2)
 parser.add_argument("--gpu", type=str, required=False, default='1')
 parser.add_argument("--concurrency", type=bool, required=False, default=False)
 args = parser.parse_args()
 
-construct = False
+construct = True
 load_lazy = True
 train = True
 
 my_params = {
     'description': 'mylyn',
-    'embedding_type': 'codebert',
+    'embedding_type': 'astnn+codebert',
     'current_path': join(os.path.dirname(os.path.realpath(__file__))),  # save to current dir
     'step': args.step,
     'under_sampling_threshold': 0,
@@ -32,7 +32,7 @@ my_params = {
     'num_layers': 3,
     'in_feats': 1280,
     'hidden_size': 1024,
-    'dropout': 0.4,
+    'dropout': 0.3,
     'attention_heads': 12,
     'num_heads': 8,
     'num_edge_types': 5,

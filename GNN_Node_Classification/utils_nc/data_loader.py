@@ -310,6 +310,7 @@ def load_graph_data(node_file, edge_file, mode: LOAD_MODE, under_sampling_thresh
     # 是否 similarity 过滤
     if under_sampling_threshold == 0:
         # g = similarity_sample(g)
+        # g = cluster_sample(g)
         g = cluster_sample(g)
     # 是否 undersample
     if under_sampling_threshold > 0:

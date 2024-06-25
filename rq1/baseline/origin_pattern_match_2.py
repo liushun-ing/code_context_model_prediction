@@ -108,6 +108,7 @@ def load_targets(project_model_name: str, step):
     # 读取code context model
     model_dir_list = get_models_by_ratio(project_model_name, 0.9, 1)
     model_dir_list = sorted(model_dir_list, key=lambda x: int(x))
+    count = 0
     for model_dir in model_dir_list:
         # print('---------------', model_dir)
         model_path = join(project_path, model_dir)
@@ -119,7 +120,11 @@ def load_targets(project_model_name: str, step):
         tree = ET.parse(model_file)  # 拿到xml树
         code_context_model = tree.getroot()
         graphs = code_context_model.findall("graph")
-        G1s = G1s + get_graph(graphs, step)
+        gs = get_graph(graphs, step)
+        if len(gs) > 0:
+            G1s = G1s + gs
+            count += 1
+    print(f'count: {count}')
     return G1s
 
 
@@ -353,11 +358,11 @@ def graph_build_and_gspan(min_sup, node_num, project_model_name='my_mylyn'):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    step = int(sys.argv[1]) if len(sys.argv) > 2 else 1
+    step = int(sys.argv[1]) if len(sys.argv) > 2 else 3
     # batch_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0 # 798 / 200 = 5 0,1,2,3
     # print(step, batch_index)
     min_sup = 0.050
     node_num = 0
     # 挖掘模式库 这里的 gsan库有问题，需要根据报错，将包源码的 append 方法修改为 _append 即可
-    graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
-    # graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')
+    # graph_build_and_gspan(min_sup=min_sup, node_num=node_num)
+    graph_match(step=step, patterns=f'./origin_patterns/no-sup-{min_sup}')

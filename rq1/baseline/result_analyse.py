@@ -85,7 +85,7 @@ def calculate_average_result(step):
             f += res[i][2]
         p /= len(result)
         r /= len(result)
-        print(f"{minConf:>10.1f} {p:>10.4f} {r:>10.4f} {2 * p * r / (p + r):>10.4f}")
+        print(f"{minConf:>10.1f} {p:>10.4f} {r:>10.4f} {2 * p * r / (p + r):>10.4f} {nothing}")
     return analysis
 
 
